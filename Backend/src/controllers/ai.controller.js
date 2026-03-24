@@ -1,6 +1,14 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { config } from 'dotenv'
+config()
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
+import { HumanMessage, SystemMessage } from '@langchain/core/messages'
+
+const geminiModel = new ChatGoogleGenerativeAI({
+    model: 'gemini-2.5-flash-lite',
+    apiKey: process.env.GOOGLE_API_KEY
+})
+
 export const scoreResume = async (req, res) => {
     try {
         const { resumeText } = req.body
@@ -9,42 +17,43 @@ export const scoreResume = async (req, res) => {
             return res.status(400).json({ message: 'Resume text required' })
         }
 
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+        const response = await geminiModel.invoke([
+            new SystemMessage(`
+                You are an expert HR recruiter for Nepal's job market.
+                Analyze resumes and provide detailed feedback.
+                Always respond in valid JSON format only — no extra text.
+            `),
+            new HumanMessage(`
+                Analyze this resume and respond ONLY in this exact JSON format:
+                {
+                    "overall_score": 75,
+                    "sections": {
+                        "contact_info": 90,
+                        "work_experience": 70,
+                        "education": 80,
+                        "skills": 75,
+                        "formatting": 65
+                    },
+                    "strengths": [
+                        "Clear contact information"
+                    ],
+                    "weaknesses": [
+                        "No quantifiable achievements"
+                    ],
+                    "suggestions": [
+                        "Add a professional summary",
+                        "Quantify achievements",
+                        "Add LinkedIn URL"
+                    ],
+                    "verdict": "Good resume with room for improvement"
+                }
 
-        const prompt = `
-You are a strict and highly experienced HR recruiter in Nepal.
+                Resume:
+                ${resumeText}
+            `)
+        ])
 
-Evaluate the resume based on Nepal's job market standards.
-
-Rules:
-- Be realistic and critical
-- Give lower scores if resume is weak
-- Focus on clarity, impact, and ATS-friendliness
-- DO NOT give overly positive feedback
-
-Respond ONLY in valid JSON format:
-
-{
-    "overall_score": number (0-100),
-    "sections": {
-        "contact_info": number,
-        "work_experience": number,
-        "education": number,
-        "skills": number,
-        "formatting": number
-    },
-    "strengths": [string],
-    "weaknesses": [string],
-    "suggestions": [string],
-    "verdict": string
-}
-
-Resume:
-${resumeText}
-`
-
-        const result = await model.generateContent(prompt)
-        const raw = result.response.text()
+        const raw = response.text
         const clean = raw.replace(/```json|```/g, '').trim()
         const parsed = JSON.parse(clean)
 

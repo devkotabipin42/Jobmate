@@ -96,34 +96,37 @@ const JobList = () => {
         <div className='min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors'>
             <Navbar />
 
+            
             {/* Search bar */}
-            <div className='bg-green-50 dark:bg-gray-800 py-6 px-4 md:px-6 border-b border-gray-200 dark:border-gray-700'>
-                <form onSubmit={handleSearch} className='flex gap-2 max-w-3xl mx-auto'>
-                    <input
-                        type='text'
-                        value={keyword}
-                        onChange={(e) => setKeyword(e.target.value)}
-                        placeholder='Search jobs...'
-                        className='flex-1 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white'
-                    />
-                    {/* Mobile filter button */}
-                    <button
-                        type='button'
-                        onClick={() => setFilterOpen(true)}
-                        className='md:hidden border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-2.5 rounded-lg text-sm'
-                    >
-                        Filter
-                    </button>
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        type='submit'
-                        className='bg-green-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-green-700'
-                    >
-                        Search
-                    </motion.button>
-                </form>
-            </div>
+<div className='bg-green-50 dark:bg-gray-800 py-6 px-4 md:px-6 border-b border-gray-200 dark:border-gray-700'>
+    <form onSubmit={handleSearch} className='flex flex-col sm:flex-row gap-2 max-w-3xl mx-auto'>
+        <input
+            type='text'
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            placeholder='Search jobs...'
+            className='flex-1 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white'
+        />
+        <div className='flex gap-2'>
+            {/* Mobile filter button */}
+            <button
+                type='button'
+                onClick={() => setFilterOpen(true)}
+                className='md:hidden flex-1 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-2.5 rounded-lg text-sm'
+            >
+                Filter
+            </button>
+            <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type='submit'
+                className='flex-1 sm:flex-none bg-green-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-green-700'
+            >
+                Search
+            </motion.button>
+        </div>
+    </form>
+</div>
 
             {/* Mobile Filter Drawer */}
             <AnimatePresence>

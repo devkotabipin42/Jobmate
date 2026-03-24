@@ -13,6 +13,8 @@
   "type": "module",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@langchain/core": "^1.1.36",
+    "@langchain/google-genai": "^2.1.26",
     "@mistralai/mistralai": "^2.1.2",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.9.0",
