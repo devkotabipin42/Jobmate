@@ -1,6 +1,6 @@
 import { config } from 'dotenv'
 config()
-
+console.log("API Key Check:", process.env.GEMINI_API_KEY ? "Found" : "Not Found");
 import app from './src/app.js'
 import connectDB from './src/config/database.js'
 

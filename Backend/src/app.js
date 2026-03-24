@@ -5,6 +5,7 @@ import morgan from 'morgan'
 import authRouter from './routes/auth.routes.js'
 import jobRouter from './routes/job.routes.js'
 import applicationRouter from './routes/application.routes.js'
+import aiRouter from './routes/ai.routes.js'
 const app = express()
 
 app.use(express.json())
@@ -23,6 +24,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRouter)
 app.use('/api/jobs', jobRouter)
 app.use('/api/applications', applicationRouter)
+app.use('/api/ai', aiRouter)
 
 
 export default app

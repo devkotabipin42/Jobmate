@@ -149,3 +149,22 @@ export const getMe = async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
+
+export const updateProfile = async (req, res) => {
+    try {
+        const { name, phone, location } = req.body
+
+        const user = await User.findByIdAndUpdate(
+            req.user._id,
+            { name, phone, location },
+            { new: true }
+        ).select('-password')
+
+        res.status(200).json({
+            message: 'Profile updated',
+            user
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}

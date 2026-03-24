@@ -21,7 +21,11 @@ import SavedJobs from '../features/jobseeker/pages/SavedJobs.jsx'
 
 // Protected Route
 import Protected from '../components/Protected.jsx'
+import Companies from '../features/jobs/pages/Companies.jsx'
+import CareerTips from '../features/jobs/pages/CareerTips.jsx'
 
+// mistralai
+import ResumeScorer from '../features/jobseeker/pages/ResumeScorer.jsx'
 const AppRoutes = () => {
     return (
         <Routes>
@@ -31,7 +35,13 @@ const AppRoutes = () => {
             <Route path='/jobs/:id' element={<JobDetail />} />
             <Route path='/login' element={<Login />} />
             <Route path='/register' element={<Register />} />
-
+            <Route path='/companies' element={<Companies />} />
+            <Route path='/career-tips' element={<CareerTips />} />
+            <Route path='/resume-scorer' element={
+                    <Protected role='jobseeker'>
+                     <ResumeScorer />
+                    </Protected>
+                    } />
             {/* Job Seeker Routes — Protected */}
             <Route path='/profile' element={
                 <Protected role='jobseeker'>

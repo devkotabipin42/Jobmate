@@ -27,7 +27,7 @@ const Navbar = () => {
                     Job<span className='text-gray-800 dark:text-white'>mate</span>
                 </Link>
 
-                {/* Desktop Nav */}
+                {/* Desktop Nav Links */}
                 <div className='hidden md:flex items-center gap-6 text-sm text-gray-600 dark:text-gray-300'>
                     <Link to='/jobs' className='hover:text-green-600 transition-colors'>Jobs</Link>
                     <Link to='/companies' className='hover:text-green-600 transition-colors'>Companies</Link>
@@ -36,25 +36,51 @@ const Navbar = () => {
 
                 {/* Desktop Right */}
                 <div className='hidden md:flex items-center gap-3'>
+                    {/* Theme Toggle */}
                     <button
                         onClick={() => dispatch(toggleTheme())}
-                        className='w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors'
+                        className='w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors'
                     >
                         {isDark ? '☀️' : '🌙'}
                     </button>
 
                     {user ? (
                         <>
+                            {/* Jobseeker links */}
+                            {user.role === 'jobseeker' && (
+                                <>
+                                    <Link
+                                        to='/profile'
+                                        className='text-sm text-gray-600 dark:text-gray-300 hover:text-green-600 transition-colors'
+                                    >
+                                        Profile
+                                    </Link>
+                                    <Link
+                                        to='/my-applications'
+                                        className='text-sm text-gray-600 dark:text-gray-300 hover:text-green-600 transition-colors'
+                                    >
+                                        Applications
+                                    </Link><Link
+            to='/resume-scorer'
+            onClick={() => setMenuOpen(false)}
+            className='block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg'
+        >
+            AI Resume
+        </Link>
+
+                                </>
+                            )}
+
+                            {/* Employer links */}
                             {user.role === 'employer' && (
-                                <Link to='/employer/dashboard' className='text-sm text-gray-600 dark:text-gray-300 hover:text-green-600'>
+                                <Link
+                                    to='/employer/dashboard'
+                                    className='text-sm text-gray-600 dark:text-gray-300 hover:text-green-600 transition-colors'
+                                >
                                     Dashboard
                                 </Link>
                             )}
-                            {user.role === 'jobseeker' && (
-                                <Link to='/my-applications' className='text-sm text-gray-600 dark:text-gray-300 hover:text-green-600'>
-                                    My Applications
-                                </Link>
-                            )}
+
                             <button
                                 onClick={handleLogout}
                                 className='text-sm border border-gray-300 dark:border-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-white transition-colors'
@@ -64,10 +90,16 @@ const Navbar = () => {
                         </>
                     ) : (
                         <>
-                            <Link to='/login' className='text-sm border border-gray-300 dark:border-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-white transition-colors'>
+                            <Link
+                                to='/login'
+                                className='text-sm border border-gray-300 dark:border-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-white transition-colors'
+                            >
                                 Login
                             </Link>
-                            <Link to='/register' className='text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors'>
+                            <Link
+                                to='/register'
+                                className='text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors'
+                            >
                                 Register
                             </Link>
                         </>
@@ -82,8 +114,6 @@ const Navbar = () => {
                     >
                         {isDark ? '☀️' : '🌙'}
                     </button>
-
-                    {/* Hamburger */}
                     <button
                         onClick={() => setMenuOpen(!menuOpen)}
                         className='w-9 h-9 flex flex-col items-center justify-center gap-1.5 rounded-lg border border-gray-200 dark:border-gray-700'
@@ -111,7 +141,7 @@ const Navbar = () => {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
-                        className='md:hidden border-t border-gray-200 dark:border-gray-700 mt-3 pt-3 space-y-2'
+                        className='md:hidden border-t border-gray-200 dark:border-gray-700 mt-3 pt-3 space-y-1'
                     >
                         <Link
                             to='/jobs'
@@ -135,9 +165,36 @@ const Navbar = () => {
                             Career tips
                         </Link>
 
-                        <div className='border-t border-gray-200 dark:border-gray-700 pt-2'>
+                        <div className='border-t border-gray-200 dark:border-gray-700 pt-2 mt-2'>
                             {user ? (
                                 <>
+                                    {/* Jobseeker mobile links */}
+                                    {user.role === 'jobseeker' && (
+                                        <>
+                                            <Link
+                                                to='/profile'
+                                                onClick={() => setMenuOpen(false)}
+                                                className='block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg'
+                                            >
+                                                Profile
+                                            </Link>
+                                            <Link
+                                                to='/my-applications'
+                                                onClick={() => setMenuOpen(false)}
+                                                className='block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg'
+                                            >
+                                                My Applications
+                                            </Link>
+                                             <Link
+                                                to='/resume-scorer'
+                                                     className='text-sm text-gray-600 dark:text-gray-300 hover:text-green-600 transition-colors'
+                                                         >
+                                                        AI Resume
+                                            </Link>
+                                        </>
+                                    )}
+
+                                    {/* Employer mobile links */}
                                     {user.role === 'employer' && (
                                         <Link
                                             to='/employer/dashboard'
@@ -147,15 +204,7 @@ const Navbar = () => {
                                             Dashboard
                                         </Link>
                                     )}
-                                    {user.role === 'jobseeker' && (
-                                        <Link
-                                            to='/my-applications'
-                                            onClick={() => setMenuOpen(false)}
-                                            className='block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg'
-                                        >
-                                            My Applications
-                                        </Link>
-                                    )}
+
                                     <button
                                         onClick={handleLogout}
                                         className='w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg'

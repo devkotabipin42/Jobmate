@@ -4,7 +4,8 @@ import {
     registerEmployer,
     login,
     logout,
-    getMe
+    getMe,
+    updateProfile 
 } from '../controllers/auth.controller.js'
 import { authMiddleware } from '../middleware/auth.middleware.js'
 
@@ -15,5 +16,6 @@ authRouter.post('/register/employer', registerEmployer)
 authRouter.post('/login', login)
 authRouter.post('/logout', logout)
 authRouter.get('/me', authMiddleware, getMe)
+authRouter.put('/update', authMiddleware, updateProfile)
 
 export default authRouter
