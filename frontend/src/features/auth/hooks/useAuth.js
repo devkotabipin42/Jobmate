@@ -15,6 +15,9 @@ const useAuth = () => {
             formData,
             { withCredentials: true }
         )
+        if (res.data.token) {
+            localStorage.setItem('token', res.data.token)
+        }
         dispatch(setUser(res.data.user))
         return res.data.user
     }

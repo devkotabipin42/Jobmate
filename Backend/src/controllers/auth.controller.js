@@ -31,13 +31,14 @@ export const registerUser = async (req, res) => {
 
         res.cookie('token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: true,
+    sameSite: 'none',
     maxAge: 7 * 24 * 60 * 60 * 1000
 })
 
         res.status(201).json({
             message: 'Registration successful',
+            token,
             user: {
                 id: user._id,
                 name: user.name,
@@ -77,6 +78,7 @@ export const registerEmployer = async (req, res) => {
 
         res.status(201).json({
             message: 'Employer registration successful',
+            token,
             employer: {
                 id: employer._id,
                 company_name: employer.company_name,
@@ -120,6 +122,7 @@ export const login = async (req, res) => {
 
         res.status(200).json({
             message: 'Login successful',
+            token,
             user: {
                 id: account._id,
                 name: account.name || account.company_name,
