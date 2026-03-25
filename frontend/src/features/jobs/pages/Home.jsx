@@ -34,11 +34,11 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <div className='min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 overflow-x-hidden w-full'>
       <Navbar />
 
       {/* Hero */}
-      <div className="bg-green-50 dark:bg-gray-800 py-20 px-6 text-center relative overflow-hidden">
+      <div className='bg-green-50 dark:bg-gray-800 py-20 px-6 text-center relative overflow-x-hidden w-full'>
         {/* Background blobs — Framer Motion */}
         <motion.div
           animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.5, 0.2] }}
