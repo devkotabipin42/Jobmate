@@ -47,6 +47,15 @@ const Navbar = () => {
                     {user ? (
                         <>
                             {/* Jobseeker links */}
+
+                            {user?.role === 'admin' && (
+    <Link
+        to='/admin'
+        className='text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 font-medium transition-colors'
+    >
+        Admin Panel
+    </Link>
+)}
                             {user.role === 'jobseeker' && (
                                 <>
                                     <Link
@@ -169,6 +178,18 @@ const Navbar = () => {
                             {user ? (
                                 <>
                                     {/* Jobseeker mobile links */}
+
+                                        {user.role === 'admin' && (
+    <Link
+        to='/admin'
+        onClick={() => setMenuOpen(false)}
+        className='block px-3 py-2 text-sm text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900 rounded-lg font-medium'
+    >
+        Admin Panel
+    </Link>
+)}
+
+
                                     {user.role === 'jobseeker' && (
                                         <>
                                             <Link

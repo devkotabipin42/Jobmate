@@ -4,13 +4,16 @@ import Job from '../models/Job.model.js'
 // Apply for job
 export const applyJob = async (req, res) => {
     try {
+        console.log('User:', req.user)
+        console.log('Job ID:', req.params.id)
+        console.log('Body:', req.body)
+
         const job = await Job.findById(req.params.id)
 
         if (!job) {
             return res.status(404).json({ message: 'Job not found' })
         }
 
-        // Check already applied
         const existing = await Application.findOne({
             job: req.params.id,
             user: req.user._id
@@ -24,10 +27,9 @@ export const applyJob = async (req, res) => {
             job: req.params.id,
             user: req.user._id,
             cv_url: req.user.cv_url || 'https://placeholder.com/cv.pdf',
-            cover_letter: req.body.cover_letter
+            cover_letter: req.body.cover_letter || ''
         })
 
-        // Increment application count
         await Job.findByIdAndUpdate(req.params.id, {
             $inc: { application_count: 1 }
         })
@@ -37,6 +39,7 @@ export const applyJob = async (req, res) => {
             application
         })
     } catch (error) {
+        console.log('Apply Error:', error.message)
         res.status(500).json({ message: error.message })
     }
 }

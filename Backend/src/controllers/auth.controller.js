@@ -113,14 +113,17 @@ export const login = async (req, res) => {
             return res.status(400).json({ message: 'Invalid password' })
         }
 
-        const token = generateToken(account._id, role)
+        // Database se actual role lo
+        const actualRole = account.role || role
+
+        const token = generateToken(account._id, actualRole)
 
         res.cookie('token', token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    maxAge: 7 * 24 * 60 * 60 * 1000
-})
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        })
 
         res.status(200).json({
             message: 'Login successful',
@@ -129,7 +132,7 @@ export const login = async (req, res) => {
                 id: account._id,
                 name: account.name || account.company_name,
                 email: account.email,
-                role
+                role: actualRole
             }
         })
     } catch (error) {

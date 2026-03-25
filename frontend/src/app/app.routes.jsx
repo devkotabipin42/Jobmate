@@ -27,6 +27,8 @@ import SavedJobs from '../features/jobseeker/pages/SavedJobs.jsx'
 import Protected from '../components/Protected.jsx'
 import Companies from '../features/jobs/pages/Companies.jsx'
 import CareerTips from '../features/jobs/pages/CareerTips.jsx'
+//Admin
+import AdminPanel from '../features/jobs/pages/AdminPanel.jsx'
 
 // mistralai
 import ResumeScorer from '../features/jobseeker/pages/ResumeScorer.jsx'
@@ -84,6 +86,11 @@ const AppRoutes = () => {
                     <ManageJobs />
                 </Protected>
             } />
+            <Route path='/admin' element={
+    <Protected role='admin'>
+        <AdminPanel />
+    </Protected>
+} />
         </Routes>
     )
 }
