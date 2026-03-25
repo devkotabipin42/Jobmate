@@ -2,7 +2,6 @@ import User from '../models/user.model.js'
 import Employer from '../models/Employer.model.js'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
-
 const generateToken = (id, role) => {
     return jwt.sign({ id, role }, process.env.JWT_SECRET, {
         expiresIn: '7d'
@@ -31,9 +30,11 @@ export const registerUser = async (req, res) => {
         const token = generateToken(user._id, 'jobseeker')
 
         res.cookie('token', token, {
-            httpOnly: true,
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        })
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000
+})
 
         res.status(201).json({
             message: 'Registration successful',
