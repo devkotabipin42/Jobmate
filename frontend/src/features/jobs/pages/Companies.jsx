@@ -142,19 +142,21 @@ const Companies = () => {
                                         )}
                                     </div>
 
-                                    {/* View Jobs */}
-                                    <Link
-                                        to={`/jobs?company=${company._id}`}
-                                        className='block w-full text-center text-sm bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors'
-                                    >
-                                        View Jobs
-                                    </Link>
-                                    <Link
-    to={`/company/${company._id}`}
-    className='block w-full text-center text-sm bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors'
->
-    View Company
-</Link>
+                                   {/* Buttons */}
+<div className='flex gap-2 mt-4'>
+    <Link
+        to={`/company/${company._id}`}
+        className='flex-1 text-center text-sm bg-green-600 text-white py-2.5 rounded-lg hover:bg-green-700 transition-colors font-medium'
+    >
+        View Profile
+    </Link>
+    <Link
+        to={`/jobs?company=${company._id}`}
+        className='flex-1 text-center text-sm border border-green-600 text-green-600 dark:text-green-400 py-2.5 rounded-lg hover:bg-green-50 dark:hover:bg-green-900 transition-colors'
+    >
+        View Jobs
+    </Link>
+</div>
                                 </motion.div>
                             ))}
                         </div>

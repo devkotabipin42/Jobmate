@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import Navbar from "../../../components/Navbar.jsx";
-
+import Footer from '../../../components/Footer.jsx'
 import {
   fadeUp,
   staggerFadeUp,
@@ -11,7 +11,6 @@ import {
   textReveal,
   cleanupAnimations,
 } from "../../../utils/animations.js";
-import Footer from "../components/Footer.jsx";
 
 const Home = () => {
   const titleRef = useRef(null);
@@ -66,7 +65,7 @@ const Home = () => {
               transition={{ duration: 2, repeat: Infinity }}
               className="w-2 h-2 bg-green-500 rounded-full"
             />
-            Nepal ko pehlo verified job platform
+           The most trusted and verified career marketplace in Nepal.
           </motion.div>
 
           {/* Title — GSAP textReveal */}

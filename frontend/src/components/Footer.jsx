@@ -12,7 +12,7 @@ const Footer = () => {
                             Job<span className='text-green-400'>mate</span>
                         </div>
                         <p className='text-sm text-gray-400 leading-relaxed mb-4'>
-                            Nepal ko pehlo 100% verified job platform. Fake jobs nahi — salary hamesha visible — mobile friendly.
+                            Nepal’s first 100% verified job platform. Zero fake listings— mobile-first experience.
                         </p>
                         {/* Social Links */}
                         <div className='flex gap-3'>

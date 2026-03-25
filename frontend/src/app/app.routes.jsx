@@ -5,6 +5,10 @@ import Home from '../features/jobs/pages/Home.jsx'
 import JobList from '../features/jobs/pages/JobList.jsx'
 import JobDetail from '../features/jobs/pages/JobDetail.jsx'
 import CompanyProfile from '../features/jobs/pages/CompanyProfile.jsx'
+import About from '../features/jobs/pages/About.jsx'
+import Contact from '../features/jobs/pages/Contact.jsx'
+import Privacy from '../features/jobs/pages/Privacy.jsx'
+import Terms from '../features/jobs/pages/Terms.jsx'
 // Auth
 import Login from '../features/auth/pages/Login.jsx'
 import Register from '../features/auth/pages/Register.jsx'
@@ -38,6 +42,10 @@ const AppRoutes = () => {
             <Route path='/companies' element={<Companies />} />
             <Route path='/career-tips' element={<CareerTips />} />
             <Route path='/company/:id' element={<CompanyProfile />} />
+            <Route path='/about' element={<About />} />
+            <Route path='/contact' element={<Contact />} />
+            <Route path='/privacy' element={<Privacy />} />
+            <Route path='/terms' element={<Terms />} />
             <Route path='/resume-scorer' element={
                     <Protected role='jobseeker'>
                      <ResumeScorer />
