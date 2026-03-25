@@ -82,6 +82,33 @@ const AdminPanel = () => {
         }
     }
 
+    const handleBanUser = async (id) => {
+    try {
+        await axios.put(`${API_URL}/api/admin/users/${id}/ban`, {}, { withCredentials: true })
+        setUsers(prev => prev.map(u => u._id === id ? { ...u, is_banned: true } : u))
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+const handleUnbanUser = async (id) => {
+    try {
+        await axios.put(`${API_URL}/api/admin/users/${id}/unban`, {}, { withCredentials: true })
+        setUsers(prev => prev.map(u => u._id === id ? { ...u, is_banned: false } : u))
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+const handleRoleChange = async (id, role) => {
+    try {
+        await axios.put(`${API_URL}/api/admin/users/${id}/role`, { role }, { withCredentials: true })
+        setUsers(prev => prev.map(u => u._id === id ? { ...u, role } : u))
+    } catch (err) {
+        console.log(err)
+    }
+}
+
     const handleTabChange = (tab) => {
         setActiveTab(tab)
         if (tab === 'pending') loadPendingJobs()
@@ -549,115 +576,222 @@ const AdminPanel = () => {
                 )}
 
                 {/* Employers Tab */}
-                {activeTab === 'employers' && (
+                {/* Employers Tab */}
+{activeTab === 'employers' && (
+    <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+    >
+        <div className='flex items-center justify-between mb-4'>
+            <div>
+                <h2 className='text-lg font-semibold text-gray-800 dark:text-white'>
+                    Company Verification
+                </h2>
+                <p className='text-xs text-gray-500 dark:text-gray-400 mt-0.5'>
+                    Verify companies — verified badge will be added
+                </p>
+            </div>
+            <div className='flex gap-2 text-xs'>
+                <span className='bg-green-50 dark:bg-green-900 text-green-600 dark:text-green-300 px-3 py-1.5 rounded-full font-medium'>
+                    ✓ {employers.filter(e => e.is_verified).length} Verified
+                </span>
+                <span className='bg-amber-50 dark:bg-amber-900 text-amber-600 dark:text-amber-300 px-3 py-1.5 rounded-full font-medium'>
+                    ⏳ {employers.filter(e => !e.is_verified).length} Pending
+                </span>
+            </div>
+        </div>
+
+        {loading ? <LoadingSpinner /> : (
+            <div className='space-y-3'>
+                {employers.map((employer, i) => (
                     <motion.div
-                        initial={{ opacity: 0, y: 10 }}
+                        key={employer._id}
+                        initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className={`bg-white dark:bg-gray-800 border rounded-2xl p-5 shadow-sm ${
+                            employer.is_verified
+                                ? 'border-green-200 dark:border-green-700'
+                                : 'border-amber-200 dark:border-amber-700'
+                        }`}
                     >
-                        <div className='flex items-center justify-between mb-4'>
-                            <h2 className='text-lg font-semibold text-gray-800 dark:text-white'>
-                                Employers — {employers.length} registered
-                            </h2>
-                        </div>
-                        {loading ? <LoadingSpinner /> : (
-                            <div className='bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden'>
-                                {employers.map((employer, i) => (
-                                    <motion.div
-                                        key={employer._id}
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: i * 0.03 }}
-                                        className='flex items-center justify-between gap-3 p-4 border-b border-gray-50 dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'
-                                    >
-                                        <div className='flex items-center gap-3'>
-                                            <div className='w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold shrink-0'>
-                                                {employer.company_name?.charAt(0)}
-                                            </div>
-                                            <div>
-                                                <div className='flex items-center gap-2'>
-                                                    <p className='text-sm font-medium text-gray-800 dark:text-white'>
-                                                        {employer.company_name}
-                                                    </p>
-                                                    {employer.is_verified && (
-                                                        <span className='text-xs bg-green-50 dark:bg-green-900 text-green-600 dark:text-green-300 px-2 py-0.5 rounded-full'>
-                                                            ✓ Verified
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <p className='text-xs text-gray-500 dark:text-gray-400'>
-                                                    {employer.email} · {employer.location || 'Nepal'}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        {!employer.is_verified && (
-                                            <motion.button
-                                                whileHover={{ scale: 1.02 }}
-                                                whileTap={{ scale: 0.98 }}
-                                                onClick={() => handleVerifyEmployer(employer._id)}
-                                                className='text-xs bg-green-600 text-white px-4 py-2 rounded-xl hover:bg-green-700 transition-colors font-medium shrink-0'
-                                            >
-                                                ✓ Verify
-                                            </motion.button>
+                        <div className='flex items-start justify-between gap-3'>
+                            <div className='flex items-start gap-3'>
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg shrink-0 ${
+                                    employer.is_verified
+                                        ? 'bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300'
+                                        : 'bg-amber-50 dark:bg-amber-900 text-amber-700 dark:text-amber-300'
+                                }`}>
+                                    {employer.company_name?.charAt(0)}
+                                </div>
+                                <div>
+                                    <div className='flex items-center gap-2 mb-1'>
+                                        <p className='text-sm font-semibold text-gray-800 dark:text-white'>
+                                            {employer.company_name}
+                                        </p>
+                                        {employer.is_verified ? (
+                                            <span className='text-xs bg-green-50 dark:bg-green-900 text-green-600 dark:text-green-300 px-2 py-0.5 rounded-full font-medium'>
+                                                ✓ Verified
+                                            </span>
+                                        ) : (
+                                            <span className='text-xs bg-amber-50 dark:bg-amber-900 text-amber-600 dark:text-amber-300 px-2 py-0.5 rounded-full font-medium'>
+                                                ⏳ Pending Verification
+                                            </span>
                                         )}
-                                    </motion.div>
-                                ))}
+                                        {employer.is_premium && (
+                                            <span className='text-xs bg-purple-50 dark:bg-purple-900 text-purple-600 dark:text-purple-300 px-2 py-0.5 rounded-full'>
+                                                ⭐ Premium
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className='text-xs text-gray-500 dark:text-gray-400'>
+                                        📧 {employer.email}
+                                    </p>
+                                    <p className='text-xs text-gray-500 dark:text-gray-400'>
+                                        📍 {employer.location || 'Nepal'}
+                                        {employer.website && (
+                                            <> · <a href={employer.website} target='_blank' rel='noreferrer' className='text-blue-500 hover:underline'>
+                                                🌐 Website
+                                            </a></>
+                                        )}
+                                    </p>
+                                    <p className='text-xs text-gray-400 mt-0.5'>
+                                        Joined: {new Date(employer.createdAt).toLocaleDateString()}
+                                    </p>
+                                </div>
                             </div>
-                        )}
+
+                            {!employer.is_verified && (
+                                <div className='flex flex-col gap-2 shrink-0'>
+                                    <motion.button
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={() => handleVerifyEmployer(employer._id)}
+                                        className='text-xs bg-green-600 text-white px-5 py-2.5 rounded-xl hover:bg-green-700 transition-colors font-semibold shadow-sm'
+                                    >
+                                        ✓ Verify Company
+                                    </motion.button>
+                                    <button
+                                        className='text-xs border border-red-200 dark:border-red-700 text-red-500 dark:text-red-300 px-5 py-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900 transition-colors'
+                                    >
+                                        ✕ Reject
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </motion.div>
-                )}
+                ))}
+            </div>
+        )}
+    </motion.div>
+)}
 
                 {/* Users Tab */}
-                {activeTab === 'users' && (
+                {/* Users Tab */}
+{activeTab === 'users' && (
+    <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+    >
+        <div className='flex items-center justify-between mb-4'>
+            <div>
+                <h2 className='text-lg font-semibold text-gray-800 dark:text-white'>
+                    User Management
+                </h2>
+                <p className='text-xs text-gray-500 dark:text-gray-400 mt-0.5'>
+                    Manage user roles and access
+                </p>
+            </div>
+            <div className='flex gap-2 text-xs'>
+                <span className='bg-green-50 dark:bg-green-900 text-green-600 dark:text-green-300 px-3 py-1.5 rounded-full font-medium'>
+                    👥 {users.length} Total
+                </span>
+                <span className='bg-red-50 dark:bg-red-900 text-red-600 dark:text-red-300 px-3 py-1.5 rounded-full font-medium'>
+                    🚫 {users.filter(u => u.is_banned).length} Banned
+                </span>
+            </div>
+        </div>
+
+        {loading ? <LoadingSpinner /> : (
+            <div className='bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden'>
+                {users.map((user, i) => (
                     <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        key={user._id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: i * 0.03 }}
+                        className={`flex items-center justify-between gap-3 p-4 border-b border-gray-50 dark:border-gray-700 last:border-0 transition-colors ${
+                            user.is_banned
+                                ? 'bg-red-50 dark:bg-red-900/20'
+                                : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                        }`}
                     >
-                        <div className='flex items-center justify-between mb-4'>
-                            <h2 className='text-lg font-semibold text-gray-800 dark:text-white'>
-                                Users — {users.length} registered
-                            </h2>
-                        </div>
-                        {loading ? <LoadingSpinner /> : (
-                            <div className='bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden'>
-                                {users.map((user, i) => (
-                                    <motion.div
-                                        key={user._id}
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: i * 0.03 }}
-                                        className='flex items-center justify-between gap-3 p-4 border-b border-gray-50 dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'
-                                    >
-                                        <div className='flex items-center gap-3'>
-                                            <div className='w-9 h-9 rounded-full bg-purple-50 dark:bg-purple-900 flex items-center justify-center text-purple-700 dark:text-purple-300 font-semibold text-sm shrink-0'>
-                                                {user.name?.charAt(0)}
-                                            </div>
-                                            <div>
-                                                <p className='text-sm font-medium text-gray-800 dark:text-white'>
-                                                    {user.name}
-                                                </p>
-                                                <p className='text-xs text-gray-500 dark:text-gray-400'>
-                                                    {user.email} · {user.location || 'No location'}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className='flex items-center gap-3'>
-                                            <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                                                user.role === 'admin'
-                                                    ? 'bg-purple-50 dark:bg-purple-900 text-purple-600 dark:text-purple-300'
-                                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                                            }`}>
-                                                {user.role}
-                                            </span>
-                                            <span className='text-xs text-gray-400'>
-                                                {new Date(user.createdAt).toLocaleDateString()}
-                                            </span>
-                                        </div>
-                                    </motion.div>
-                                ))}
+                        <div className='flex items-center gap-3'>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm shrink-0 ${
+                                user.is_banned
+                                    ? 'bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300'
+                                    : 'bg-purple-50 dark:bg-purple-900 text-purple-700 dark:text-purple-300'
+                            }`}>
+                                {user.name?.charAt(0)}
                             </div>
-                        )}
+                            <div>
+                                <div className='flex items-center gap-2'>
+                                    <p className='text-sm font-medium text-gray-800 dark:text-white'>
+                                        {user.name}
+                                    </p>
+                                    {user.is_banned && (
+                                        <span className='text-xs bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 px-2 py-0.5 rounded-full'>
+                                            🚫 Banned
+                                        </span>
+                                    )}
+                                </div>
+                                <p className='text-xs text-gray-500 dark:text-gray-400'>
+                                    {user.email} · {user.location || 'No location'}
+                                </p>
+                                <p className='text-xs text-gray-400'>
+                                    Joined: {new Date(user.createdAt).toLocaleDateString()}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className='flex items-center gap-2 shrink-0'>
+                            {/* Role Change */}
+                            <select
+                                value={user.role}
+                                onChange={(e) => handleRoleChange(user._id, e.target.value)}
+                                className='text-xs border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-1.5 bg-white dark:bg-gray-700 dark:text-white outline-none'
+                            >
+                                <option value='jobseeker'>Job Seeker</option>
+                                <option value='admin'>Admin</option>
+                            </select>
+
+                            {/* Ban/Unban */}
+                            {user.is_banned ? (
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => handleUnbanUser(user._id)}
+                                    className='text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 transition-colors font-medium'
+                                >
+                                    Unban
+                                </motion.button>
+                            ) : (
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => handleBanUser(user._id)}
+                                    className='text-xs border border-red-200 dark:border-red-700 text-red-500 dark:text-red-300 px-3 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900 transition-colors'
+                                >
+                                    Ban
+                                </motion.button>
+                            )}
+                        </div>
                     </motion.div>
-                )}
+                ))}
+            </div>
+        )}
+    </motion.div>
+)}
             </div>
         </div>
     )

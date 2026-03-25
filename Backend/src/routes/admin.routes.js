@@ -8,7 +8,9 @@ import {
     deleteJobAdmin,
     getAllEmployers,
     verifyEmployer,
-    getAllUsers
+    getAllUsers,
+    updateUserRole,
+     banUser, unbanUser
 } from '../controllers/admin.controller.js'
 import {  authMiddleware,adminMiddleware } from '../middleware/auth.middleware.js'
 
@@ -26,5 +28,8 @@ adminRouter.delete('/jobs/:id', deleteJobAdmin)
 adminRouter.get('/employers', getAllEmployers)
 adminRouter.put('/employers/:id/verify', verifyEmployer)
 adminRouter.get('/users', getAllUsers)
+adminRouter.put('/users/:id/role', updateUserRole)
+adminRouter.put('/users/:id/ban', banUser)
+adminRouter.put('/users/:id/unban', unbanUser)
 
 export default adminRouter

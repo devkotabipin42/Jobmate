@@ -35,7 +35,11 @@ const userSchema = new mongoose.Schema({
     role: {
         type: String,
         default: 'jobseeker'
-    }
+    },
+    is_banned: {
+    type: Boolean,
+    default: false
+}
 }, { timestamps: true })
 
 

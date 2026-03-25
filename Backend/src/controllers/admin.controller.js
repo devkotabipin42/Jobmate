@@ -3,7 +3,72 @@ import User from '../models/user.model.js'
 import Employer from '../models/Employer.model.js'
 import Application from '../models/Application.model.js'
 
+
+
+
+import nodemailer from 'nodemailer'
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASS
+    }
+})
+// Verify employer
+export const verifyEmployer = async (req, res) => {
+    try {
+        const employer = await Employer.findByIdAndUpdate(
+            req.params.id,
+            { is_verified: true },
+            { new: true }
+        )
+
+        if (!employer) {
+            return res.status(404).json({ message: 'Employer not found' })
+        }
+
+        // Send verification email
+        try {
+            await transporter.sendMail({
+                from: process.env.MAIL_USER,
+                to: employer.email,
+                subject: '🎉 Your company is now verified on Jobmate!',
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <div style="background: #16a34a; padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
+                            <h1 style="color: white; margin: 0;">Jobmate</h1>
+                        </div>
+                        <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 12px 12px;">
+                            <h2 style="color: #111827;">🎉 Congratulations!</h2>
+                            <p style="color: #6b7280;">Your company <strong>${employer.company_name}</strong> has been verified on Jobmate.</p>
+                            <p style="color: #6b7280;">You can now post verified jobs and attract more candidates.</p>
+                            <div style="background: #dcfce7; border: 1px solid #86efac; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                                <p style="color: #166534; margin: 0;">✓ Verified badge added to your profile</p>
+                                <p style="color: #166534; margin: 5px 0 0;">✓ Your jobs will show "Verified Company" badge</p>
+                            </div>
+                            <a href="https://jobmate-two.vercel.app/employer/dashboard" 
+                               style="background: #16a34a; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block; margin-top: 10px;">
+                                Go to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                `
+            })
+        } catch (emailErr) {
+            console.log('Email error:', emailErr.message)
+        }
+
+        res.status(200).json({
+            message: 'Employer verified successfully',
+            employer
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
 // Dashboard stats
+
 export const getStats = async (req, res) => {
     try {
         const [
@@ -142,27 +207,61 @@ export const getAllEmployers = async (req, res) => {
     }
 }
 
-// Verify employer
-export const verifyEmployer = async (req, res) => {
+export const updateUserRole = async (req, res) => {
     try {
-        const employer = await Employer.findByIdAndUpdate(
+        const { role } = req.body
+        const user = await User.findByIdAndUpdate(
             req.params.id,
-            { is_verified: true },
+            { role },
             { new: true }
-        )
+        ).select('-password')
 
-        if (!employer) {
-            return res.status(404).json({ message: 'Employer not found' })
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
         }
 
-        res.status(200).json({
-            message: 'Employer verified',
-            employer
-        })
+        res.status(200).json({ message: 'User role updated', user })
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
 }
+
+export const banUser = async (req, res) => {
+    try {
+        const user = await User.findByIdAndUpdate(
+            req.params.id,
+            { is_banned: true },
+            { new: true }
+        ).select('-password')
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
+        res.status(200).json({ message: 'User banned', user })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const unbanUser = async (req, res) => {
+    try {
+        const user = await User.findByIdAndUpdate(
+            req.params.id,
+            { is_banned: false },
+            { new: true }
+        ).select('-password')
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
+        res.status(200).json({ message: 'User unbanned', user })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
 
 // Get all users
 export const getAllUsers = async (req, res) => {
