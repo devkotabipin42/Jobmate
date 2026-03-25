@@ -8,16 +8,16 @@ const tips = [
         id: 1,
         category: 'Resume',
         emoji: '📄',
-        title: 'How to Create a Perfect Resume',
-        summary: 'Resume tips for the Nepal job market',
+        title: 'How to Craft a Standout Resume',
+        summary: 'Essential resume tips to get past the ATS and impress recruiters.',
         content: `
-1. **Keep it one page** — HR has limited time
-2. **For Nepali companies** — Include Name, Contact, Skills, Experience, Education
-3. **Skills section is important** — Clearly list technical skills
-4. **Add a photo** — Common practice in Nepal
-5. **Use both Nepali + English** — Be comfortable in both
-6. **Do not mention salary expectation** — Discuss it in the interview
-7. **References** — Keep 2 references ready
+1. **Keep it concise** — Aim for one page, especially if you have under 5 years of experience.
+2. **Standard structure** — Include clear sections for Contact Info, Skills, Experience, and Education.
+3. **Highlight your tech stack** — Ensure your technical skills are prominently listed and categorized.
+4. **Professional formatting** — Use a clean, ATS-friendly layout without overly complex graphics.
+5. **Tailor to the role** — Adjust your keywords based on the specific job description.
+6. **Focus on achievements** — Quantify your experience (e.g., "Improved load time by 30%").
+7. **Keep references ready** — Have 2-3 professional references available upon request.
         `,
         color: 'bg-blue-50 dark:bg-blue-900',
         textColor: 'text-blue-600 dark:text-blue-300',
@@ -27,19 +27,19 @@ const tips = [
         id: 2,
         category: 'Interview',
         emoji: '🎯',
-        title: 'Interview Tips for Nepal',
-        summary: 'How to make a strong impression in interviews',
+        title: 'Mastering the Technical Interview',
+        summary: 'Strategies to make a strong impression during your interviews.',
         content: `
-1. **Be on time** — Arrive 10–15 minutes early
-2. **Dress formally** — Important in Nepal
-3. **Research the company** — Check their website beforehand
-4. **Prepare common questions:**
-   - Tell me about yourself
-   - Why do you want to join us?
-   - What is your salary expectation?
-5. **Speaking in Nepali is okay** — Do not force English
-6. **Know the market salary** — Negotiate smartly
-7. **Ask questions** — “What will be my role?” etc.
+1. **Punctuality matters** — Log in or arrive 5–10 minutes before the scheduled time.
+2. **Dress appropriately** — Smart casual is generally safe, but match the company culture.
+3. **Do your homework** — Research the company's recent projects, tech stack, and core values.
+4. **Prepare for standard behavioral questions:**
+   - "Tell me about a challenging project."
+   - "Why do you want to join our engineering team?"
+   - "How do you handle disagreements on technical decisions?"
+5. **Communicate your thought process** — During coding rounds, explain your logic out loud.
+6. **Have questions ready** — Always ask about the team structure, daily workflow, or growth opportunities.
+7. **Follow up** — Send a brief "Thank you" email within 24 hours of the interview.
         `,
         color: 'bg-green-50 dark:bg-green-900',
         textColor: 'text-green-600 dark:text-green-300',
@@ -49,19 +49,16 @@ const tips = [
         id: 3,
         category: 'Salary',
         emoji: '💰',
-        title: 'How to Negotiate Salary',
-        summary: 'Salary negotiation guide for Nepal',
+        title: 'Strategies for Salary Negotiation',
+        summary: 'How to confidently negotiate your compensation package.',
         content: `
-1. **Know the market rate** — Check salary ranges on Jobmate
-2. **Wait for the offer first** — Let them speak first
-3. **Give a range** — “I am expecting 40,000 to 50,000”
-4. **Check benefits** — PF, medical, bonus, leave
-5. **Make a counter offer** — Ask 10–20% higher
-6. **Get it in writing** — Do not forget the offer letter
-7. **Average salary in Nepal:**
-   - Fresh Graduate: 20,000 - 35,000
-   - 1-2 years: 35,000 - 60,000
-   - 3-5 years: 60,000 - 1,00,000
+1. **Know your market value** — Research average salaries for your role, experience level, and location.
+2. **Timing is key** — Wait for the employer to bring up numbers or extend an offer first.
+3. **Provide a range** — When asked, give a realistic salary range rather than a single fixed number.
+4. **Look at the total package** — Consider bonuses, equity, remote work options, and health benefits, not just the base pay.
+5. **Don't accept immediately** — Ask for 24-48 hours to review the official offer letter before signing.
+6. **Be professional but firm** — If making a counter-offer, justify it with your skills and market research.
+7. **Get everything in writing** — Ensure all agreed-upon terms are clearly stated in the final contract.
         `,
         color: 'bg-amber-50 dark:bg-amber-900',
         textColor: 'text-amber-600 dark:text-amber-300',
@@ -71,17 +68,16 @@ const tips = [
         id: 4,
         category: 'LinkedIn',
         emoji: '💼',
-        title: 'How to Build a Strong LinkedIn Profile',
-        summary: 'LinkedIn tips for IT jobs in Nepal',
+        title: 'Optimizing Your LinkedIn Profile',
+        summary: 'How to attract tech recruiters and build a professional network.',
         content: `
-1. **Use a professional photo** — Clear and formal background
-2. **Headline matters** — “Full Stack Developer | MERN Stack | Open to Work”
-3. **About section** — Describe yourself in 3–4 lines
-4. **Add skills** — At least 10 skills
-5. **Add projects** — Include GitHub links
-6. **Grow connections** — Connect with Nepali recruiters
-7. **Stay active** — Like/comment on posts for visibility
-8. **Open to Work** — Enable the green frame
+1. **Professional headshot** — Use a clear, high-quality photo with good lighting.
+2. **Compelling headline** — Go beyond just your job title (e.g., "Full Stack Developer | React & Node.js | Building Scalable Web Apps").
+3. **Engaging 'About' section** — Summarize your expertise, current focus, and what you're passionate about in tech.
+4. **Showcase your work** — Add links to your GitHub, live projects, or portfolio directly to your profile.
+5. **Collect recommendations** — Ask former colleagues or mentors to write a brief recommendation for you.
+6. **Engage with the community** — Share your learnings, comment on industry news, and connect with peers.
+7. **Signal your availability** — Use the "Open to Work" feature (visibility can be set to recruiters only).
         `,
         color: 'bg-purple-50 dark:bg-purple-900',
         textColor: 'text-purple-600 dark:text-purple-300',
@@ -91,31 +87,26 @@ const tips = [
         id: 5,
         category: 'Skills',
         emoji: '🚀',
-        title: 'Top Skills for Nepal IT Market',
-        summary: 'Most in-demand skills in 2025',
+        title: 'In-Demand Tech Skills for 2026',
+        summary: 'The top programming languages and tools companies are looking for.',
         content: `
-**Frontend:**
-- React.js — High demand
-- Next.js — Growing fast
-- Tailwind CSS — Must have
+**Frontend Development:**
+- React.js & Next.js — Industry standards for modern web apps.
+- TypeScript — Increasingly preferred over plain JavaScript.
+- Tailwind CSS / CSS-in-JS — For scalable styling.
 
-**Backend:**
-- Node.js + Express
-- PHP + Laravel
-- Python + Django
+**Backend Development:**
+- Node.js (Express/NestJS) — High demand for JavaScript ecosystems.
+- Python (Django/FastAPI) — Excellent for data-heavy applications.
+- Java (Spring Boot) / C# (.NET) — Dominant in enterprise environments.
 
-**Database:**
-- MongoDB
-- MySQL / PostgreSQL
+**Database & Infrastructure:**
+- PostgreSQL & MongoDB — Top relational and NoSQL choices.
+- Docker & Kubernetes — Essential for modern deployment.
+- Cloud Basics (AWS / GCP / Azure) — A major advantage for any developer.
 
-**Other:**
-- Git / GitHub — Must
-- Docker — Plus point
-- AWS basics — Bonus
-- AI/ML basics — Future
-
-**Salary boost:**
-React + Node + MongoDB = 50,000-80,000 (fresh)
+**Version Control:**
+- Git & GitHub/GitLab workflows — Absolute mandatory requirement.
         `,
         color: 'bg-pink-50 dark:bg-pink-900',
         textColor: 'text-pink-600 dark:text-pink-300',
@@ -125,34 +116,30 @@ React + Node + MongoDB = 50,000-80,000 (fresh)
         id: 6,
         category: 'Freelance',
         emoji: '🌐',
-        title: 'How to Start Freelancing from Nepal',
-        summary: 'Earn dollars using Upwork & Fiverr',
+        title: 'Launching a Global Freelance Career',
+        summary: 'How to secure international clients and build a freelance business.',
         content: `
-1. **Platforms:**
-   - Upwork — Best for long-term work
-   - Fiverr — Best for beginners
-   - Freelancer.com
+1. **Choose the right platform:**
+   - Upwork — Great for finding higher-paying, long-term contracts.
+   - Fiverr — Good for selling highly specific, productized services.
+   - Toptal / Turing — For senior developers who can pass rigorous vetting.
 
-2. **Payment methods in Nepal:**
-   - Payoneer — Most popular
-   - Wise (TransferWise)
-   - Bank wire transfer
+2. **Optimize your profile:**
+   - Write a clear, client-focused bio highlighting how you solve problems.
+   - Include a strong portfolio with live links and code repositories.
+   - Start with competitive rates to build a strong review history.
 
-3. **Profile tips:**
-   - Create profile in English
-   - Add portfolio projects
-   - Reviews matter — start with lower rates
+3. **Master your proposals:**
+   - Avoid generic copy-paste templates.
+   - Address the client's specific problem in the very first sentence.
 
-4. **Popular services from Nepal:**
-   - Web development
-   - WordPress sites
-   - Logo design
-   - Data entry
+4. **Popular freelance niches:**
+   - Custom Web Application Development (MERN/MEAN stack)
+   - API Integration & Automation
+   - UI/UX Design to Code conversions
 
-5. **Average earning:**
-   - Beginner: $300-500/month
-   - Intermediate: $500-1500/month
-   - Expert: $2000+/month
+5. **Manage your finances:**
+   - Set up international payment gateways like Payoneer, Wise, or PayPal depending on your region.
         `,
         color: 'bg-teal-50 dark:bg-teal-900',
         textColor: 'text-teal-600 dark:text-teal-300',
