@@ -116,9 +116,11 @@ export const login = async (req, res) => {
         const token = generateToken(account._id, role)
 
         res.cookie('token', token, {
-            httpOnly: true,
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        })
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    maxAge: 7 * 24 * 60 * 60 * 1000
+})
 
         res.status(200).json({
             message: 'Login successful',
