@@ -159,7 +159,7 @@ const ResumeScorer = () => {
                         <textarea
                             value={resumeText}
                             onChange={(e) => setResumeText(e.target.value)}
-                            placeholder='Apna resume text yahan paste karo...'
+                            placeholder='Paste your resume text here to analyze...'
                             rows={16}
                             className='w-full border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 transition-all resize-none'
                         />
