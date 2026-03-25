@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import { fetchJob } from "../services/job.api.js";
@@ -95,9 +95,12 @@ const JobDetail = () => {
                 <h1 className="text-2xl font-semibold text-gray-800 dark:text-white mb-1">
                   {job.title}
                 </h1>
-                <p className="text-gray-500 dark:text-gray-400">
-                  {job.employer?.company_name} · {job.location}
-                </p>
+                <Link
+    to={`/company/${job.employer?._id}`}
+    className='text-gray-500 dark:text-gray-400 hover:text-green-600 transition-colors'
+>
+    {job.employer?.company_name} · {job.location}
+</Link>
               </div>
             </div>
 

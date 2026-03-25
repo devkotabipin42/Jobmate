@@ -149,6 +149,12 @@ const Companies = () => {
                                     >
                                         View Jobs
                                     </Link>
+                                    <Link
+    to={`/company/${company._id}`}
+    className='block w-full text-center text-sm bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors'
+>
+    View Company
+</Link>
                                 </motion.div>
                             ))}
                         </div>

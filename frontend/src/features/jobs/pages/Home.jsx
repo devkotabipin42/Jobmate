@@ -38,7 +38,7 @@ const Home = () => {
       <Navbar />
 
       {/* Hero */}
-      <div className='bg-green-50 dark:bg-gray-800 py-20 px-6 text-center relative overflow-x-hidden w-full'>
+      <div className='bg-green-50 dark:bg-gray-800 py-20 px-6 text-center relative overflow-hidden w-full'>
         {/* Background blobs — Framer Motion */}
         <motion.div
           animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.5, 0.2] }}

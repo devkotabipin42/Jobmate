@@ -4,7 +4,7 @@ import { Routes, Route } from 'react-router-dom'
 import Home from '../features/jobs/pages/Home.jsx'
 import JobList from '../features/jobs/pages/JobList.jsx'
 import JobDetail from '../features/jobs/pages/JobDetail.jsx'
-
+import CompanyProfile from '../features/jobs/pages/CompanyProfile.jsx'
 // Auth
 import Login from '../features/auth/pages/Login.jsx'
 import Register from '../features/auth/pages/Register.jsx'
@@ -37,6 +37,7 @@ const AppRoutes = () => {
             <Route path='/register' element={<Register />} />
             <Route path='/companies' element={<Companies />} />
             <Route path='/career-tips' element={<CareerTips />} />
+            <Route path='/company/:id' element={<CompanyProfile />} />
             <Route path='/resume-scorer' element={
                     <Protected role='jobseeker'>
                      <ResumeScorer />
