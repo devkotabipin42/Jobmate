@@ -87,42 +87,70 @@ const Home = () => {
           </p>
 
           {/* Search — GSAP scaleIn */}
-          <div
-            ref={searchRef}
-            className="bg-white dark:bg-gray-700 rounded-xl p-4 flex gap-3 max-w-2xl mx-auto border border-gray-200 dark:border-gray-600 flex-wrap"
-          >
-            <input
-              type="text"
-              placeholder="Job title, skills, company..."
-              className="flex-1 outline-none text-sm min-w-36 bg-transparent dark:text-white dark:placeholder-gray-400"
-            />
-            <div className="w-px bg-gray-200 dark:bg-gray-600"></div>
-            <select
-              size="1"
-              className="text-sm text-gray-500 dark:text-gray-300 outline-none bg-transparent cursor-pointer"
-              style={{ direction: "ltr" }}
+         <div
+    ref={searchRef}
+    className='bg-white dark:bg-gray-700 rounded-xl max-w-2xl mx-auto border border-gray-200 dark:border-gray-600'
+>
+    {/* Desktop Layout */}
+    <div className='hidden md:flex gap-3 p-4 items-center'>
+        <input
+            type='text'
+            placeholder='Job title, skills, company...'
+            className='flex-1 outline-none text-sm bg-transparent dark:text-white dark:placeholder-gray-400'
+        />
+        <div className='w-px h-5 bg-gray-200 dark:bg-gray-600'></div>
+        <select className='text-sm text-gray-500 dark:text-gray-300 outline-none bg-transparent cursor-pointer'>
+            <option>All locations</option>
+            <option>Kathmandu</option>
+            <option>Pokhara</option>
+            <option>Chitwan</option>
+        </select>
+        <div className='w-px h-5 bg-gray-200 dark:bg-gray-600'></div>
+        <select className='text-sm text-gray-500 dark:text-gray-300 outline-none bg-transparent'>
+            <option>All categories</option>
+            <option>IT/Tech</option>
+            <option>Finance</option>
+            <option>NGO/INGO</option>
+        </select>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Link
+                to='/jobs'
+                className='bg-green-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-green-700 block'
             >
-              <option>All locations</option>
-              <option>Kathmandu</option>
-              <option>Pokhara</option>
-              <option>Chitwan</option>
-            </select>
-            <div className="w-px bg-gray-200 dark:bg-gray-600"></div>
-            <select className="text-sm text-gray-500 dark:text-gray-300 outline-none bg-transparent">
-              <option>All categories</option>
-              <option>IT/Tech</option>
-              <option>Finance</option>
-              <option>NGO/INGO</option>
-            </select>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link
-                to="/jobs"
-                className="bg-green-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-green-700 block"
-              >
                 Search
-              </Link>
-            </motion.div>
-          </div>
+            </Link>
+        </motion.div>
+    </div>
+
+    {/* Mobile Layout */}
+    <div className='md:hidden p-3 space-y-2'>
+        <input
+            type='text'
+            placeholder='Job title, skills, company...'
+            className='w-full outline-none text-sm bg-gray-50 dark:bg-gray-600 dark:text-white dark:placeholder-gray-400 px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-500'
+        />
+        <div className='flex gap-2'>
+            <select className='flex-1 text-sm text-gray-500 dark:text-gray-300 outline-none bg-gray-50 dark:bg-gray-600 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-500'>
+                <option>All locations</option>
+                <option>Kathmandu</option>
+                <option>Pokhara</option>
+                <option>Chitwan</option>
+            </select>
+            <select className='flex-1 text-sm text-gray-500 dark:text-gray-300 outline-none bg-gray-50 dark:bg-gray-600 rounded-lg px-3 py-2 border border-gray-200 dark:border-gray-500'>
+                <option>All categories</option>
+                <option>IT/Tech</option>
+                <option>Finance</option>
+                <option>NGO/INGO</option>
+            </select>
+        </div>
+        <Link
+            to='/jobs'
+            className='bg-green-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-green-700 block text-center w-full'
+        >
+            Search
+        </Link>
+    </div>
+</div>
 
           {/* Popular tags */}
           <motion.div
@@ -156,7 +184,7 @@ const Home = () => {
       {/* Stats — GSAP staggerFadeUp */}
       <div
         ref={statsRef}
-        className="flex justify-center border-y border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+        className='grid grid-cols-2 md:flex md:justify-center border-y border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
       >
         {[
           { num: "1,240+", label: "Verified jobs", color: "text-green-600" },
@@ -166,12 +194,12 @@ const Home = () => {
         ].map((stat, i) => (
           <div
             key={i}
-            className="stat-item px-12 py-5 text-center border-r last:border-r-0 border-gray-200 dark:border-gray-700"
+             className='stat-item px-6 py-5 text-center border-r border-b md:border-b-0 last:border-r-0 border-gray-200 dark:border-gray-700'
           >
             <div className={`text-2xl font-semibold ${stat.color}`}>
               {stat.num}
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <div className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
               {stat.label}
             </div>
           </div>
