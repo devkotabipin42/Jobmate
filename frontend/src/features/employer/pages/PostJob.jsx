@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { createJob } from '../services/employer.api.js'
 import Navbar from '../../../components/Navbar.jsx'
-
+import useEmployer from '../hooks/useEmployer.js'
 const PostJob = () => {
     const navigate = useNavigate()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [success, setSuccess] = useState(false)
+    const { postJob } = useEmployer()
+
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -26,23 +27,23 @@ const PostJob = () => {
     }
 
     const handleSubmit = async (e) => {
-        e.preventDefault()
-        setLoading(true)
-        setError('')
-        try {
-            await createJob({
-                ...formData,
-                salary_min: Number(formData.salary_min),
-                salary_max: Number(formData.salary_max),
-            })
-            setSuccess(true)
-            setTimeout(() => navigate('/employer/dashboard'), 1500)
-        } catch (err) {
-            setError(err.response?.data?.message || 'Failed to post job')
-        } finally {
-            setLoading(false)
-        }
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    try {
+        await postJob({
+            ...formData,
+            salary_min: Number(formData.salary_min),
+            salary_max: Number(formData.salary_max),
+        })
+        setSuccess(true)
+        setTimeout(() => navigate('/employer/dashboard'), 1500)
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed to post job')
+    } finally {
+        setLoading(false)
     }
+}
 
     return (
         <div className='min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors'>

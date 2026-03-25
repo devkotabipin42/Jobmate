@@ -3,18 +3,21 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { motion } from 'framer-motion'
 import { fetchJob } from '../services/job.api.js'
+import useJobseeker from '../../../features/jobseeker/hooks/useJobseeker.js'
 import Navbar from '../../../components/Navbar.jsx'
-import axios from 'axios'
 
 const JobDetail = () => {
     const { id } = useParams()
     const navigate = useNavigate()
     const { user } = useSelector(state => state.auth)
     const [job, setJob] = useState(null)
+    const { applyJob } = useJobseeker()
     const [loading, setLoading] = useState(true)
     const [applying, setApplying] = useState(false)
     const [applied, setApplied] = useState(false)
     const [error, setError] = useState('')
+    const { toggleSaveJob } = useJobseeker()
+    const [saved, setSaved] = useState(false)
 
     useEffect(() => {
         loadJob()
@@ -30,26 +33,29 @@ const JobDetail = () => {
             setLoading(false)
         }
     }
-
-    const handleApply = async () => {
-        if (!user) {
-            navigate('/login')
-            return
-        }
-        setApplying(true)
-        try {
-            await axios.post(
-                `http://localhost:3000/api/applications/apply/${id}`,
-                { cover_letter: '' },
-                { withCredentials: true }
-            )
-            setApplied(true)
-        } catch (err) {
-            setError(err.response?.data?.message || 'Failed to apply')
-        } finally {
-            setApplying(false)
-        }
+    const handleSave = async () => {
+    try {
+        await toggleSaveJob(id)
+        setSaved(!saved)
+    } catch (err) {
+        console.log(err)
     }
+}
+    const handleApply = async () => {
+    if (!user) {
+        navigate('/login')
+        return
+    }
+    setApplying(true)
+    try {
+        await applyJob(id, '')
+        setApplied(true)
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed to apply')
+    } finally {
+        setApplying(false)
+    }
+}
 
     if (loading) return (
         <div className='min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center'>
@@ -95,20 +101,37 @@ const JobDetail = () => {
 
                         {/* Apply button */}
                         {user?.role !== 'employer' && (
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={handleApply}
-                                disabled={applying || applied}
-                                className={`px-8 py-3 rounded-xl text-sm font-medium transition-colors shrink-0 ${
-                                    applied
-                                        ? 'bg-green-100 text-green-700 border border-green-300'
-                                        : 'bg-green-600 text-white hover:bg-green-700'
-                                } disabled:opacity-60`}
-                            >
-                                {applied ? '✓ Applied!' : applying ? 'Applying...' : 'Apply Now'}
-                            </motion.button>
-                        )}
+    <div className='flex gap-2 shrink-0'>
+        {/* Save button */}
+        <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleSave}
+            className={`px-4 py-3 rounded-xl text-sm border transition-colors ${
+                saved
+                    ? 'border-green-500 text-green-600 bg-green-50 dark:bg-green-900'
+                    : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-green-400'
+            }`}
+        >
+            {saved ? '🔖 Saved' : '🔖 Save'}
+        </motion.button>
+
+        {/* Apply button */}
+        <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleApply}
+            disabled={applying || applied}
+            className={`px-8 py-3 rounded-xl text-sm font-medium transition-colors ${
+                applied
+                    ? 'bg-green-100 text-green-700 border border-green-300'
+                    : 'bg-green-600 text-white hover:bg-green-700'
+            } disabled:opacity-60`}
+        >
+            {applied ? '✓ Applied!' : applying ? 'Applying...' : 'Apply Now'}
+        </motion.button>
+    </div>
+)}
                     </div>
 
                     {/* Error */}
@@ -196,18 +219,30 @@ const JobDetail = () => {
 
                     {/* Bottom apply */}
                     {user?.role !== 'employer' && !applied && (
-                        <div className='mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 flex justify-center'>
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={handleApply}
-                                disabled={applying}
-                                className='bg-green-600 text-white px-12 py-3 rounded-xl text-sm font-medium hover:bg-green-700 disabled:opacity-60'
-                            >
-                                {applying ? 'Applying...' : 'Apply for this job'}
-                            </motion.button>
-                        </div>
-                    )}
+    <div className='mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 flex justify-center gap-3'>
+        <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleSave}
+            className={`px-6 py-3 rounded-xl text-sm border transition-colors ${
+                saved
+                    ? 'border-green-500 text-green-600 bg-green-50 dark:bg-green-900'
+                    : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-green-400'
+            }`}
+        >
+            {saved ? '🔖 Saved' : '🔖 Save'}
+        </motion.button>
+        <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleApply}
+            disabled={applying}
+            className='bg-green-600 text-white px-12 py-3 rounded-xl text-sm font-medium hover:bg-green-700 disabled:opacity-60'
+        >
+            {applying ? 'Applying...' : 'Apply for this job'}
+        </motion.button>
+    </div>
+)}
                 </motion.div>
             </div>
         </div>

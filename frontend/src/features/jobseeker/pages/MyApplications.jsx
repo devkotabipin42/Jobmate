@@ -2,9 +2,10 @@ import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { motion } from 'framer-motion'
-import axios from 'axios'
+import useJobseeker from '../../jobseeker/hooks/useJobseeker.js'
 import Navbar from '../../../components/Navbar.jsx'
 import { createSlice } from '@reduxjs/toolkit'
+import API_URL from '../../../config/api.js'
 
 // Simple local state use karenge
 import { useState } from 'react'
@@ -29,25 +30,15 @@ const statusIcons = {
 
 const MyApplications = () => {
     const [applications, setApplications] = useState([])
-    const [loading, setLoading] = useState(true)
-
+    const { getMyApplications, loading } = useJobseeker()
     useEffect(() => {
         loadApplications()
     }, [])
 
     const loadApplications = async () => {
-        try {
-            const res = await axios.get(
-                'http://localhost:3000/api/applications/my',
-                { withCredentials: true }
-            )
-            setApplications(res.data.applications)
-        } catch (err) {
-            console.log(err)
-        } finally {
-            setLoading(false)
-        }
-    }
+    const data = await getMyApplications()
+    setApplications(data)
+}
 
     return (
         <div className='min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors'>

@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useDispatch } from 'react-redux'
-import { setUser } from '../auth.slice.js'
-import axios from 'axios'
 import { motion, AnimatePresence } from 'framer-motion'
+import useAuth from '../hooks/useAuth.js'
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -13,8 +11,7 @@ const Login = () => {
     })
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
-
-    const dispatch = useDispatch()
+    const { login } = useAuth()
     const navigate = useNavigate()
 
     const handleChange = (e) => {
@@ -26,13 +23,8 @@ const Login = () => {
         setLoading(true)
         setError('')
         try {
-            const res = await axios.post(
-                'http://localhost:3000/api/auth/login',
-                formData,
-                { withCredentials: true }
-            )
-            dispatch(setUser(res.data.user))
-            if (res.data.user.role === 'employer') {
+            const user = await login(formData)
+            if (user.role === 'employer') {
                 navigate('/employer/dashboard')
             } else {
                 navigate('/')
@@ -46,8 +38,6 @@ const Login = () => {
 
     return (
         <div className='min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4 transition-colors'>
-
-            {/* Background circles */}
             <div className='absolute inset-0 overflow-hidden pointer-events-none'>
                 <motion.div
                     animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
@@ -67,7 +57,6 @@ const Login = () => {
                 transition={{ duration: 0.5, ease: 'easeOut' }}
                 className='bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-8 w-full max-w-md relative z-10'
             >
-                {/* Logo */}
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -167,7 +156,6 @@ const Login = () => {
                     </motion.button>
                 </form>
 
-                {/* Register Link */}
                 <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}

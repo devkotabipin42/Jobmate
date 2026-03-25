@@ -1,19 +1,16 @@
 import { useState } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
+import useAuth from '../../auth/hooks/useAuth.js'
 import { motion, AnimatePresence } from 'framer-motion'
-import { setUser } from '../../auth/auth.slice.js'
-import axios from 'axios'
 import Navbar from '../../../components/Navbar.jsx'
 
 const Profile = () => {
-    const { user } = useSelector(state => state.auth)
-    const dispatch = useDispatch()
+  
 
     const [editing, setEditing] = useState(false)
     const [loading, setLoading] = useState(false)
     const [success, setSuccess] = useState(false)
     const [error, setError] = useState('')
-
+    const { user, updateProfile } = useAuth()
     const [formData, setFormData] = useState({
         name: user?.name || '',
         phone: user?.phone || '',
@@ -24,26 +21,21 @@ const Profile = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value })
     }
 
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-        setLoading(true)
-        setError('')
-        try {
-            const res = await axios.put(
-                'http://localhost:3000/api/auth/update',
-                formData,
-                { withCredentials: true }
-            )
-            dispatch(setUser({ ...user, ...formData }))
-            setSuccess(true)
-            setEditing(false)
-            setTimeout(() => setSuccess(false), 3000)
-        } catch (err) {
-            setError(err.response?.data?.message || 'Update failed')
-        } finally {
-            setLoading(false)
-        }
+   const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    try {
+        await updateProfile(formData)
+        setSuccess(true)
+        setEditing(false)
+        setTimeout(() => setSuccess(false), 3000)
+    } catch (err) {
+        setError(err.response?.data?.message || 'Update failed')
+    } finally {
+        setLoading(false)
     }
+}
 
     return (
         <div className='min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors'>

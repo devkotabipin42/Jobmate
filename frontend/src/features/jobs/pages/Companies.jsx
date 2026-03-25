@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import axios from 'axios'
 import Navbar from '../../../components/Navbar.jsx'
+import API_URL from '../../../config/api.js'
+
 
 const Companies = () => {
     const [companies, setCompanies] = useState([])
@@ -16,7 +18,7 @@ const Companies = () => {
     const loadCompanies = async () => {
         try {
             const res = await axios.get(
-                'http://localhost:3000/api/employer/all',
+                `${API_URL}/api/employer/all`,
                 { withCredentials: true }
             )
             setCompanies(res.data.employers)

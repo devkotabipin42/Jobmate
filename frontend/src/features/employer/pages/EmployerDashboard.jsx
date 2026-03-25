@@ -1,76 +1,64 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector,useDispatch } from 'react-redux'
 import { motion, AnimatePresence } from 'framer-motion'
-import { setMyJobs, setApplications, setLoading, removeJob } from '../employer.slice.js'
-import { getMyJobs, deleteJob, getJobApplications, updateApplicationStatus } from '../services/employer.api.js'
+import { setMyJobs, setApplications, removeJob } from '../employer.slice.js'
+import useEmployer from '../hooks/useEmployer.js'
+import useAuth from '../../auth/hooks/useAuth.js'
 import Navbar from '../../../components/Navbar.jsx'
 
+const statusColors = {
+    applied: 'bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-300',
+    seen: 'bg-yellow-50 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-300',
+    shortlisted: 'bg-purple-50 dark:bg-purple-900 text-purple-600 dark:text-purple-300',
+    interview: 'bg-orange-50 dark:bg-orange-900 text-orange-600 dark:text-orange-300',
+    hired: 'bg-green-50 dark:bg-green-900 text-green-600 dark:text-green-300',
+    rejected: 'bg-red-50 dark:bg-red-900 text-red-600 dark:text-red-300',
+}
+
 const EmployerDashboard = () => {
+    // All hooks inside component
     const dispatch = useDispatch()
-    const { user } = useSelector(state => state.auth)
-    const { myJobs, applications, isLoading } = useSelector(state => state.employer)
+    const { user } = useAuth()
+    const { myJobs, applications } = useSelector(state => state.employer)
+    const { fetchMyJobs, removeJobById, fetchJobApplications, updateStatus, loading } = useEmployer()
+
     const [activeTab, setActiveTab] = useState('jobs')
     const [selectedJob, setSelectedJob] = useState(null)
     const [deleting, setDeleting] = useState(null)
+    const [selectedApplicant, setSelectedApplicant] = useState(null)
 
     useEffect(() => {
         loadJobs()
     }, [])
 
     const loadJobs = async () => {
-        dispatch(setLoading(true))
-        try {
-            const data = await getMyJobs()
-            dispatch(setMyJobs(data.jobs))
-        } catch (err) {
-            console.log(err)
-        } finally {
-            dispatch(setLoading(false))
-        }
+        const jobs = await fetchMyJobs()
+        dispatch(setMyJobs(jobs))
     }
 
     const handleViewApplications = async (job) => {
         setSelectedJob(job)
         setActiveTab('applications')
-        try {
-            const data = await getJobApplications(job._id)
-            dispatch(setApplications(data.applications))
-        } catch (err) {
-            console.log(err)
-        }
+        const apps = await fetchJobApplications(job._id)
+        dispatch(setApplications(apps))
     }
+
 
     const handleDeleteJob = async (id) => {
         setDeleting(id)
-        try {
-            await deleteJob(id)
-            dispatch(removeJob(id))
-        } catch (err) {
-            console.log(err)
-        } finally {
-            setDeleting(null)
-        }
+        await removeJobById(id)
+        dispatch(removeJob(id))
+        setDeleting(null)
     }
 
     const handleStatusUpdate = async (appId, status) => {
-        try {
-            await updateApplicationStatus(appId, status)
-            const data = await getJobApplications(selectedJob._id)
-            dispatch(setApplications(data.applications))
-        } catch (err) {
-            console.log(err)
-        }
+        await updateStatus(appId, status)
+        const apps = await fetchJobApplications(selectedJob._id)
+        dispatch(setApplications(apps))
     }
 
-    const statusColors = {
-        applied: 'bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-300',
-        seen: 'bg-yellow-50 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-300',
-        shortlisted: 'bg-purple-50 dark:bg-purple-900 text-purple-600 dark:text-purple-300',
-        interview: 'bg-orange-50 dark:bg-orange-900 text-orange-600 dark:text-orange-300',
-        hired: 'bg-green-50 dark:bg-green-900 text-green-600 dark:text-green-300',
-        rejected: 'bg-red-50 dark:bg-red-900 text-red-600 dark:text-red-300',
-    }
+    // ... rest of JSX same rahega
 
     return (
         <div className='min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors'>
@@ -147,7 +135,7 @@ const EmployerDashboard = () => {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                         >
-                            {isLoading ? (
+                            {loading ? (
                                 <div className='text-center py-20'>
                                     <motion.div
                                         animate={{ rotate: 360 }}
@@ -278,11 +266,9 @@ const EmployerDashboard = () => {
                                                         <p className='text-xs text-gray-500 dark:text-gray-400'>
                                                             {app.user?.email} · {app.user?.location}
                                                         </p>
-                                                        {app.cover_letter && (
-                                                            <p className='text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2'>
-                                                                {app.cover_letter}
-                                                            </p>
-                                                        )}
+                                                        <p className='text-xs text-gray-400 mt-0.5'>
+                                                            Applied: {new Date(app.createdAt).toLocaleDateString()}
+                                                        </p>
                                                     </div>
                                                 </div>
 
@@ -304,6 +290,36 @@ const EmployerDashboard = () => {
                                                     </select>
                                                 </div>
                                             </div>
+
+                                            {/* Cover letter preview */}
+                                            {app.cover_letter && (
+                                                <div className='mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg'>
+                                                    <p className='text-xs text-gray-500 dark:text-gray-400 mb-1 font-medium'>Cover Letter:</p>
+                                                    <p className='text-xs text-gray-600 dark:text-gray-300 line-clamp-2'>
+                                                        {app.cover_letter}
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {/* Action buttons */}
+                                            <div className='flex gap-2 mt-3'>
+                                                <button
+                                                    onClick={() => setSelectedApplicant(app)}
+                                                    className='text-xs bg-green-50 dark:bg-green-900 text-green-600 dark:text-green-300 px-3 py-1.5 rounded-lg hover:bg-green-100 transition-colors'
+                                                >
+                                                    👤 View Full Profile
+                                                </button>
+                                                {app.cv_url && app.cv_url !== 'https://placeholder.com/cv.pdf' && (
+                                                    
+                                                    <a   href={app.cv_url}
+                                                        target='_blank'
+                                                        rel='noreferrer'
+                                                        className='text-xs bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-300 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors'
+                                                    >
+                                                        📄 View CV
+                                                    </a>
+                                                )}
+                                            </div>
                                         </motion.div>
                                     ))}
                                 </div>
@@ -312,6 +328,127 @@ const EmployerDashboard = () => {
                     )}
                 </AnimatePresence>
             </div>
+
+            {/* Applicant Profile Modal */}
+            <AnimatePresence>
+                {selectedApplicant && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedApplicant(null)}
+                            className='fixed inset-0 bg-black/50 z-40'
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className='fixed inset-0 flex items-center justify-center z-50 px-4'
+                            style={{ pointerEvents: 'none' }}
+                        >
+                            <div
+                                className='w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl p-6 overflow-y-auto max-h-[80vh]'
+                                style={{ pointerEvents: 'auto' }}
+                            >
+                                {/* Modal Header */}
+                                <div className='flex items-start justify-between mb-6'>
+                                    <div className='flex items-center gap-3'>
+                                        <div className='w-14 h-14 rounded-full bg-green-50 dark:bg-green-900 flex items-center justify-center text-green-700 dark:text-green-300 font-bold text-2xl'>
+                                            {selectedApplicant.user?.name?.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <h3 className='text-lg font-semibold text-gray-800 dark:text-white'>
+                                                {selectedApplicant.user?.name}
+                                            </h3>
+                                            <span className={`text-xs px-2 py-1 rounded-full capitalize ${statusColors[selectedApplicant.status]}`}>
+                                                {selectedApplicant.status}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setSelectedApplicant(null)}
+                                        className='text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl'
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+
+                                {/* Applicant Info */}
+                                <div className='space-y-3 mb-6'>
+                                    {[
+                                        { label: '📧 Email', value: selectedApplicant.user?.email },
+                                        { label: '📱 Phone', value: selectedApplicant.user?.phone || 'Not provided' },
+                                        { label: '📍 Location', value: selectedApplicant.user?.location || 'Not provided' },
+                                        { label: '📅 Applied', value: new Date(selectedApplicant.createdAt).toLocaleDateString() },
+                                    ].map((item, i) => (
+                                        <div key={i} className='flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700'>
+                                            <span className='text-xs text-gray-500 dark:text-gray-400'>{item.label}</span>
+                                            <span className='text-xs font-medium text-gray-800 dark:text-white'>{item.value}</span>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Cover Letter */}
+                                {selectedApplicant.cover_letter && (
+                                    <div className='mb-6'>
+                                        <h4 className='text-sm font-medium text-gray-800 dark:text-white mb-2'>
+                                            Cover Letter
+                                        </h4>
+                                        <div className='bg-gray-50 dark:bg-gray-700 rounded-lg p-3'>
+                                            <p className='text-xs text-gray-600 dark:text-gray-300 leading-relaxed'>
+                                                {selectedApplicant.cover_letter}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Status Update */}
+                                <div className='mb-4'>
+                                    <h4 className='text-sm font-medium text-gray-800 dark:text-white mb-2'>
+                                        Update Status
+                                    </h4>
+                                    <select
+                                        value={selectedApplicant.status}
+                                        onChange={(e) => {
+                                            handleStatusUpdate(selectedApplicant._id, e.target.value)
+                                            setSelectedApplicant({ ...selectedApplicant, status: e.target.value })
+                                        }}
+                                        className='w-full border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-2.5 text-sm outline-none bg-white dark:bg-gray-700 dark:text-white'
+                                    >
+                                        <option value='applied'>Applied</option>
+                                        <option value='seen'>Seen</option>
+                                        <option value='shortlisted'>Shortlisted</option>
+                                        <option value='interview'>Interview</option>
+                                        <option value='hired'>Hired</option>
+                                        <option value='rejected'>Rejected</option>
+                                    </select>
+                                </div>
+
+                                {/* Buttons */}
+                                <div className='flex gap-3'>
+                                    {selectedApplicant.cv_url && selectedApplicant.cv_url !== 'https://placeholder.com/cv.pdf' && (
+                                        
+                                         <a   href={selectedApplicant.cv_url}
+                                            target='_blank'
+                                            rel='noreferrer'
+                                            className='flex-1 text-center text-sm bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition-colors'
+                                        >
+                                            📄 Download CV
+                                        </a>
+                                    )}
+                                    <button
+                                        onClick={() => setSelectedApplicant(null)}
+                                        className='flex-1 text-center text-sm border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </div>
     )
 }

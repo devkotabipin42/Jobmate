@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useDispatch } from 'react-redux'
-import { setUser } from '../auth.slice.js'
 import { motion, AnimatePresence } from 'framer-motion'
-import axios from 'axios'
+import useAuth from '../hooks/useAuth.js'
 
 const Register = () => {
     const [role, setRole] = useState('jobseeker')
@@ -17,8 +15,7 @@ const Register = () => {
     })
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
-
-    const dispatch = useDispatch()
+    const { register } = useAuth()
     const navigate = useNavigate()
 
     const handleChange = (e) => {
@@ -30,16 +27,11 @@ const Register = () => {
         setLoading(true)
         setError('')
         try {
-            const url = role === 'employer'
-                ? 'http://localhost:3000/api/auth/register/employer'
-                : 'http://localhost:3000/api/auth/register/user'
-
             const data = role === 'employer'
                 ? { company_name: formData.company_name, email: formData.email, password: formData.password, phone: formData.phone, location: formData.location }
                 : { name: formData.name, email: formData.email, password: formData.password, phone: formData.phone, location: formData.location }
 
-            const res = await axios.post(url, data, { withCredentials: true })
-            dispatch(setUser({ ...res.data.user || res.data.employer, role }))
+            await register(data, role)
 
             if (role === 'employer') {
                 navigate('/employer/dashboard')
@@ -56,14 +48,13 @@ const Register = () => {
     return (
         <div className='min-h-screen bg-gray-50 dark:bg-gray-900 flex transition-colors'>
 
-            {/* Left Side — Illustration */}
+            {/* Left Side */}
             <motion.div
                 initial={{ opacity: 0, x: -40 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6 }}
                 className='hidden lg:flex w-1/2 bg-green-600 flex-col items-center justify-center p-12 relative overflow-hidden'
             >
-                {/* Background circles */}
                 <div className='absolute top-0 left-0 w-full h-full'>
                     <motion.div
                         animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.3, 0.1] }}
@@ -77,9 +68,7 @@ const Register = () => {
                     />
                 </div>
 
-                {/* Content */}
                 <div className='relative z-10 text-center'>
-                    {/* SVG Illustration */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -87,36 +76,22 @@ const Register = () => {
                         className='mb-8'
                     >
                         <svg viewBox='0 0 400 300' className='w-80 h-60 mx-auto'>
-                            {/* Background */}
                             <rect x='50' y='50' width='300' height='200' rx='20' fill='rgba(255,255,255,0.1)' />
-
-                            {/* Screen */}
                             <rect x='80' y='70' width='240' height='150' rx='10' fill='rgba(255,255,255,0.15)' />
-
-                            {/* Job cards */}
                             <rect x='100' y='90' width='200' height='35' rx='8' fill='rgba(255,255,255,0.3)' />
                             <rect x='115' y='100' width='80' height='8' rx='4' fill='white' />
                             <rect x='115' y='112' width='50' height='6' rx='3' fill='rgba(255,255,255,0.6)' />
                             <rect x='260' y='98' width='30' height='18' rx='4' fill='#22c55e' />
-
                             <rect x='100' y='135' width='200' height='35' rx='8' fill='rgba(255,255,255,0.3)' />
                             <rect x='115' y='145' width='70' height='8' rx='4' fill='white' />
                             <rect x='115' y='157' width='45' height='6' rx='3' fill='rgba(255,255,255,0.6)' />
                             <rect x='260' y='143' width='30' height='18' rx='4' fill='#22c55e' />
-
                             <rect x='100' y='180' width='200' height='30' rx='8' fill='rgba(255,255,255,0.2)' />
                             <rect x='115' y='190' width='60' height='8' rx='4' fill='rgba(255,255,255,0.7)' />
-
-                            {/* Person */}
                             <circle cx='320' cy='200' r='25' fill='rgba(255,255,255,0.2)' />
                             <circle cx='320' cy='190' r='12' fill='rgba(255,255,255,0.5)' />
-                            <path d='M300 220 Q320 210 340 220' stroke='rgba(255,255,255,0.5)' strokeWidth='3' fill='none' />
-
-                            {/* Checkmark badge */}
                             <circle cx='90' cy='230' r='18' fill='#22c55e' />
                             <path d='M82 230 L88 236 L100 222' stroke='white' strokeWidth='3' fill='none' strokeLinecap='round' />
-
-                            {/* Salary tag */}
                             <rect x='140' y='220' width='100' height='24' rx='12' fill='rgba(255,255,255,0.2)' />
                             <text x='190' y='236' textAnchor='middle' fill='white' fontSize='10' fontWeight='bold'>Rs. 50K - 80K</text>
                         </svg>
@@ -140,7 +115,6 @@ const Register = () => {
                         Nepal ko pehlo verified job platform
                     </motion.p>
 
-                    {/* Benefits */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -179,7 +153,6 @@ const Register = () => {
                     transition={{ duration: 0.6 }}
                     className='w-full max-w-md'
                 >
-                    {/* Logo */}
                     <Link to='/' className='block text-center text-2xl font-semibold text-green-600 mb-2'>
                         Job<span className='text-gray-800 dark:text-white'>mate</span>
                     </Link>
@@ -265,7 +238,7 @@ const Register = () => {
                             />
                         </div>
 
-                        <div className='flex gap-3'>
+                        <div className='flex flex-col sm:flex-row gap-3'>
                             <div className='flex-1'>
                                 <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
                                     Phone

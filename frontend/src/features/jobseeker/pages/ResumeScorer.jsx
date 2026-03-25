@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import axios from 'axios'
 import Navbar from '../../../components/Navbar.jsx'
+import useJobseeker from '../hooks/useJobseeker.js'
 import gsap from 'gsap'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
+import API_URL from '../../../config/api.js'
 
 const ResumeScorer = () => {
     const [resumeText, setResumeText] = useState('')
@@ -12,6 +13,7 @@ const ResumeScorer = () => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [downloading, setDownloading] = useState(false)
+    const { scoreResume, loading: aiLoading } = useJobseeker()
     const resultRef = useRef(null)
     const barsRef = useRef([])
 
@@ -59,26 +61,22 @@ const ResumeScorer = () => {
     }, [result])
 
     const handleScore = async () => {
-        if (!resumeText.trim()) {
-            setError('Please paste your resume text!')
-            return
-        }
-        setLoading(true)
-        setError('')
-        setResult(null)
-        try {
-            const res = await axios.post(
-                'http://localhost:3000/api/ai/score-resume',
-                { resumeText },
-                { withCredentials: true }
-            )
-            setResult(res.data.result)
-        } catch (err) {
-            setError(err.response?.data?.message || 'Failed to score resume')
-        } finally {
-            setLoading(false)
-        }
+    if (!resumeText.trim()) {
+        setError('Please paste your resume text!')
+        return
     }
+    setLoading(true)
+    setError('')
+    setResult(null)
+    try {
+        const data = await scoreResume(resumeText)
+        setResult(data)
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed to score resume')
+    } finally {
+        setLoading(false)
+    }
+}
 
     const handleDownloadPDF = async () => {
         if (!resultRef.current) return

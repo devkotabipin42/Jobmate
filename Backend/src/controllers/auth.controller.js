@@ -168,3 +168,47 @@ export const updateProfile = async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
+
+export const saveJob = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id)
+        const jobId = req.params.id
+
+        const alreadySaved = user.saved_jobs.includes(jobId)
+
+        if (alreadySaved) {
+            user.saved_jobs = user.saved_jobs.filter(id => id.toString() !== jobId)
+        } else {
+            user.saved_jobs.push(jobId)
+        }
+
+        await user.save()
+
+        res.status(200).json({
+            message: alreadySaved ? 'Job removed' : 'Job saved',
+            saved_jobs: user.saved_jobs
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const getSavedJobs = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id)
+            .populate({
+                path: 'saved_jobs',
+                populate: {
+                    path: 'employer',
+                    select: 'company_name location is_verified'
+                }
+            })
+
+        res.status(200).json({
+            message: 'Saved jobs fetched',
+            saved_jobs: user.saved_jobs
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
