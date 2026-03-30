@@ -97,6 +97,18 @@ const useJobseeker = () => {
         throw err
     }
     }
+    const reportJob = async (jobId, reason, description) => {
+    try {
+        const res = await axios.post(
+            `${API_URL}/api/reports/job/${jobId}`,
+            { reason, description },
+            { withCredentials: true }
+        )
+        return res.data
+    } catch (err) {
+        throw err
+    }
+}
     return {
         loading,
         error,
@@ -105,7 +117,8 @@ const useJobseeker = () => {
         updateProfile,
         scoreResume,
         getSavedJobs,
-        toggleSaveJob
+        toggleSaveJob,
+        reportJob
     }
 }
 

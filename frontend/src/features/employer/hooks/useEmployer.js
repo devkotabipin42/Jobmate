@@ -68,6 +68,25 @@ const useEmployer = () => {
         }
     }
 
+    const getCompanyProfile = async (id) => {
+    setLoading(true)
+    try {
+        const [companyRes, jobsRes] = await Promise.all([
+            axios.get(`${API_URL}/api/employer/${id}`),
+            axios.get(`${API_URL}/api/jobs?employer=${id}`)
+        ])
+        return {
+            company: companyRes.data.employer,
+            jobs: jobsRes.data.jobs
+        }
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed to fetch')
+        return null
+    } finally {
+        setLoading(false)
+    }
+}
+
     return {
         loading,
         error,
@@ -75,7 +94,8 @@ const useEmployer = () => {
         postJob,
         removeJobById,
         fetchJobApplications,
-        updateStatus
+        updateStatus,
+        getCompanyProfile
     }
 }
 

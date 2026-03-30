@@ -37,7 +37,7 @@ export const getAllJobs = async (req, res) => {
             salary_max, featured
         } = req.query
 
-        let query = { is_active: true }
+        let query = { is_active: true, is_verified: true }
 
         if (keyword) {
             query.$or = [

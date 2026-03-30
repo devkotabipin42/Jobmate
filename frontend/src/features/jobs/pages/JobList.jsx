@@ -5,92 +5,85 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { setJobs, setLoading, setFilters } from '../job.slice.js'
 import { fetchJobs } from '../services/job.api.js'
 import Navbar from '../../../components/Navbar.jsx'
+import useJobs from '../hooks/useJobs.js'
 
+
+
+const FilterContent = ({ filters, handleFilter }) => (
+    <div className='space-y-4'>
+        {[
+            {
+                label: 'Location',
+                key: 'location',
+                options: ['All locations', 'Kathmandu', 'Pokhara', 'Chitwan', 'Lalitpur']
+            },
+            {
+                label: 'Category',
+                key: 'category',
+                options: ['All categories', 'IT/Tech', 'Finance/Banking', 'NGO/INGO', 'Healthcare', 'Education', 'Marketing']
+            },
+            {
+                label: 'Job Type',
+                key: 'type',
+                options: [
+                    { label: 'All types', value: '' },
+                    { label: 'Full time', value: 'full-time' },
+                    { label: 'Part time', value: 'part-time' },
+                    { label: 'Remote', value: 'remote' },
+                    { label: 'Internship', value: 'internship' },
+                ]
+            },
+            {
+                label: 'Experience',
+                key: 'experience',
+                options: [
+                    { label: 'All levels', value: '' },
+                    { label: 'Fresh graduate', value: 'fresh' },
+                    { label: '1-2 years', value: '1-2 years' },
+                    { label: '3-5 years', value: '3-5 years' },
+                    { label: '5+ years', value: '5+ years' },
+                ]
+            },
+        ].map((filter) => (
+            <div key={filter.key}>
+                <label className='text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 block font-medium'>
+                    {filter.label}
+                </label>
+                <select
+                    value={filters[filter.key] || ''}
+                    onChange={(e) => handleFilter(filter.key, e.target.value)}
+                    className='w-full text-sm border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2.5 outline-none bg-white dark:bg-gray-700 dark:text-white focus:border-green-500 transition-colors'
+                >
+                    {filter.options.map((opt) =>
+                        typeof opt === 'string'
+                            ? <option key={opt} value={opt.includes('All') ? '' : opt}>{opt}</option>
+                            : <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    )}
+                </select>
+            </div>
+        ))}
+    </div>
+)
+
+
+   
 const JobList = () => {
+    const { jobs, filters, loading, loadJobs, handleFilter } = useJobs()
     const dispatch = useDispatch()
-    const { jobs, isLoading, filters } = useSelector(state => state.jobs)
+    
     const [keyword, setKeyword] = useState('')
     const [filterOpen, setFilterOpen] = useState(false)
 
-    useEffect(() => {
-        loadJobs()
-    }, [filters])
-
-    const loadJobs = async () => {
-        dispatch(setLoading(true))
-        try {
-            const data = await fetchJobs(filters)
-            dispatch(setJobs(data.jobs))
-        } catch (err) {
-            console.log(err)
-        } finally {
-            dispatch(setLoading(false))
-        }
-    }
+    
 
     const handleSearch = (e) => {
         e.preventDefault()
         dispatch(setFilters({ keyword }))
     }
 
-    const handleFilter = (key, value) => {
-        dispatch(setFilters({ [key]: value }))
-    }
-
-    const FilterContent = () => (
-        <div className='space-y-4'>
-            {[
-                {
-                    label: 'Location',
-                    key: 'location',
-                    options: ['All locations', 'Kathmandu', 'Pokhara', 'Chitwan', 'Lalitpur']
-                },
-                {
-                    label: 'Category',
-                    key: 'category',
-                    options: ['All categories', 'IT/Tech', 'Finance/Banking', 'NGO/INGO', 'Healthcare', 'Education', 'Marketing']
-                },
-                {
-                    label: 'Job Type',
-                    key: 'type',
-                    options: [
-                        { label: 'All types', value: '' },
-                        { label: 'Full time', value: 'full-time' },
-                        { label: 'Part time', value: 'part-time' },
-                        { label: 'Remote', value: 'remote' },
-                        { label: 'Internship', value: 'internship' },
-                    ]
-                },
-                {
-                    label: 'Experience',
-                    key: 'experience',
-                    options: [
-                        { label: 'All levels', value: '' },
-                        { label: 'Fresh graduate', value: 'fresh' },
-                        { label: '1-2 years', value: '1-2 years' },
-                        { label: '3-5 years', value: '3-5 years' },
-                        { label: '5+ years', value: '5+ years' },
-                    ]
-                },
-            ].map((filter) => (
-                <div key={filter.key}>
-                    <label className='text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 block font-medium'>
-                        {filter.label}
-                    </label>
-                    <select
-                        onChange={(e) => handleFilter(filter.key, e.target.value)}
-                        className='w-full text-sm border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2.5 outline-none bg-white dark:bg-gray-700 dark:text-white focus:border-green-500 transition-colors'
-                    >
-                        {filter.options.map((opt) =>
-                            typeof opt === 'string'
-                                ? <option key={opt} value={opt.includes('All') ? '' : opt}>{opt}</option>
-                                : <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        )}
-                    </select>
-                </div>
-            ))}
-        </div>
-    )
+    
+   
+   
 
     return (
         <div className='min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors'>
@@ -155,7 +148,7 @@ const JobList = () => {
                                     ✕
                                 </button>
                             </div>
-                            <FilterContent />
+                            <FilterContent filters={filters} handleFilter={handleFilter} />
                             <button
                                 onClick={() => setFilterOpen(false)}
                                 className='w-full mt-6 bg-green-600 text-white py-3 rounded-lg text-sm font-medium'
@@ -173,7 +166,7 @@ const JobList = () => {
                 <div className='hidden md:block w-56 shrink-0'>
                     <div className='bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 sticky top-4'>
                         <h3 className='text-sm font-medium text-gray-800 dark:text-white mb-4'>Filters</h3>
-                        <FilterContent />
+                       <FilterContent filters={filters} handleFilter={handleFilter} />
                     </div>
                 </div>
 
@@ -185,7 +178,7 @@ const JobList = () => {
                         </span>
                     </div>
 
-                    {isLoading ? (
+                    {loading ? (
                         <div className='text-center py-20'>
                             <motion.div
                                 animate={{ rotate: 360 }}

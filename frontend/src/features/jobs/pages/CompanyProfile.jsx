@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import axios from 'axios'
 import Navbar from '../../../components/Navbar.jsx'
 import API_URL from '../../../config/api.js'
+import useEmployer from '../../employer/hooks/useEmployer.js'
 
 const CompanyProfile = () => {
     const { id } = useParams()
@@ -15,18 +16,11 @@ const CompanyProfile = () => {
         loadCompany()
     }, [id])
 
-    const loadCompany = async () => {
-        try {
-            const [companyRes, jobsRes] = await Promise.all([
-                axios.get(`${API_URL}/api/employer/${id}`),
-                axios.get(`${API_URL}/api/jobs?employer=${id}`)
-            ])
-            setCompany(companyRes.data.employer)
-            setJobs(jobsRes.data.jobs)
-        } catch (err) {
-            console.log(err)
-        } finally {
-            setLoading(false)
+   const loadCompany = async () => {
+        const data = await getCompanyProfile(id)
+        if (data) {
+            setCompany(data.company)
+            setJobs(data.jobs)
         }
     }
 

@@ -147,6 +147,35 @@ const useAdmin = () => {
             return false
         }
     }
+    const getAllReports = async () => {
+    setLoading(true)
+    try {
+        const res = await axios.get(`${API_URL}/api/reports/all`, getAuthHeaders())
+        return res.data.reports
+    } catch (err) {
+        return []
+    } finally {
+        setLoading(false)
+    }
+}
+
+const resolveReport = async (id) => {
+    try {
+        await axios.put(`${API_URL}/api/reports/${id}/resolve`, {}, getAuthHeaders())
+        return true
+    } catch (err) {
+        return false
+    }
+}
+
+const dismissReport = async (id) => {
+    try {
+        await axios.put(`${API_URL}/api/reports/${id}/dismiss`, {}, getAuthHeaders())
+        return true
+    } catch (err) {
+        return false
+    }
+}
 
     return {
         loading,
@@ -163,7 +192,10 @@ const useAdmin = () => {
         verifyEmployer,
         banUser,
         unbanUser,
-        updateUserRole
+        updateUserRole,
+        getAllReports,
+    resolveReport,
+    dismissReport
     }
 }
 

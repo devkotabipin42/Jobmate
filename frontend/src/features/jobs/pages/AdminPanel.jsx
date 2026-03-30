@@ -25,7 +25,10 @@ const AdminPanel = () => {
         verifyEmployer,
         banUser,
         unbanUser,
-        updateUserRole
+        updateUserRole,
+        getAllReports,
+        resolveReport, 
+        dismissReport  
     } = useAdmin()
 
     const [activeTab, setActiveTab] = useState('dashboard')
@@ -35,6 +38,7 @@ const AdminPanel = () => {
     const [employers, setEmployers] = useState([])
     const [users, setUsers] = useState([])
     const [analytics, setAnalytics] = useState(null)
+    const [reports, setReports] = useState([])
 
     useEffect(() => {
         loadStats()
@@ -121,6 +125,20 @@ const handleRoleChange = async (id, role) => {
     await updateUserRole(id, role)
     setUsers(prev => prev.map(u => u._id === id ? { ...u, role } : u))
 }
+const loadReports = async () => {
+    const data = await getAllReports()
+    setReports(data)
+}
+
+const handleResolveReport = async (id) => {
+    await resolveReport(id)
+    setReports(prev => prev.map(r => r._id === id ? { ...r, status: 'resolved' } : r))
+}
+
+const handleDismissReport = async (id) => {
+    await dismissReport(id)
+    setReports(prev => prev.map(r => r._id === id ? { ...r, status: 'dismissed' } : r))
+}
 
     const handleTabChange = (tab) => {
         setActiveTab(tab)
@@ -129,6 +147,7 @@ const handleRoleChange = async (id, role) => {
         if (tab === 'employers') loadEmployers()
         if (tab === 'users') loadUsers()
         if (tab === 'analytics') loadAnalytics()
+        if (tab === 'reports') loadReports()
     }
 
   
@@ -140,6 +159,7 @@ const handleRoleChange = async (id, role) => {
         { id: 'employers', label: '🏢 Employers' },
         { id: 'users', label: '👥 Users' },
         { id: 'analytics', label: '📈 Analytics' },
+        { id: 'reports', label: '🚩 Reports' },
     ]
 
     const pieData = stats ? [
@@ -955,6 +975,126 @@ const handleRoleChange = async (id, role) => {
                     </ResponsiveContainer>
                 </div>
             </>
+        )}
+    </motion.div>
+)}
+{/* Reports Tab */}
+{activeTab === 'reports' && (
+    <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+    >
+        <div className='flex items-center justify-between mb-4'>
+            <div>
+                <h2 className='text-lg font-semibold text-gray-800 dark:text-white'>
+                    Report System
+                </h2>
+                <p className='text-xs text-gray-500 dark:text-gray-400 mt-0.5'>
+                    User reported jobs — review and take action
+                </p>
+            </div>
+            <div className='flex gap-2 text-xs'>
+                <span className='bg-red-50 dark:bg-red-900 text-red-600 dark:text-red-300 px-3 py-1.5 rounded-full font-medium'>
+                    🚩 {reports.filter(r => r.status === 'pending').length} Pending
+                </span>
+                <span className='bg-green-50 dark:bg-green-900 text-green-600 dark:text-green-300 px-3 py-1.5 rounded-full font-medium'>
+                    ✓ {reports.filter(r => r.status === 'resolved').length} Resolved
+                </span>
+            </div>
+        </div>
+
+        {loading ? <LoadingSpinner /> : reports.length === 0 ? (
+            <div className='text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700'>
+                <div className='text-5xl mb-3'>🎉</div>
+                <p className='text-gray-500 dark:text-gray-400 font-medium'>No reports yet!</p>
+                <p className='text-xs text-gray-400 mt-1'>Users have not reported any jobs</p>
+            </div>
+        ) : (
+            <div className='space-y-3'>
+                {reports.map((report, i) => (
+                    <motion.div
+                        key={report._id}
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className={`bg-white dark:bg-gray-800 border rounded-2xl p-5 shadow-sm ${
+                            report.status === 'pending'
+                                ? 'border-red-200 dark:border-red-700'
+                                : report.status === 'resolved'
+                                ? 'border-green-200 dark:border-green-700'
+                                : 'border-gray-200 dark:border-gray-700'
+                        }`}
+                    >
+                        <div className='flex items-start justify-between gap-3 mb-3'>
+                            <div className='flex items-start gap-3'>
+                                <div className='w-10 h-10 rounded-xl bg-red-50 dark:bg-red-900 flex items-center justify-center text-red-600 font-bold shrink-0'>
+                                    🚩
+                                </div>
+                                <div>
+                                    <h3 className='text-sm font-semibold text-gray-800 dark:text-white mb-0.5'>
+                                        {report.job?.title || 'Job Deleted'}
+                                    </h3>
+                                    <p className='text-xs text-gray-500 dark:text-gray-400'>
+                                        Reported by: {report.reportedBy?.name} · {report.reportedBy?.email}
+                                    </p>
+                                    <p className='text-xs text-gray-400 mt-0.5'>
+                                        {new Date(report.createdAt).toLocaleDateString()}
+                                    </p>
+                                </div>
+                            </div>
+                            <span className={`text-xs px-3 py-1 rounded-full font-medium shrink-0 ${
+                                report.status === 'pending'
+                                    ? 'bg-red-50 dark:bg-red-900 text-red-600 dark:text-red-300'
+                                    : report.status === 'resolved'
+                                    ? 'bg-green-50 dark:bg-green-900 text-green-600 dark:text-green-300'
+                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-500'
+                            }`}>
+                                {report.status === 'pending' ? '⏳ Pending' : report.status === 'resolved' ? '✓ Resolved' : 'Dismissed'}
+                            </span>
+                        </div>
+
+                        <div className='flex gap-2 flex-wrap mb-3'>
+                            <span className='text-xs bg-red-50 dark:bg-red-900 text-red-600 dark:text-red-300 px-2 py-1 rounded-full font-medium'>
+                                {report.reason?.replace('_', ' ').toUpperCase()}
+                            </span>
+                            {report.job?.location && (
+                                <span className='text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-full'>
+                                    📍 {report.job.location}
+                                </span>
+                            )}
+                        </div>
+
+                        {report.description && (
+                            <div className='bg-gray-50 dark:bg-gray-700 rounded-xl p-3 mb-3'>
+                                <p className='text-xs text-gray-600 dark:text-gray-300'>
+                                    "{report.description}"
+                                </p>
+                            </div>
+                        )}
+
+                        {report.status === 'pending' && (
+                            <div className='flex gap-2'>
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => handleResolveReport(report._id)}
+                                    className='flex-1 bg-green-600 text-white py-2.5 rounded-xl text-xs font-semibold hover:bg-green-700 transition-colors'
+                                >
+                                    ✓ Resolve — Remove Job
+                                </motion.button>
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => handleDismissReport(report._id)}
+                                    className='flex-1 border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 py-2.5 rounded-xl text-xs font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'
+                                >
+                                    Dismiss
+                                </motion.button>
+                            </div>
+                        )}
+                    </motion.div>
+                ))}
+            </div>
         )}
     </motion.div>
 )}

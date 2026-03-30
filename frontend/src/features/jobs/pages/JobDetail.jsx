@@ -18,10 +18,32 @@ const JobDetail = () => {
   const [error, setError] = useState("");
   const { toggleSaveJob } = useJobseeker();
   const [saved, setSaved] = useState(false);
+  const [showReport, setShowReport] = useState(false)
+const [reportReason, setReportReason] = useState('fake_job')
+const [reportDesc, setReportDesc] = useState('')
+const [reporting, setReporting] = useState(false)
+const [reported, setReported] = useState(false)
+const { reportJob } = useJobseeker()
 
-  useEffect(() => {
-    loadJob();
-  }, [id]);
+const handleReport = async () => {
+    setReporting(true)
+    try {
+        await reportJob(job._id, reportReason, reportDesc)
+        setReported(true)
+        setShowReport(false)
+    } catch (err) {
+        if (err.response?.data?.message === 'Already reported this job') {
+            setReported(true)
+            setShowReport(false)
+        } else {
+            console.log(err)
+        }
+    } finally {
+        setReporting(false)
+    }
+}
+
+  
 
   const loadJob = async () => {
     try {
@@ -33,6 +55,9 @@ const JobDetail = () => {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    loadJob()
+}, [id])
   const handleSave = async () => {
     try {
       await toggleSaveJob(id);
@@ -41,23 +66,23 @@ const JobDetail = () => {
       console.log(err);
     }
   };
-  const handleApply = async () => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-    setApplying(true);
-    try {
-      await applyJob(id, "");
-      setApplied(true);
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to apply");
-    } finally {
-      setApplying(false);
-    }
-  };
+const handleApply = async () => {
+  if (!user) {
+    navigate("/login");
+    return;
+  }
+  setApplying(true);
+  try {
+    await applyJob(id, "");
+    setApplied(true);
+  } catch (err) {
+    setError(err.response?.data?.message || "Failed to apply");
+  } finally {
+    setApplying(false);
+  }
+};
 
-  if (loading)
+if (loading)
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <motion.div
@@ -266,6 +291,66 @@ const JobDetail = () => {
               </motion.button>
             </div>
           )}
+          {/* Report Job */}
+{user?.role === 'jobseeker' && (
+    <div className='mt-4'>
+        {reported ? (
+            <p className='text-xs text-red-500 text-center'>✓ Job reported — we will review it</p>
+        ) : (
+            <button
+                onClick={() => setShowReport(!showReport)}
+                className='text-xs text-gray-400 hover:text-red-500 transition-colors w-full text-center'
+            >
+                🚩 Report this job
+            </button>
+        )}
+
+        {showReport && !reported && (
+            <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className='mt-3 bg-gray-50 dark:bg-gray-700 rounded-xl p-4'
+            >
+                <p className='text-xs font-medium text-gray-700 dark:text-gray-300 mb-2'>
+                    Why are you reporting this job?
+                </p>
+                <select
+                    value={reportReason}
+                    onChange={(e) => setReportReason(e.target.value)}
+                    className='w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-xs outline-none bg-white dark:bg-gray-600 dark:text-white mb-2'
+                >
+                    <option value='fake_job'>Fake Job</option>
+                    <option value='misleading'>Misleading Information</option>
+                    <option value='spam'>Spam</option>
+                    <option value='inappropriate'>Inappropriate Content</option>
+                    <option value='other'>Other</option>
+                </select>
+                <textarea
+                    value={reportDesc}
+                    onChange={(e) => setReportDesc(e.target.value)}
+                    placeholder='Additional details (optional)...'
+                    rows={2}
+                    className='w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-xs outline-none bg-white dark:bg-gray-600 dark:text-white mb-2 resize-none'
+                />
+                <div className='flex gap-2'>
+                    <button
+                        onClick={handleReport}
+                        disabled={reporting}
+                        className='flex-1 bg-red-500 text-white py-2 rounded-lg text-xs font-medium hover:bg-red-600 transition-colors disabled:opacity-50'
+                    >
+                        {reporting ? 'Submitting...' : 'Submit Report'}
+                    </button>
+                    <button
+                        onClick={() => setShowReport(false)}
+                        className='text-xs border border-gray-200 dark:border-gray-600 text-gray-500 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors'
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </motion.div>
+        )}
+    </div>
+)}
         </motion.div>
       </div>
     </div>

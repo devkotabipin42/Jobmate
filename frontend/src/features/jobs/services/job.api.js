@@ -7,9 +7,16 @@ const api = axios.create({
 })
 
 export const fetchJobs = async (filters = {}) => {
-    const params = new URLSearchParams(filters).toString()
-    const res = await api.get(`/api/jobs?${params}`)
-    return res.data
+    const res = await axios.get(`${API_URL}/api/jobs`, {
+        params: {
+            keyword: filters.keyword || '',
+            location: filters.location || '',
+            category: filters.category || '',
+            type: filters.type || '',
+            experience: filters.experience || ''
+        }
+    })
+    return res.data.jobs
 }
 
 export const fetchJob = async (id) => {
