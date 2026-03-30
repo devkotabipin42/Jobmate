@@ -30,6 +30,9 @@ import CareerTips from '../features/jobs/pages/CareerTips.jsx'
 //Admin
 import AdminPanel from '../features/jobs/pages/AdminPanel.jsx'
 
+//Error Page
+import NotFound from '../features/jobs/pages/NotFound.jsx'
+
 // mistralai
 import ResumeScorer from '../features/jobseeker/pages/ResumeScorer.jsx'
 const AppRoutes = () => {
@@ -53,6 +56,7 @@ const AppRoutes = () => {
                      <ResumeScorer />
                     </Protected>
                     } />
+            <Route path='*' element={<NotFound />} />
             {/* Job Seeker Routes — Protected */}
             <Route path='/profile' element={
                 <Protected role='jobseeker'>
