@@ -106,6 +106,31 @@ const editJob = async (id, formData) => {
     }
 }
 
+const uploadLogo = async (file) => {
+    setLoading(true)
+    try {
+        const formData = new FormData()
+        formData.append('logo', file)
+        const token = localStorage.getItem('token')
+        const res = await axios.post(
+            `${API_URL}/api/employer/upload-logo`,
+            formData,
+            {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                }
+            }
+        )
+        return res.data
+    } catch (err) {
+        throw err
+    } finally {
+        setLoading(false)
+    }
+}
+
     return {
         loading,
         error,
@@ -115,7 +140,8 @@ const editJob = async (id, formData) => {
         fetchJobApplications,
         updateStatus,
         getCompanyProfile,
-        editJob
+        editJob,
+        uploadLogo
     }
 }
 

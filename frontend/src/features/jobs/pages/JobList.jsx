@@ -213,7 +213,11 @@ const JobList = () => {
 
                                     <div className='flex items-start gap-3'>
                                         <div className='w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900 flex items-center justify-center text-green-700 dark:text-green-300 font-semibold text-sm shrink-0'>
-                                            {job.employer?.company_name?.charAt(0) || 'C'}
+                                            {job.employer?.logo_url ? (
+            <img src={job.employer.logo_url} alt={job.employer.company_name} className='w-full h-full object-cover' />
+        ) : (
+            job.employer?.company_name?.charAt(0) || 'C'
+        )}
                                         </div>
 
                                         <div className='flex-1 min-w-0'>
@@ -222,9 +226,7 @@ const JobList = () => {
                                                     <h3 className='text-sm font-medium text-gray-800 dark:text-white'>
                                                         {job.title}
                                                     </h3>
-                                                    <p className='text-xs text-gray-500 dark:text-gray-400 mt-0.5'>
-                                                        {job.employer?.company_name} · {job.location}
-                                                    </p>
+                                               
                                                 </div>
                                                 <Link
                                                     to={`/jobs/${job._id}`}

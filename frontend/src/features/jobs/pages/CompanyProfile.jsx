@@ -67,10 +67,17 @@ const CompanyProfile = () => {
                             )}
                         </div>
 
-                        <h1 className='text-2xl font-semibold text-gray-800 dark:text-white mb-1'>
-                            {company.company_name}
-                        </h1>
-
+                       <div className='w-20 h-20 rounded-2xl bg-white dark:bg-gray-700 border-4 border-white dark:border-gray-800 flex items-center justify-center text-green-600 font-bold text-3xl shadow-sm overflow-hidden'>
+    {company.logo_url ? (
+        <img
+            src={company.logo_url}
+            alt={company.company_name}
+            className='w-full h-full object-cover'
+        />
+    ) : (
+        company.company_name?.charAt(0)
+    )}
+</div>
                         <p className='text-sm text-gray-500 dark:text-gray-400 mb-4'>
                             📍 {company.location || 'Nepal'}
                         </p>

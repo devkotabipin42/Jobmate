@@ -113,9 +113,13 @@ if (loading)
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
             <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-xl bg-green-50 dark:bg-green-900 flex items-center justify-center text-green-700 dark:text-green-300 font-bold text-xl shrink-0">
-                {job.employer?.company_name?.charAt(0)}
-              </div>
+              <div className='w-14 h-14 rounded-xl bg-green-50 dark:bg-green-900 flex items-center justify-center text-green-700 dark:text-green-300 font-bold text-xl shrink-0 overflow-hidden'>
+    {job.employer?.logo_url ? (
+        <img src={job.employer.logo_url} alt={job.employer.company_name} className='w-full h-full object-cover' />
+    ) : (
+        job.employer?.company_name?.charAt(0)
+    )}
+</div>
               <div>
                 <h1 className="text-2xl font-semibold text-gray-800 dark:text-white mb-1">
                   {job.title}

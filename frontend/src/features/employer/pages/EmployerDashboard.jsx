@@ -7,6 +7,7 @@ import useEmployer from '../hooks/useEmployer.js'
 import useAuth from '../../auth/hooks/useAuth.js'
 import { setMyJobs, setApplications, removeJob } from '../employer.slice.js'
 import Navbar from '../../../components/Navbar.jsx'
+import { setUser } from '../../auth/auth.slice.js'
 
 const statusColors = {
     applied: 'bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-300',
@@ -24,6 +25,9 @@ const EmployerDashboard = () => {
     const { user } = useAuth()
     const { myJobs, applications } = useSelector(state => state.employer)
     const { fetchMyJobs, removeJobById, fetchJobApplications, updateStatus, loading } = useEmployer()
+    const [logoPreview, setLogoPreview] = useState(null)
+    const [uploading, setUploading] = useState(false)
+    const { uploadLogo } = useEmployer()
 
     const [activeTab, setActiveTab] = useState('overview')
     const [selectedJob, setSelectedJob] = useState(null)
@@ -58,7 +62,22 @@ const EmployerDashboard = () => {
         const apps = await fetchJobApplications(selectedJob._id)
         dispatch(setApplications(apps))
     }
-
+   const handleLogoUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    
+    setLogoPreview(URL.createObjectURL(file))
+    setUploading(true)
+    try {
+        const data = await uploadLogo(file)
+        dispatch(setUser({ ...user, logo_url: data.logo_url }))
+    } catch (err) {
+        console.log(err)
+        setLogoPreview(null)
+    } finally {
+        setUploading(false)
+    }
+}
     const totalApplications = myJobs.reduce((a, j) => a + j.application_count, 0)
     const activeJobs = myJobs.filter(j => j.is_active).length
     const featuredJobs = myJobs.filter(j => j.is_featured).length
@@ -99,46 +118,80 @@ const EmployerDashboard = () => {
 
             {/* Header */}
             <div className='bg-gradient-to-r from-green-600 to-green-800 px-6 py-8'>
-                <div className='max-w-7xl mx-auto'>
-                    <div className='flex flex-col md:flex-row md:items-center justify-between gap-4'>
-                        <div>
-                            <span className='text-xs bg-white/20 text-white px-3 py-1 rounded-full mb-2 inline-block font-medium'>
-                                🏢 Employer Dashboard
+    <div className='max-w-7xl mx-auto'>
+        <div className='flex flex-col md:flex-row md:items-center justify-between gap-4'>
+            <div className='flex items-center gap-4'>
+                {/* Logo */}
+                <div className='relative'>
+                    <div className='w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center overflow-hidden'>
+                        {logoPreview || user?.logo_url ? (
+                            <img
+                                src={logoPreview || user?.logo_url}
+                                alt='Company Logo'
+                                className='w-full h-full object-cover'
+                            />
+                        ) : (
+                            <span className='text-white font-bold text-2xl'>
+                                {user?.name?.charAt(0) || user?.company_name?.charAt(0)}
                             </span>
-                            <h1 className='text-3xl font-bold text-white'>
-                                Welcome, {user?.name || user?.company_name}!
-                            </h1>
-                            <p className='text-green-200 text-sm mt-1'>
-                                Manage your job listings and track applications
-                            </p>
-                        </div>
-                        <div className='flex items-center gap-3'>
-                            <div className='flex items-center gap-4 bg-white/10 rounded-2xl px-6 py-3'>
-                                <div className='text-center'>
-                                    <p className='text-2xl font-bold text-white'>{myJobs.length}</p>
-                                    <p className='text-xs text-green-200'>Jobs</p>
-                                </div>
-                                <div className='w-px h-10 bg-white/20' />
-                                <div className='text-center'>
-                                    <p className='text-2xl font-bold text-white'>{totalApplications}</p>
-                                    <p className='text-xs text-green-200'>Applications</p>
-                                </div>
-                                <div className='w-px h-10 bg-white/20' />
-                                <div className='text-center'>
-                                    <p className='text-2xl font-bold text-white'>{activeJobs}</p>
-                                    <p className='text-xs text-green-200'>Active</p>
-                                </div>
-                            </div>
-                            <Link
-                                to='/employer/post-job'
-                                className='bg-white text-green-700 px-5 py-3 rounded-xl text-sm font-semibold hover:bg-green-50 transition-colors shadow-sm'
-                            >
-                                + Post New Job
-                            </Link>
-                        </div>
+                        )}
                     </div>
+                    <label className='absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center cursor-pointer shadow-sm hover:bg-gray-50 transition-colors'>
+                        <input
+                            type='file'
+                            accept='image/*'
+                            onChange={handleLogoUpload}
+                            className='hidden'
+                        />
+                        <span className='text-xs'>✏️</span>
+                    </label>
+                    {uploading && (
+                        <div className='absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center'>
+                            <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin' />
+                        </div>
+                    )}
+                </div>
+
+                <div>
+                    <span className='text-xs bg-white/20 text-white px-3 py-1 rounded-full mb-2 inline-block font-medium'>
+                        🏢 Employer Dashboard
+                    </span>
+                    <h1 className='text-3xl font-bold text-white'>
+                        Welcome, {user?.name || user?.company_name}!
+                    </h1>
+                    <p className='text-green-200 text-sm mt-1'>
+                        Manage your job listings and track applications
+                    </p>
                 </div>
             </div>
+
+            <div className='flex items-center gap-3'>
+                <div className='flex items-center gap-4 bg-white/10 rounded-2xl px-6 py-3'>
+                    <div className='text-center'>
+                        <p className='text-2xl font-bold text-white'>{myJobs.length}</p>
+                        <p className='text-xs text-green-200'>Jobs</p>
+                    </div>
+                    <div className='w-px h-10 bg-white/20' />
+                    <div className='text-center'>
+                        <p className='text-2xl font-bold text-white'>{totalApplications}</p>
+                        <p className='text-xs text-green-200'>Applications</p>
+                    </div>
+                    <div className='w-px h-10 bg-white/20' />
+                    <div className='text-center'>
+                        <p className='text-2xl font-bold text-white'>{activeJobs}</p>
+                        <p className='text-xs text-green-200'>Active</p>
+                    </div>
+                </div>
+                <Link
+                    to='/employer/post-job'
+                    className='bg-white text-green-700 px-5 py-3 rounded-xl text-sm font-semibold hover:bg-green-50 transition-colors shadow-sm'
+                >
+                    + Post New Job
+                </Link>
+            </div>
+        </div>
+    </div>
+</div>
 
             <div className='max-w-7xl mx-auto px-4 md:px-6 py-6'>
 
