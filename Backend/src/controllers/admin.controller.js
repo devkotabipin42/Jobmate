@@ -9,10 +9,23 @@ import Application from '../models/Application.model.js'
 import nodemailer from 'nodemailer'
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
     auth: {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASS
+    },
+    tls: {
+        rejectUnauthorized: false
+    }
+})
+
+transporter.verify((error, success) => {
+    if (error) {
+        console.log('Email transporter error:', error)
+    } else {
+        console.log('Email transporter ready!')
     }
 })
 // Verify employer
@@ -274,6 +287,78 @@ export const getAllUsers = async (req, res) => {
             message: 'Users fetched',
             count: users.length,
             users
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+export const getAnalytics = async (req, res) => {
+    try {
+        // Jobs by category
+        const jobsByCategory = await Job.aggregate([
+            { $group: { _id: '$category', count: { $sum: 1 } } },
+            { $sort: { count: -1 } }
+        ])
+
+        // Jobs by location
+        const jobsByLocation = await Job.aggregate([
+            { $group: { _id: '$location', count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 6 }
+        ])
+
+        // Jobs by type
+        const jobsByType = await Job.aggregate([
+            { $group: { _id: '$type', count: { $sum: 1 } } },
+            { $sort: { count: -1 } }
+        ])
+
+        // Applications by status
+        const applicationsByStatus = await Application.aggregate([
+            { $group: { _id: '$status', count: { $sum: 1 } } },
+            { $sort: { count: -1 } }
+        ])
+
+        // Users registered by month
+        const usersByMonth = await User.aggregate([
+            {
+                $group: {
+                    _id: {
+                        month: { $month: '$createdAt' },
+                        year: { $year: '$createdAt' }
+                    },
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { '_id.year': 1, '_id.month': 1 } },
+            { $limit: 6 }
+        ])
+
+        // Top employers by job count
+        const topEmployers = await Job.aggregate([
+            { $group: { _id: '$employer', jobCount: { $sum: 1 }, totalApplications: { $sum: '$application_count' } } },
+            { $sort: { jobCount: -1 } },
+            { $limit: 5 },
+            {
+                $lookup: {
+                    from: 'employers',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'employer'
+                }
+            },
+            { $unwind: '$employer' }
+        ])
+
+        res.status(200).json({
+            analytics: {
+                jobsByCategory,
+                jobsByLocation,
+                jobsByType,
+                applicationsByStatus,
+                usersByMonth,
+                topEmployers
+            }
         })
     } catch (error) {
         res.status(500).json({ message: error.message })

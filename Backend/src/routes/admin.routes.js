@@ -10,7 +10,8 @@ import {
     verifyEmployer,
     getAllUsers,
     updateUserRole,
-     banUser, unbanUser
+     banUser, unbanUser,
+     getAnalytics
 } from '../controllers/admin.controller.js'
 import {  authMiddleware,adminMiddleware } from '../middleware/auth.middleware.js'
 
@@ -31,5 +32,6 @@ adminRouter.get('/users', getAllUsers)
 adminRouter.put('/users/:id/role', updateUserRole)
 adminRouter.put('/users/:id/ban', banUser)
 adminRouter.put('/users/:id/unban', unbanUser)
+adminRouter.get('/analytics', getAnalytics)
 
 export default adminRouter

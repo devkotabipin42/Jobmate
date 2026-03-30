@@ -113,7 +113,7 @@ export const login = async (req, res) => {
             return res.status(400).json({ message: 'Invalid password' })
         }
 
-        // Database se actual role lo
+        // Database do actual role 
         const actualRole = account.role || role
 
         const token = generateToken(account._id, actualRole)
