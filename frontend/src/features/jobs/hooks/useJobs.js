@@ -4,11 +4,14 @@ import { setJobs, setFilters } from '../job.slice.js'
 import { fetchJobs, fetchJob } from '../services/job.api.js'
 import { useEffect} from 'react'
 import { useCallback } from 'react'
+import axios from 'axios'
+import API_URL from '../../../config/api.js'
 
 const useJobs = () => {
     const dispatch = useDispatch()
     const { jobs, filters } = useSelector(state => state.jobs)
     const [loading, setLoading] = useState(false)
+    const [latestJobs, setLatestJobs] = useState([])
     const [error, setError] = useState('')
 
     useEffect(() => {
@@ -63,6 +66,14 @@ useEffect(() => {
             experience: ''
         }))
     }
+    const loadLatestJobs = async () => {
+    try {
+        const res = await axios.get(`${API_URL}/api/jobs`)
+        setLatestJobs(res.data.jobs || [])
+    } catch (err) {
+        console.log(err)
+    }
+}
 
     return {
         jobs,
@@ -70,9 +81,11 @@ useEffect(() => {
         loading,
         error,
         loadJobs,
+        latestJobs,
         loadJob,
         handleFilter,
-        clearFilters
+        clearFilters,
+        loadLatestJobs,
     }
 }
 
