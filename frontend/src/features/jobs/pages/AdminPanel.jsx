@@ -1,112 +1,125 @@
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import axios from 'axios'
+import { motion } from 'framer-motion'
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid,
     Tooltip, ResponsiveContainer, PieChart, Pie,
     Cell, LineChart, Line
 } from 'recharts'
 import Navbar from '../../../components/Navbar.jsx'
-import API_URL from '../../../config/api.js'
+import useAdmin from '../hooks/useAdmin.js'
 
 const COLORS = ['#22c55e', '#f59e0b', '#8b5cf6', '#3b82f6', '#ef4444']
 
 const AdminPanel = () => {
+    const {
+        loading,
+        getStats,
+        getAnalytics,
+        getPendingJobs,
+        getAllJobs,
+        getAllEmployers,
+        getAllUsers,
+        verifyJob,
+        rejectJob,
+        deleteJob,
+        verifyEmployer,
+        banUser,
+        unbanUser,
+        updateUserRole
+    } = useAdmin()
+
     const [activeTab, setActiveTab] = useState('dashboard')
     const [stats, setStats] = useState(null)
     const [pendingJobs, setPendingJobs] = useState([])
     const [allJobs, setAllJobs] = useState([])
     const [employers, setEmployers] = useState([])
     const [users, setUsers] = useState([])
-    const [loading, setLoading] = useState(false)
+    const [analytics, setAnalytics] = useState(null)
 
     useEffect(() => {
         loadStats()
         loadPendingJobs()
     }, [])
 
-    const loadStats = async () => {
-        try {
-            const res = await axios.get(`${API_URL}/api/admin/stats`, { withCredentials: true })
-            setStats(res.data.stats)
-        } catch (err) {
-            console.log(err)
-        }
-    }
-
-    const loadPendingJobs = async () => {
-        setLoading(true)
-        try {
-            const res = await axios.get(`${API_URL}/api/admin/jobs/pending`, { withCredentials: true })
-            setPendingJobs(res.data.jobs)
-        } catch (err) {
-            console.log(err)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    const loadAllJobs = async () => {
-        setLoading(true)
-        try {
-            const res = await axios.get(`${API_URL}/api/admin/jobs`, { withCredentials: true })
-            setAllJobs(res.data.jobs)
-        } catch (err) {
-            console.log(err)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    const loadEmployers = async () => {
-        setLoading(true)
-        try {
-            const res = await axios.get(`${API_URL}/api/admin/employers`, { withCredentials: true })
-            setEmployers(res.data.employers)
-        } catch (err) {
-            console.log(err)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    const loadUsers = async () => {
-        setLoading(true)
-        try {
-            const res = await axios.get(`${API_URL}/api/admin/users`, { withCredentials: true })
-            setUsers(res.data.users)
-        } catch (err) {
-            console.log(err)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    const handleBanUser = async (id) => {
-    try {
-        await axios.put(`${API_URL}/api/admin/users/${id}/ban`, {}, { withCredentials: true })
-        setUsers(prev => prev.map(u => u._id === id ? { ...u, is_banned: true } : u))
-    } catch (err) {
-        console.log(err)
-    }
+   // loadStats
+const loadStats = async () => {
+    const data = await getStats()
+    setStats(data)
 }
 
+// loadPendingJobs
+const loadPendingJobs = async () => {
+    const data = await getPendingJobs()
+    setPendingJobs(data)
+}
+
+// loadAllJobs
+const loadAllJobs = async () => {
+    const data = await getAllJobs()
+    setAllJobs(data)
+}
+
+// loadEmployers
+const loadEmployers = async () => {
+    const data = await getAllEmployers()
+    setEmployers(data)
+}
+
+// loadUsers
+const loadUsers = async () => {
+    const data = await getAllUsers()
+    setUsers(data)
+}
+
+// loadAnalytics
+const loadAnalytics = async () => {
+    const data = await getAnalytics()
+    setAnalytics(data)
+}
+
+// handleVerifyJob
+const handleVerifyJob = async (id) => {
+    await verifyJob(id)
+    setPendingJobs(prev => prev.filter(j => j._id !== id))
+    loadStats()
+}
+
+// handleRejectJob
+const handleRejectJob = async (id) => {
+    await rejectJob(id)
+    setPendingJobs(prev => prev.filter(j => j._id !== id))
+    loadStats()
+}
+
+// handleDeleteJob
+const handleDeleteJob = async (id) => {
+    await deleteJob(id)
+    setAllJobs(prev => prev.filter(j => j._id !== id))
+    loadStats()
+}
+
+// handleVerifyEmployer
+const handleVerifyEmployer = async (id) => {
+    await verifyEmployer(id)
+    setEmployers(prev => prev.map(e => e._id === id ? { ...e, is_verified: true } : e))
+}
+
+// handleBanUser
+const handleBanUser = async (id) => {
+    await banUser(id)
+    setUsers(prev => prev.map(u => u._id === id ? { ...u, is_banned: true } : u))
+}
+
+// handleUnbanUser
 const handleUnbanUser = async (id) => {
-    try {
-        await axios.put(`${API_URL}/api/admin/users/${id}/unban`, {}, { withCredentials: true })
-        setUsers(prev => prev.map(u => u._id === id ? { ...u, is_banned: false } : u))
-    } catch (err) {
-        console.log(err)
-    }
+    await unbanUser(id)
+    setUsers(prev => prev.map(u => u._id === id ? { ...u, is_banned: false } : u))
 }
 
+// handleRoleChange
 const handleRoleChange = async (id, role) => {
-    try {
-        await axios.put(`${API_URL}/api/admin/users/${id}/role`, { role }, { withCredentials: true })
-        setUsers(prev => prev.map(u => u._id === id ? { ...u, role } : u))
-    } catch (err) {
-        console.log(err)
-    }
+    await updateUserRole(id, role)
+    setUsers(prev => prev.map(u => u._id === id ? { ...u, role } : u))
 }
 
     const handleTabChange = (tab) => {
@@ -115,46 +128,10 @@ const handleRoleChange = async (id, role) => {
         if (tab === 'all-jobs') loadAllJobs()
         if (tab === 'employers') loadEmployers()
         if (tab === 'users') loadUsers()
+        if (tab === 'analytics') loadAnalytics()
     }
 
-    const handleVerifyJob = async (id) => {
-        try {
-            await axios.put(`${API_URL}/api/admin/jobs/${id}/verify`, {}, { withCredentials: true })
-            setPendingJobs(prev => prev.filter(j => j._id !== id))
-            loadStats()
-        } catch (err) {
-            console.log(err)
-        }
-    }
-
-    const handleRejectJob = async (id) => {
-        try {
-            await axios.put(`${API_URL}/api/admin/jobs/${id}/reject`, {}, { withCredentials: true })
-            setPendingJobs(prev => prev.filter(j => j._id !== id))
-            loadStats()
-        } catch (err) {
-            console.log(err)
-        }
-    }
-
-    const handleDeleteJob = async (id) => {
-        try {
-            await axios.delete(`${API_URL}/api/admin/jobs/${id}`, { withCredentials: true })
-            setAllJobs(prev => prev.filter(j => j._id !== id))
-            loadStats()
-        } catch (err) {
-            console.log(err)
-        }
-    }
-
-    const handleVerifyEmployer = async (id) => {
-        try {
-            await axios.put(`${API_URL}/api/admin/employers/${id}/verify`, {}, { withCredentials: true })
-            setEmployers(prev => prev.map(e => e._id === id ? { ...e, is_verified: true } : e))
-        } catch (err) {
-            console.log(err)
-        }
-    }
+  
 
     const tabs = [
         { id: 'dashboard', label: '📊 Dashboard' },
@@ -162,6 +139,7 @@ const handleRoleChange = async (id, role) => {
         { id: 'all-jobs', label: '💼 All Jobs' },
         { id: 'employers', label: '🏢 Employers' },
         { id: 'users', label: '👥 Users' },
+        { id: 'analytics', label: '📈 Analytics' },
     ]
 
     const pieData = stats ? [
@@ -793,6 +771,193 @@ const handleRoleChange = async (id, role) => {
     </motion.div>
 )}
             </div>
+            {/* Analytics Tab */}
+{activeTab === 'analytics' && (
+    <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className='space-y-6'
+    >
+        {loading ? <LoadingSpinner /> : !analytics ? (
+            <div className='text-center py-20'>
+                <p className='text-gray-500'>Loading analytics...</p>
+            </div>
+        ) : (
+            <>
+                {/* Jobs by Category */}
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                    <div className='bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700'>
+                        <h3 className='text-sm font-semibold text-gray-800 dark:text-white mb-1'>
+                            Jobs by Category
+                        </h3>
+                        <p className='text-xs text-gray-500 dark:text-gray-400 mb-4'>
+                            Distribution across categories
+                        </p>
+                        <ResponsiveContainer width='100%' height={220}>
+                            <BarChart data={analytics.jobsByCategory.map(j => ({ name: j._id, value: j.count }))}>
+                                <CartesianGrid strokeDasharray='3 3' stroke='#f0f0f0' />
+                                <XAxis dataKey='name' tick={{ fontSize: 10 }} />
+                                <YAxis tick={{ fontSize: 12 }} />
+                                <Tooltip />
+                                <Bar dataKey='value' fill='#22c55e' radius={[6, 6, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+
+                    {/* Jobs by Type */}
+                    <div className='bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700'>
+                        <h3 className='text-sm font-semibold text-gray-800 dark:text-white mb-1'>
+                            Jobs by Type
+                        </h3>
+                        <p className='text-xs text-gray-500 dark:text-gray-400 mb-4'>
+                            Full time, Part time, Remote etc.
+                        </p>
+                        <div className='flex items-center gap-4'>
+                            <ResponsiveContainer width='55%' height={180}>
+                                <PieChart>
+                                    <Pie
+                                        data={analytics.jobsByType.map(j => ({ name: j._id, value: j.count }))}
+                                        cx='50%'
+                                        cy='50%'
+                                        innerRadius={45}
+                                        outerRadius={75}
+                                        dataKey='value'
+                                    >
+                                        {analytics.jobsByType.map((entry, index) => (
+                                            <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                </PieChart>
+                            </ResponsiveContainer>
+                            <div className='space-y-2'>
+                                {analytics.jobsByType.map((item, i) => (
+                                    <div key={i} className='flex items-center gap-2'>
+                                        <div className='w-2.5 h-2.5 rounded-full shrink-0' style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                                        <span className='text-xs text-gray-600 dark:text-gray-300 capitalize'>{item._id}</span>
+                                        <span className='text-xs font-bold text-gray-800 dark:text-white ml-auto'>{item.count}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Applications by Status + Jobs by Location */}
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                    <div className='bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700'>
+                        <h3 className='text-sm font-semibold text-gray-800 dark:text-white mb-1'>
+                            Applications by Status
+                        </h3>
+                        <p className='text-xs text-gray-500 dark:text-gray-400 mb-4'>
+                            Current status breakdown
+                        </p>
+                        <ResponsiveContainer width='100%' height={200}>
+                            <BarChart data={analytics.applicationsByStatus.map(a => ({ name: a._id, value: a.count }))}>
+                                <CartesianGrid strokeDasharray='3 3' stroke='#f0f0f0' />
+                                <XAxis dataKey='name' tick={{ fontSize: 10 }} />
+                                <YAxis tick={{ fontSize: 12 }} />
+                                <Tooltip />
+                                <Bar dataKey='value' radius={[6, 6, 0, 0]}>
+                                    {analytics.applicationsByStatus.map((entry, index) => (
+                                        <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+
+                    {/* Jobs by Location */}
+                    <div className='bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700'>
+                        <h3 className='text-sm font-semibold text-gray-800 dark:text-white mb-1'>
+                            Jobs by Location
+                        </h3>
+                        <p className='text-xs text-gray-500 dark:text-gray-400 mb-4'>
+                            Top locations with most jobs
+                        </p>
+                        <div className='space-y-3'>
+                            {analytics.jobsByLocation.map((loc, i) => (
+                                <div key={i}>
+                                    <div className='flex justify-between items-center mb-1'>
+                                        <span className='text-xs text-gray-600 dark:text-gray-300'>{loc._id}</span>
+                                        <span className='text-xs font-bold text-gray-800 dark:text-white'>{loc.count}</span>
+                                    </div>
+                                    <div className='w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2'>
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${(loc.count / analytics.jobsByLocation[0].count) * 100}%` }}
+                                            transition={{ duration: 0.8, delay: i * 0.1 }}
+                                            className='h-2 rounded-full bg-green-500'
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Top Employers */}
+                <div className='bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700'>
+                    <h3 className='text-sm font-semibold text-gray-800 dark:text-white mb-1'>
+                        Top Employers
+                    </h3>
+                    <p className='text-xs text-gray-500 dark:text-gray-400 mb-4'>
+                        Most active employers on platform
+                    </p>
+                    <div className='space-y-3'>
+                        {analytics.topEmployers.map((emp, i) => (
+                            <div key={i} className='flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl'>
+                                <div className='w-8 h-8 rounded-xl bg-green-50 dark:bg-green-900 flex items-center justify-center text-green-700 dark:text-green-300 font-bold text-sm shrink-0'>
+                                    {i + 1}
+                                </div>
+                                <div className='flex-1'>
+                                    <p className='text-sm font-medium text-gray-800 dark:text-white'>
+                                        {emp.employer.company_name}
+                                    </p>
+                                    <p className='text-xs text-gray-500 dark:text-gray-400'>
+                                        {emp.employer.location || 'Nepal'}
+                                    </p>
+                                </div>
+                                <div className='flex gap-4 text-center'>
+                                    <div>
+                                        <p className='text-sm font-bold text-green-600'>{emp.jobCount}</p>
+                                        <p className='text-xs text-gray-400'>Jobs</p>
+                                    </div>
+                                    <div>
+                                        <p className='text-sm font-bold text-blue-600'>{emp.totalApplications}</p>
+                                        <p className='text-xs text-gray-400'>Applications</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* User Growth */}
+                <div className='bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700'>
+                    <h3 className='text-sm font-semibold text-gray-800 dark:text-white mb-1'>
+                        User Growth
+                    </h3>
+                    <p className='text-xs text-gray-500 dark:text-gray-400 mb-4'>
+                        New users registered per month
+                    </p>
+                    <ResponsiveContainer width='100%' height={200}>
+                        <LineChart data={analytics.usersByMonth.map(u => ({
+                            name: `${u._id.month}/${u._id.year}`,
+                            users: u.count
+                        }))}>
+                            <CartesianGrid strokeDasharray='3 3' stroke='#f0f0f0' />
+                            <XAxis dataKey='name' tick={{ fontSize: 11 }} />
+                            <YAxis tick={{ fontSize: 12 }} />
+                            <Tooltip />
+                            <Line type='monotone' dataKey='users' stroke='#8b5cf6' strokeWidth={2} dot={{ fill: '#8b5cf6' }} />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+            </>
+        )}
+    </motion.div>
+)}
         </div>
     )
 }
