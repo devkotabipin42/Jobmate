@@ -411,6 +411,12 @@ const EmployerDashboard = () => {
                                             >
                                                 👥 View Applications ({job.application_count})
                                             </button>
+                                            <Link
+    to={`/employer/edit-job/${job._id}`}
+    className='text-xs border border-green-200 dark:border-green-700 text-green-600 dark:text-green-300 px-4 py-2.5 rounded-xl hover:bg-green-50 transition-colors'
+>
+    ✏️ Edit
+</Link>
                                             <button
                                                 onClick={() => handleDeleteJob(job._id)}
                                                 disabled={deleting === job._id}

@@ -17,6 +17,7 @@ import Register from '../features/auth/pages/Register.jsx'
 import EmployerDashboard from '../features/employer/pages/EmployerDashboard.jsx'
 import PostJob from '../features/employer/pages/PostJob.jsx'
 import ManageJobs from '../features/employer/pages/ManageJobs.jsx'
+import EditJob from '../features/employer/pages/EditJob.jsx'
 
 // Job Seeker
 import Profile from '../features/jobseeker/pages/Profile.jsx'
@@ -85,6 +86,11 @@ const AppRoutes = () => {
                     <PostJob />
                 </Protected>
             } />
+            <Route path='/employer/edit-job/:id' element={
+    <Protected role='employer'>
+        <EditJob />
+    </Protected>
+} />
             <Route path='/employer/manage-jobs' element={
                 <Protected role='employer'>
                     <ManageJobs />

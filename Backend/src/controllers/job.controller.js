@@ -91,11 +91,17 @@ export const getJob = async (req, res) => {
 // Update Job — Employer only
 export const updateJob = async (req, res) => {
     try {
+        console.log('Update job called:', req.params.id)
+        console.log('User ID:', req.user?._id)
+        
         const job = await Job.findById(req.params.id)
 
         if (!job) {
             return res.status(404).json({ message: 'Job not found' })
         }
+
+        console.log('Job employer:', job.employer)
+        console.log('Match:', job.employer.toString() === req.user._id.toString())
 
         if (job.employer.toString() !== req.user._id.toString()) {
             return res.status(403).json({ message: 'Not authorized' })
@@ -112,6 +118,7 @@ export const updateJob = async (req, res) => {
             job: updatedJob
         })
     } catch (error) {
+        console.log('Update job error:', error.message)
         res.status(500).json({ message: error.message })
     }
 }

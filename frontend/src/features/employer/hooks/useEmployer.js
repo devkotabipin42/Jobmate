@@ -1,3 +1,5 @@
+import axios from 'axios'
+import API_URL from '../../../config/api.js'
 import { useState } from 'react'
 import {
     getMyJobs,
@@ -85,6 +87,23 @@ const useEmployer = () => {
     } finally {
         setLoading(false)
     }
+    
+}
+
+const editJob = async (id, formData) => {
+    setLoading(true)
+    try {
+        const res = await axios.put(
+            `${API_URL}/api/jobs/${id}`,
+            formData,
+            { withCredentials: true }
+        )
+        return res.data
+    } catch (err) {
+        throw err
+    } finally {
+        setLoading(false)
+    }
 }
 
     return {
@@ -95,7 +114,8 @@ const useEmployer = () => {
         removeJobById,
         fetchJobApplications,
         updateStatus,
-        getCompanyProfile
+        getCompanyProfile,
+        editJob
     }
 }
 
