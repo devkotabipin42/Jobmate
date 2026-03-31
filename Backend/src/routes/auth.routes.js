@@ -1,4 +1,6 @@
 import { Router } from 'express'
+import { uploadCV } from '../config/cloudinary.js'
+import { uploadCV as uploadCVController } from '../controllers/auth.controller.js'
 import {
     registerUser,
     registerEmployer,
@@ -7,7 +9,10 @@ import {
     getMe,
     updateProfile,
     saveJob,
-     getSavedJobs 
+     getSavedJobs ,
+     deleteCV,
+     sendOTP,
+     verifyOTP
 } from '../controllers/auth.controller.js'
 import { authMiddleware } from '../middleware/auth.middleware.js'
 
@@ -21,5 +26,9 @@ authRouter.get('/me', authMiddleware, getMe)
 authRouter.put('/update', authMiddleware, updateProfile)
 authRouter.post('/save-job/:id', authMiddleware, saveJob)
 authRouter.get('/saved-jobs', authMiddleware, getSavedJobs)
+authRouter.post('/upload-cv', authMiddleware, uploadCV.single('cv'), uploadCVController)
+authRouter.delete('/delete-cv', authMiddleware, deleteCV)
+authRouter.post('/send-otp', sendOTP)
+authRouter.post('/verify-otp', verifyOTP)
 
 export default authRouter

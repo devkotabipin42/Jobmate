@@ -45,8 +45,38 @@ const useAuth = () => {
         dispatch(setUser({ ...user, ...formData }))
         return res.data
     }
+    const uploadCV = async (file) => {
+    const formData = new FormData()
+    formData.append('cv', file)
+    const token = localStorage.getItem('token')
+    const res = await axios.post(
+        `${API_URL}/api/auth/upload-cv`,
+        formData,
+        {
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                ...(token ? { Authorization: `Bearer ${token}` } : {})
+            }
+        }
+    )
+    dispatch(setUser({ ...user, cv_url: res.data.cv_url }))
+    return res.data
+}
+    const deleteCV = async () => {
+    const token = localStorage.getItem('token')
+    const res = await axios.delete(
+        `${API_URL}/api/auth/delete-cv`,
+        {
+            withCredentials: true,
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+        }
+    )
+    dispatch(setUser({ ...user, cv_url: '' }))
+    return res.data
+}
 
-    return { user, isLoading, error, login, register, logoutUser, updateProfile }
+    return { user, isLoading, error, login, register, logoutUser, updateProfile,uploadCV, deleteCV }
 }
 
 export default useAuth

@@ -109,6 +109,30 @@ const useJobseeker = () => {
         throw err
     }
 }
+    const uploadCV = async (file) => {
+    setLoading(true)
+    try {
+        const formData = new FormData()
+        formData.append('cv', file)
+        const token = localStorage.getItem('token')
+        const res = await axios.post(
+            `${API_URL}/api/auth/upload-cv`,
+            formData,
+            {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                }
+            }
+        )
+        return res.data
+    } catch (err) {
+        throw err
+    } finally {
+        setLoading(false)
+    }
+}
     return {
         loading,
         error,
@@ -118,7 +142,8 @@ const useJobseeker = () => {
         scoreResume,
         getSavedJobs,
         toggleSaveJob,
-        reportJob
+        reportJob,
+        uploadCV
     }
 }
 

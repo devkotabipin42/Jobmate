@@ -10,13 +10,16 @@ const Profile = () => {
     const [loading, setLoading] = useState(false)
     const [success, setSuccess] = useState(false)
     const [error, setError] = useState('')
-    const { user, updateProfile } = useAuth()
+    const { user, updateProfile ,uploadCV,deleteCV} = useAuth()
     const [formData, setFormData] = useState({
         name: user?.name || '',
         phone: user?.phone || '',
         location: user?.location || '',
     })
-
+    const [cvUploading, setCvUploading] = useState(false)
+    const [cvSuccess, setCvSuccess] = useState(false)
+    const [cvDeleting, setCvDeleting] = useState(false)
+    const [showCV, setShowCV] = useState(false)
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value })
     }
@@ -36,7 +39,30 @@ const Profile = () => {
         setLoading(false)
     }
 }
-
+    const handleCVUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setCvUploading(true)
+    try {
+        await uploadCV(file)
+        setCvSuccess(true)
+        setTimeout(() => setCvSuccess(false), 3000)
+    } catch (err) {
+        console.log(err)
+    } finally {
+        setCvUploading(false)
+    }
+}
+const handleCVDelete = async () => {
+    setCvDeleting(true)
+    try {
+        await deleteCV()
+    } catch (err) {
+        console.log(err)
+    } finally {
+        setCvDeleting(false)
+    }
+}
     return (
         <div className='min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors'>
             <Navbar />
@@ -225,6 +251,84 @@ const Profile = () => {
                         ))}
                     </div>
                 </motion.div>
+                {/* CV Upload Section */}
+<motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.3 }}
+    className='mt-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6'
+>
+    <h3 className='text-sm font-semibold text-gray-800 dark:text-white mb-4'>
+        📄 My CV / Resume
+    </h3>
+
+
+
+{user?.cv_url && (
+    <div className='flex items-center gap-3 mb-4 p-3 bg-green-50 dark:bg-green-900 rounded-xl'>
+        <span className='text-2xl'>📄</span>
+        <div className='flex-1'>
+            <p className='text-xs font-medium text-green-700 dark:text-green-300'>
+                CV Uploaded ✓
+            </p>
+            <button
+                onClick={() => setShowCV(!showCV)}
+                className='text-xs text-green-600 hover:underline'
+            >
+                {showCV ? 'Hide CV' : '📄 View CV'}
+            </button>
+        </div>
+        <button
+            onClick={handleCVDelete}
+            disabled={cvDeleting}
+            className='text-xs text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 border border-red-200'
+        >
+            {cvDeleting ? 'Deleting...' : '🗑️ Delete'}
+        </button>
+    </div>
+)}
+
+{showCV && user?.cv_url && (
+    <div className='mb-4 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-600'>
+        <iframe
+            src={user.cv_url}
+            width='100%'
+            height='500px'
+            title='CV Preview'
+        />
+    </div>
+)}
+
+    {cvSuccess && (
+        <div className='bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-300 px-4 py-2 rounded-lg mb-3 text-xs'>
+            ✅ CV uploaded successfully!
+        </div>
+    )}
+
+    <label className='flex items-center gap-3 cursor-pointer border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-xl p-4 hover:border-green-400 transition-colors'>
+        <input
+            type='file'
+            accept='.pdf,.doc,.docx'
+            onChange={handleCVUpload}
+            className='hidden'
+        />
+        <div className='w-10 h-10 bg-green-50 dark:bg-green-900 rounded-xl flex items-center justify-center shrink-0'>
+            {cvUploading ? (
+                <div className='w-5 h-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin' />
+            ) : (
+                <span className='text-xl'>📤</span>
+            )}
+        </div>
+        <div>
+            <p className='text-sm font-medium text-gray-800 dark:text-white'>
+                {cvUploading ? 'Uploading...' : user?.cv_url ? 'Update CV' : 'Upload CV'}
+            </p>
+            <p className='text-xs text-gray-500 dark:text-gray-400'>
+                PDF, DOC, DOCX — Max 10MB
+            </p>
+        </div>
+    </label>
+</motion.div>
             </div>
         </div>
     )

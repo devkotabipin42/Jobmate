@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { v2 as cloudinary } from 'cloudinary'
 import { CloudinaryStorage } from 'multer-storage-cloudinary'
 import multer from 'multer'
@@ -8,7 +9,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 })
 
-const storage = new CloudinaryStorage({
+const logoStorage = new CloudinaryStorage({
     cloudinary,
     params: {
         folder: 'jobmate/logos',
@@ -17,5 +18,29 @@ const storage = new CloudinaryStorage({
     }
 })
 
-export const upload = multer({ storage })
+const cvStorage = new CloudinaryStorage({
+    cloudinary,
+    params: async (req, file) => ({
+        folder: 'jobmate/cvs',
+        resource_type: 'raw',
+        public_id: `cv_${Date.now()}`,
+        format: 'pdf',
+        access_mode: "public",
+    })
+})
+
+export const uploadLogo = multer({ storage: logoStorage })
+
+export const uploadCV = multer({
+    storage: cvStorage,
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === 'application/pdf') {
+            cb(null, true)
+        } else {
+            cb(new Error('Only PDF files allowed!'), false)
+        }
+    }
+})
+
 export default cloudinary

@@ -1,5 +1,4 @@
 import Employer from '../models/Employer.model.js'
-import cloudinary from '../config/cloudinary.js'
 export const getAllEmployers = async (req, res) => {
     try {
         const employers = await Employer.find()
@@ -29,7 +28,7 @@ export const getEmployerProfile = async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
-export const uploadLogo = async (req, res) => {
+export const uploadLogos = async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded' })
