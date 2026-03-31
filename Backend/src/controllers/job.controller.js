@@ -1,5 +1,6 @@
 import Job from '../models/Job.model.js'
-
+import User from '../models/user.model.js'
+import transporter from '../config/mailer.js'
 // Create Job — Employer only
 export const createJob = async (req, res) => {
     try {
