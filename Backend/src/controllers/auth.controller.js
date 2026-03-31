@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import OTP from '../models/OTP.model.js'
 import nodemailer from 'nodemailer'
+import Blacklist from '../models/Blacklist.model.js'
 const generateToken = (id, role) => {
     return jwt.sign({ id, role }, process.env.JWT_SECRET, {
         expiresIn: '7d'
@@ -154,8 +155,22 @@ export const login = async (req, res) => {
 // Logout
 export const logout = async (req, res) => {
     try {
+        // Token get  — cookie in header or Authorization header
+        let token = req.cookies.token
+        if (!token && req.headers.authorization) {
+            token = req.headers.authorization.split(' ')[1]
+        }
+
+        if (token) {
+            // Token blacklist  7 days 
+            await Blacklist.create({
+                token,
+                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+            })
+        }
+
         res.clearCookie('token')
-        res.status(200).json({ message: 'Logged out successfully' })
+        res.status(200).json({ message: 'Logout successful' })
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
@@ -415,3 +430,4 @@ export const verifyOTP = async (req, res) => {
         res.status(500).json({ message: 'Server error — try again' })
     }
 }
+

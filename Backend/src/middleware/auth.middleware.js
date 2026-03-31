@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken'
 import User from '../models/user.model.js'
 import Employer from '../models/Employer.model.js'
+import Blacklist from '../models/Blacklist.model.js'
 
 export const authMiddleware = async (req, res, next) => {
     try {
@@ -14,7 +15,10 @@ export const authMiddleware = async (req, res, next) => {
             return res.status(401).json({ message: 'Not authorized' })
         }
 
-        
+        const isBlacklisted = await Blacklist.findOne({ token })
+        if (isBlacklisted) {
+            return res.status(401).json({ message: 'Token invalid — please login again' })
+        }
         const decoded = jwt.verify(token, process.env.JWT_SECRET)
 
         let user = null

@@ -4,14 +4,15 @@ import { motion, AnimatePresence } from 'framer-motion'
 import useAuth from '../hooks/useAuth.js'
 
 const Login = () => {
-    const [formData, setFormData] = useState({
-        email: '',
-        password: '',
-        role: 'jobseeker'
-    })
+    const [formData, setFormData] = useState({ email: '', password: '', role: 'jobseeker' })
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
-    const { login } = useAuth()
+    const [loginMethod, setLoginMethod] = useState('password') // 'password' or 'otp'
+    const [otpSent, setOtpSent] = useState(false)
+    const [otp, setOtp] = useState('')
+    const [otpLoading, setOtpLoading] = useState(false)
+
+    const { login, sendOTP, verifyOTP } = useAuth()
     const navigate = useNavigate()
 
     const handleChange = (e) => {
@@ -26,11 +27,50 @@ const Login = () => {
             const user = await login(formData)
             if (user.role === 'employer') {
                 navigate('/employer/dashboard')
+            } else if (user.role === 'admin') {
+                navigate('/admin')
             } else {
                 navigate('/')
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleSendOTP = async () => {
+        if (!formData.email) {
+            setError('Please enter your email first')
+            return
+        }
+        setOtpLoading(true)
+        setError('')
+        try {
+            await sendOTP(formData.email, formData.role)
+            setOtpSent(true)
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to send OTP')
+        } finally {
+            setOtpLoading(false)
+        }
+    }
+
+    const handleVerifyOTP = async (e) => {
+        e.preventDefault()
+        setLoading(true)
+        setError('')
+        try {
+            const user = await verifyOTP(formData.email, otp, formData.role)
+            if (user.role === 'employer') {
+                navigate('/employer/dashboard')
+            } else if (user.role === 'admin') {
+                navigate('/admin')
+            } else {
+                navigate('/')
+            }
+        } catch (err) {
+            setError(err.response?.data?.message || 'Invalid OTP')
         } finally {
             setLoading(false)
         }
@@ -46,7 +86,6 @@ const Login = () => {
                 transition={{ duration: 0.6 }}
                 className='hidden lg:flex w-1/2 bg-green-600 flex-col items-center justify-center p-12 relative overflow-hidden'
             >
-                {/* Background circles */}
                 <div className='absolute top-0 left-0 w-full h-full'>
                     <motion.div
                         animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.3, 0.1] }}
@@ -61,7 +100,6 @@ const Login = () => {
                 </div>
 
                 <div className='relative z-10 text-center'>
-                    {/* SVG */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -79,14 +117,8 @@ const Login = () => {
                             <rect x='115' y='145' width='70' height='8' rx='4' fill='white' />
                             <rect x='115' y='157' width='45' height='6' rx='3' fill='rgba(255,255,255,0.6)' />
                             <rect x='260' y='143' width='30' height='18' rx='4' fill='#22c55e' />
-                            <rect x='100' y='180' width='200' height='30' rx='8' fill='rgba(255,255,255,0.2)' />
-                            <rect x='115' y='190' width='60' height='8' rx='4' fill='rgba(255,255,255,0.7)' />
-                            <circle cx='320' cy='200' r='25' fill='rgba(255,255,255,0.2)' />
-                            <circle cx='320' cy='190' r='12' fill='rgba(255,255,255,0.5)' />
                             <circle cx='90' cy='230' r='18' fill='#22c55e' />
                             <path d='M82 230 L88 236 L100 222' stroke='white' strokeWidth='3' fill='none' strokeLinecap='round' />
-                            <rect x='140' y='220' width='100' height='24' rx='12' fill='rgba(255,255,255,0.2)' />
-                            <text x='190' y='236' textAnchor='middle' fill='white' fontSize='10' fontWeight='bold'>Rs. 50K - 80K</text>
                         </svg>
                     </motion.div>
 
@@ -138,7 +170,7 @@ const Login = () => {
                 </div>
             </motion.div>
 
-            {/* Right Side — Form */}
+            {/* Right Side */}
             <div className='w-full lg:w-1/2 flex items-center justify-center px-6 py-10'>
                 <motion.div
                     initial={{ opacity: 0, x: 40 }}
@@ -146,15 +178,6 @@ const Login = () => {
                     transition={{ duration: 0.6 }}
                     className='w-full max-w-md'
                 >
-                    {/* Background blobs — mobile only */}
-                    <div className='lg:hidden absolute inset-0 overflow-hidden pointer-events-none'>
-                        <motion.div
-                            animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
-                            transition={{ duration: 6, repeat: Infinity }}
-                            className='absolute -top-20 -left-20 w-72 h-72 bg-green-100 dark:bg-green-900 rounded-full'
-                        />
-                    </div>
-
                     <Link to='/' className='block text-center text-2xl font-semibold text-green-600 mb-2'>
                         Job<span className='text-gray-800 dark:text-white'>mate</span>
                     </Link>
@@ -163,7 +186,7 @@ const Login = () => {
                     </p>
 
                     {/* Role Toggle */}
-                    <div className='flex bg-gray-100 dark:bg-gray-700 rounded-xl p-1 mb-6'>
+                    <div className='flex bg-gray-100 dark:bg-gray-700 rounded-xl p-1 mb-4'>
                         {['jobseeker', 'employer'].map((role) => (
                             <button
                                 key={role}
@@ -175,6 +198,31 @@ const Login = () => {
                                 }`}
                             >
                                 {role === 'jobseeker' ? 'Job Seeker' : 'Employer'}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Login Method Toggle */}
+                    <div className='flex bg-gray-100 dark:bg-gray-700 rounded-xl p-1 mb-6'>
+                        {[
+                            { id: 'password', label: '🔑 Password' },
+                            { id: 'otp', label: '📧 Email OTP' }
+                        ].map((method) => (
+                            <button
+                                key={method.id}
+                                onClick={() => {
+                                    setLoginMethod(method.id)
+                                    setError('')
+                                    setOtpSent(false)
+                                    setOtp('')
+                                }}
+                                className={`flex-1 py-2 text-sm rounded-lg transition-all duration-200 ${
+                                    loginMethod === method.id
+                                        ? 'bg-white dark:bg-gray-600 text-green-600 font-medium shadow-sm'
+                                        : 'text-gray-500 dark:text-gray-400'
+                                }`}
+                            >
+                                {method.label}
                             </button>
                         ))}
                     </div>
@@ -193,67 +241,146 @@ const Login = () => {
                         )}
                     </AnimatePresence>
 
-                    {/* Form */}
-                    <form onSubmit={handleSubmit} className='space-y-4'>
-                        {[
-                            { label: 'Email', name: 'email', type: 'email', placeholder: 'your@email.com' },
-                            { label: 'Password', name: 'password', type: 'password', placeholder: '••••••••' }
-                        ].map((field, i) => (
-                            <motion.div
-                                key={field.name}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.3 + i * 0.1 }}
-                            >
-                                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                                    {field.label}
-                                </label>
-                                <input
-                                    type={field.type}
-                                    name={field.name}
-                                    value={formData[field.name]}
-                                    onChange={handleChange}
-                                    placeholder={field.placeholder}
-                                    required
-                                    className='w-full border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 transition-all duration-200'
-                                />
-                            </motion.div>
-                        ))}
-
-                        <motion.button
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5 }}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            type='submit'
-                            disabled={loading}
-                            className='w-full bg-green-600 text-white py-3 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors'
-                        >
-                            {loading ? (
-                                <span className='flex items-center justify-center gap-2'>
-                                    <motion.span
-                                        animate={{ rotate: 360 }}
-                                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                                        className='w-4 h-4 border-2 border-white border-t-transparent rounded-full inline-block'
+                    {/* Password Login */}
+                    {loginMethod === 'password' && (
+                        <form onSubmit={handleSubmit} className='space-y-4'>
+                            {[
+                                { label: 'Email', name: 'email', type: 'email', placeholder: 'your@email.com' },
+                                { label: 'Password', name: 'password', type: 'password', placeholder: '••••••••' }
+                            ].map((field, i) => (
+                                <motion.div
+                                    key={field.name}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.3 + i * 0.1 }}
+                                >
+                                    <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                                        {field.label}
+                                    </label>
+                                    <input
+                                        type={field.type}
+                                        name={field.name}
+                                        value={formData[field.name]}
+                                        onChange={handleChange}
+                                        placeholder={field.placeholder}
+                                        required
+                                        className='w-full border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 transition-all'
                                     />
-                                    Logging in...
-                                </span>
-                            ) : 'Login'}
-                        </motion.button>
-                    </form>
+                                </motion.div>
+                            ))}
 
-                    <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.6 }}
-                        className='text-center text-sm text-gray-500 dark:text-gray-400 mt-6'
-                    >
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                type='submit'
+                                disabled={loading}
+                                className='w-full bg-green-600 text-white py-3 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors'
+                            >
+                                {loading ? (
+                                    <span className='flex items-center justify-center gap-2'>
+                                        <motion.span
+                                            animate={{ rotate: 360 }}
+                                            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                            className='w-4 h-4 border-2 border-white border-t-transparent rounded-full inline-block'
+                                        />
+                                        Logging in...
+                                    </span>
+                                ) : 'Login'}
+                            </motion.button>
+                        </form>
+                    )}
+
+                    {/* OTP Login */}
+                    {loginMethod === 'otp' && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className='space-y-4'
+                        >
+                            <div>
+                                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                                    Email
+                                </label>
+                                <div className='flex gap-2'>
+                                    <input
+                                        type='email'
+                                        name='email'
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        placeholder='your@email.com'
+                                        disabled={otpSent}
+                                        className='flex-1 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white disabled:opacity-60 transition-all'
+                                    />
+                                    <motion.button
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={handleSendOTP}
+                                        disabled={otpLoading || otpSent}
+                                        className='bg-green-600 text-white px-4 py-3 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors whitespace-nowrap'
+                                    >
+                                        {otpLoading ? '...' : otpSent ? '✓ Sent' : 'Send OTP'}
+                                    </motion.button>
+                                </div>
+                            </div>
+
+                            {otpSent && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                >
+                                    <div className='bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-300 text-sm px-4 py-3 rounded-lg mb-4'>
+                                        ✅ OTP sent to {formData.email} — check your inbox!
+                                    </div>
+
+                                    <form onSubmit={handleVerifyOTP} className='space-y-4'>
+                                        <div>
+                                            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                                                Enter 6-digit OTP
+                                            </label>
+                                            <input
+                                                type='text'
+                                                value={otp}
+                                                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                                placeholder='123456'
+                                                maxLength={6}
+                                                required
+                                                className='w-full border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white text-center text-2xl tracking-widest font-bold transition-all'
+                                            />
+                                        </div>
+
+                                        <motion.button
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            type='submit'
+                                            disabled={loading || otp.length !== 6}
+                                            className='w-full bg-green-600 text-white py-3 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors'
+                                        >
+                                            {loading ? 'Verifying...' : 'Verify & Login'}
+                                        </motion.button>
+
+                                        <button
+                                            type='button'
+                                            onClick={() => {
+                                                setOtpSent(false)
+                                                setOtp('')
+                                                setError('')
+                                            }}
+                                            className='w-full text-sm text-gray-500 hover:text-green-600 transition-colors'
+                                        >
+                                            Resend OTP
+                                        </button>
+                                    </form>
+                                </motion.div>
+                            )}
+                        </motion.div>
+                    )}
+
+                    <p className='text-center text-sm text-gray-500 dark:text-gray-400 mt-6'>
                         Don't have an account?{' '}
                         <Link to='/register' className='text-green-600 hover:underline font-medium'>
                             Register here
                         </Link>
-                    </motion.p>
+                    </p>
                 </motion.div>
             </div>
         </div>

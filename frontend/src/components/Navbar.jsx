@@ -1,21 +1,20 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
-import { logout } from '../features/auth/auth.slice.js'
 import { toggleTheme } from '../features/themes/theme.slice.js'
 import { motion, AnimatePresence } from 'framer-motion'
-
+import useAuth from '../features/auth/hooks/useAuth.js'
 const Navbar = () => {
     const { user } = useSelector(state => state.auth)
     const { isDark } = useSelector(state => state.theme)
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const [menuOpen, setMenuOpen] = useState(false)
+    const { logoutUser } = useAuth()
 
-    const handleLogout = () => {
-        dispatch(logout())
-        navigate('/login')
-        setMenuOpen(false)
+    const handleLogout = async () => {
+    await logoutUser()
+    setMenuOpen(false)  
     }
 
     return (

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { setUser, logout } from '../auth.slice.js'
 import axios from 'axios'
 import API_URL from '../../../config/api.js'
+import { logoutAPI } from '../services/auth.api.js'
 
 const useAuth = () => {
     const { user, isLoading, error } = useSelector(state => state.auth)
@@ -31,10 +32,17 @@ const useAuth = () => {
         return res.data
     }
 
-    const logoutUser = () => {
+    const logoutUser = async () => {
+    try {
+        await logoutAPI()
+    } catch (err) {
+        console.log(err)
+    } finally {
+        localStorage.removeItem('token')
         dispatch(logout())
         navigate('/login')
     }
+}
 
     const updateProfile = async (formData) => {
         const res = await axios.put(
@@ -75,8 +83,21 @@ const useAuth = () => {
     dispatch(setUser({ ...user, cv_url: '' }))
     return res.data
 }
+const sendOTP = async (email, role) => {
+    const res = await axios.post(`${API_URL}/api/auth/send-otp`, { email, role })
+    return res.data
+}
 
-    return { user, isLoading, error, login, register, logoutUser, updateProfile,uploadCV, deleteCV }
+const verifyOTP = async (email, otp, role) => {
+    const res = await axios.post(`${API_URL}/api/auth/verify-otp`, { email, otp, role })
+    if (res.data.token) {
+        localStorage.setItem('token', res.data.token)
+    }
+    dispatch(setUser(res.data.user))
+    return res.data.user
+}
+
+    return { user, isLoading, error, login, register, logoutUser, updateProfile,uploadCV, deleteCV, sendOTP, verifyOTP }
 }
 
 export default useAuth
