@@ -131,6 +131,63 @@ const uploadLogo = async (file) => {
     }
 }
 
+const getCRMCandidates = async () => {
+    try {
+        const token = localStorage.getItem('token')
+        const res = await axios.get(`${API_URL}/api/crm`, {
+            withCredentials: true,
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
+        return res.data.candidates
+    } catch (err) {
+        return []
+    }
+}
+
+const addCRMCandidate = async (data) => {
+    const token = localStorage.getItem('token')
+    const res = await axios.post(`${API_URL}/api/crm`, data, {
+        withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    })
+    return res.data
+}
+
+const updateCRMStatus = async (id, status) => {
+    const token = localStorage.getItem('token')
+    const res = await axios.put(`${API_URL}/api/crm/${id}/status`, { status }, {
+        withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    })
+    return res.data
+}
+
+const addCRMNote = async (id, text) => {
+    const token = localStorage.getItem('token')
+    const res = await axios.post(`${API_URL}/api/crm/${id}/notes`, { text }, {
+        withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    })
+    return res.data
+}
+
+const setCRMFollowUp = async (id, follow_up_date) => {
+    const token = localStorage.getItem('token')
+    const res = await axios.put(`${API_URL}/api/crm/${id}/follow-up`, { follow_up_date }, {
+        withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    })
+    return res.data
+}
+
+const deleteCRMCandidate = async (id) => {
+    const token = localStorage.getItem('token')
+    await axios.delete(`${API_URL}/api/crm/${id}`, {
+        withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    })
+}
+
     return {
         loading,
         error,
@@ -141,7 +198,13 @@ const uploadLogo = async (file) => {
         updateStatus,
         getCompanyProfile,
         editJob,
-        uploadLogo
+        uploadLogo,
+        getCRMCandidates,
+        addCRMCandidate,
+        updateCRMStatus,
+        addCRMNote,
+        setCRMFollowUp,
+        deleteCRMCandidate
     }
 }
 

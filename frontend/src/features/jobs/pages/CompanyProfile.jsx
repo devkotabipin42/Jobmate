@@ -11,18 +11,26 @@ const CompanyProfile = () => {
     const [company, setCompany] = useState(null)
     const [jobs, setJobs] = useState([])
     const [loading, setLoading] = useState(true)
+    const { getCompanyProfile } = useEmployer()
 
     useEffect(() => {
         loadCompany()
     }, [id])
 
    const loadCompany = async () => {
+    setLoading(true)
+    try {
         const data = await getCompanyProfile(id)
         if (data) {
             setCompany(data.company)
             setJobs(data.jobs)
         }
+    } catch (err) {
+        console.log(err)
+    } finally {
+        setLoading(false)
     }
+}
 
     if (loading) return (
         <div className='min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center'>
@@ -57,9 +65,7 @@ const CompanyProfile = () => {
 
                     <div className='px-6 pb-6'>
                         <div className='flex items-end justify-between -mt-10 mb-4'>
-                            <div className='w-20 h-20 rounded-2xl bg-white dark:bg-gray-700 border-4 border-white dark:border-gray-800 flex items-center justify-center text-green-600 font-bold text-3xl shadow-sm'>
-                                {company.company_name?.charAt(0)}
-                            </div>
+                         
                             {company.is_verified && (
                                 <span className='text-xs bg-green-50 dark:bg-green-900 text-green-600 dark:text-green-300 px-3 py-1.5 rounded-full border border-green-200 dark:border-green-700 font-medium'>
                                     ✓ Verified Company
@@ -78,8 +84,11 @@ const CompanyProfile = () => {
         company.company_name?.charAt(0)
     )}
 </div>
+<h1 className='text-xl font-semibold text-gray-800 dark:text-white mb-1'>
+    {company.company_name}
+</h1>
                         <p className='text-sm text-gray-500 dark:text-gray-400 mb-4'>
-                            📍 {company.location || 'Nepal'}
+                             {company.location || 'Nepal'}
                         </p>
 
                         {company.description && (
@@ -97,7 +106,7 @@ const CompanyProfile = () => {
                                     rel='noreferrer'
                                     className='flex items-center gap-2 text-xs bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-300 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors'
                                 >
-                                    🌐 Visit Website
+                                    Visit Website
                                 </a>
                             )}
                             {company.email && (
@@ -105,7 +114,7 @@ const CompanyProfile = () => {
                                   <a  href={`mailto:${company.email}`}
                                     className='flex items-center gap-2 text-xs bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors'
                                 >
-                                    📧 {company.email}
+                                    {company.email}
                                 </a>
                             )}
                             {company.phone && (
@@ -113,7 +122,7 @@ const CompanyProfile = () => {
                                  <a   href={`tel:${company.phone}`}
                                     className='flex items-center gap-2 text-xs bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors'
                                 >
-                                    📱 {company.phone}
+                                     {company.phone}
                                 </a>
                             )}
                         </div>

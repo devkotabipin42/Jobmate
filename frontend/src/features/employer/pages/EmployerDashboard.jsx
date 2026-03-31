@@ -8,6 +8,8 @@ import useAuth from '../../auth/hooks/useAuth.js'
 import { setMyJobs, setApplications, removeJob } from '../employer.slice.js'
 import { setUser } from '../../auth/auth.slice.js'
 import Navbar from '../../../components/Navbar.jsx'
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
+import useCRM from '../hooks/useCRM.js'
 
 const statusColors = {
     applied: 'bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-300',
@@ -31,10 +33,32 @@ const EmployerDashboard = () => {
     const [selectedJob, setSelectedJob] = useState(null)
     const [deleting, setDeleting] = useState(null)
     const [sidebarOpen, setSidebarOpen] = useState(true)
+    const [viewMode, setViewMode] = useState('list')
+    const {
+    candidates: crmCandidates,
+    loading: crmLoading,
+    loadCandidates,
+    addCandidate,
+    updateStatus: updateCRMStatus,
+    addNote,
+    setFollowUp,
+    deleteCandidate
+} = useCRM()
+    const [showAddCandidate, setShowAddCandidate] = useState(false)
+const [selectedCandidate, setSelectedCandidate] = useState(null)
+const [newNote, setNewNote] = useState('')
+const [candidateForm, setCandidateForm] = useState({
+    name: '', email: '', phone: '', location: '', skills: '', source: 'jobmate'
+})
+   
+useEffect(() => {
+    loadJobs()
+}, [])
 
-    useEffect(() => {
-        loadJobs()
-    }, [])
+
+useEffect(() => {
+    if (activeTab === 'crm') loadCandidates()
+}, [activeTab])
 
     const loadJobs = async () => {
         const jobs = await fetchMyJobs()
@@ -61,6 +85,32 @@ const EmployerDashboard = () => {
         dispatch(setApplications(apps))
     }
 
+    const handleAddCandidate = async () => {
+    if (!candidateForm.name) return
+    await addCandidate({ candidate: candidateForm, source: candidateForm.source })
+    setShowAddCandidate(false)
+    setCandidateForm({ name: '', email: '', phone: '', location: '', skills: '', source: 'jobmate' })
+}
+
+const handleCRMStatus = async (id, status) => {
+    await updateCRMStatus(id, status)
+    if (selectedCandidate?._id === id) {
+        setSelectedCandidate(prev => ({ ...prev, status }))
+    }
+}
+
+const handleAddNote = async (id) => {
+    if (!newNote.trim()) return
+    const updated = await addNote(id, newNote)
+    setSelectedCandidate(updated)
+    setNewNote('')
+}
+
+const handleDeleteCandidate = async (id) => {
+    await deleteCandidate(id)
+    setSelectedCandidate(null)
+}
+
     const handleLogoUpload = async (e) => {
         const file = e.target.files[0]
         if (!file) return
@@ -75,6 +125,12 @@ const EmployerDashboard = () => {
             setUploading(false)
         }
     }
+    const handleDragEnd = async (result) => {
+    if (!result.destination) return
+    const { draggableId, destination } = result
+    const newStatus = destination.droppableId
+    await handleStatusUpdate(draggableId, newStatus)
+}
 
     const totalApplications = myJobs.reduce((a, j) => a + j.application_count, 0)
     const activeJobs = myJobs.filter(j => j.is_active).length
@@ -83,6 +139,14 @@ const EmployerDashboard = () => {
         name: job.title.length > 12 ? job.title.substring(0, 12) + '...' : job.title,
         applications: job.application_count
     }))
+    const sidebarItems = [
+    { id: 'overview', label: 'Dashboard', icon: '▣' },
+    { id: 'jobs', label: 'My Jobs', icon: '◈', count: myJobs.length },
+    { id: 'applications', label: 'Applications', icon: '◎', count: totalApplications },
+    { id: 'crm', label: 'CRM', icon: '◆' },
+    { id: 'post-job', label: 'Post a Job', icon: '+', link: '/employer/post-job' },
+    { id: 'company', label: 'Company Profile', icon: '◉', link: `/companies/${user?.id}` },
+]
 
     const pieData = [
         { name: 'Applied', value: applications.filter(a => a.status === 'applied').length },
@@ -93,14 +157,17 @@ const EmployerDashboard = () => {
         { name: 'Rejected', value: applications.filter(a => a.status === 'rejected').length },
     ].filter(d => d.value > 0)
 
-    const sidebarItems = [
-        { id: 'overview', label: 'Dashboard', icon: '▣' },
-        { id: 'jobs', label: 'My Jobs', icon: '◈', count: myJobs.length },
-        { id: 'applications', label: 'Applications', icon: '◎', count: totalApplications },
-        { id: 'post-job', label: 'Post a Job', icon: '+', link: '/employer/post-job' },
-        { id: 'company', label: 'Company Profile', icon: '◉', link: `/companies/${user?.id}` },
-    ]
-
+    
+console.log('User:', user)
+    const kanbanColumns = {
+    applied: { title: 'Applied', color: 'bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700', dot: 'bg-blue-500' },
+    seen: { title: 'Seen', color: 'bg-yellow-50 dark:bg-yellow-900 border-yellow-200 dark:border-yellow-700', dot: 'bg-yellow-500' },
+    shortlisted: { title: 'Shortlisted', color: 'bg-purple-50 dark:bg-purple-900 border-purple-200 dark:border-purple-700', dot: 'bg-purple-500' },
+    interview: { title: 'Interview', color: 'bg-orange-50 dark:bg-orange-900 border-orange-200 dark:border-orange-700', dot: 'bg-orange-500' },
+    hired: { title: 'Hired', color: 'bg-green-50 dark:bg-green-900 border-green-200 dark:border-green-700', dot: 'bg-green-500' },
+    rejected: { title: 'Rejected', color: 'bg-red-50 dark:bg-red-900 border-red-200 dark:border-red-700', dot: 'bg-red-500' },
+}
+    
     const LoadingSpinner = () => (
         <div className='text-center py-20'>
             <motion.div
@@ -430,102 +497,498 @@ const EmployerDashboard = () => {
 
                         {/* Applications Tab */}
                         {activeTab === 'applications' && (
+    <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+    >
+        {!selectedJob ? (
+            <div className='text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700'>
+                <p className='text-gray-500 dark:text-gray-400 mb-4'>
+                    Select a job from My Jobs to view applications
+                </p>
+                <button
+                    onClick={() => setActiveTab('jobs')}
+                    className='bg-green-600 text-white px-6 py-2.5 rounded-xl text-sm hover:bg-green-700'
+                >
+                    Go to My Jobs
+                </button>
+            </div>
+        ) : (
+            <div>
+                {/* Header */}
+                <div className='bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 mb-4 flex items-center justify-between'>
+                    <div>
+                        <h3 className='text-sm font-semibold text-gray-800 dark:text-white'>
+                            {selectedJob.title}
+                        </h3>
+                        <p className='text-xs text-gray-500 dark:text-gray-400 mt-0.5'>
+                            {applications.length} total applicants
+                        </p>
+                    </div>
+                    {/* View Toggle */}
+                    <div className='flex bg-gray-100 dark:bg-gray-700 rounded-xl p-1'>
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
+                                viewMode === 'list'
+                                    ? 'bg-white dark:bg-gray-600 text-green-600 font-medium shadow-sm'
+                                    : 'text-gray-500 dark:text-gray-400'
+                            }`}
+                        >
+                            List
+                        </button>
+                        <button
+                            onClick={() => setViewMode('kanban')}
+                            className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
+                                viewMode === 'kanban'
+                                    ? 'bg-white dark:bg-gray-600 text-green-600 font-medium shadow-sm'
+                                    : 'text-gray-500 dark:text-gray-400'
+                            }`}
+                        >
+                            Pipeline
+                        </button>
+                    </div>
+                </div>
+
+                {applications.length === 0 ? (
+                    <div className='text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700'>
+                        <p className='text-gray-500 dark:text-gray-400'>No applications yet</p>
+                    </div>
+                ) : viewMode === 'list' ? (
+                    // List View
+                    <div className='space-y-3'>
+                        {applications.map((app, i) => (
                             <motion.div
-                                initial={{ opacity: 0, y: 10 }}
+                                key={app._id}
+                                initial={{ opacity: 0, y: 15 }}
                                 animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.05 }}
+                                className='bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 md:p-5'
                             >
-                                {!selectedJob ? (
-                                    <div className='text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700'>
-                                        <p className='text-gray-500 dark:text-gray-400 mb-4'>
-                                            Select a job from My Jobs to view applications
-                                        </p>
-                                        <button
-                                            onClick={() => setActiveTab('jobs')}
-                                            className='bg-green-600 text-white px-6 py-2.5 rounded-xl text-sm hover:bg-green-700'
-                                        >
-                                            Go to My Jobs
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className='space-y-3'>
-                                        <div className='bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 mb-4'>
-                                            <h3 className='text-sm font-semibold text-gray-800 dark:text-white'>
-                                                Applications for: {selectedJob.title}
-                                            </h3>
-                                            <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
-                                                {applications.length} total applicants
+                                <div className='flex items-start justify-between gap-3 mb-3'>
+                                    <div className='flex items-center gap-3'>
+                                        <div className='w-10 h-10 rounded-full bg-green-50 dark:bg-green-900 flex items-center justify-center text-green-700 dark:text-green-300 font-semibold shrink-0'>
+                                            {app.user?.name?.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <p className='text-sm font-semibold text-gray-800 dark:text-white'>
+                                                {app.user?.name}
+                                            </p>
+                                            <p className='text-xs text-gray-500 dark:text-gray-400'>
+                                                {app.user?.email}
                                             </p>
                                         </div>
+                                    </div>
+                                    <span className={`text-xs px-3 py-1 rounded-full font-medium shrink-0 ${statusColors[app.status] || statusColors.applied}`}>
+                                        {app.status}
+                                    </span>
+                                </div>
 
-                                        {applications.length === 0 ? (
-                                            <div className='text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700'>
-                                                <p className='text-gray-500 dark:text-gray-400'>No applications yet</p>
-                                            </div>
-                                        ) : (
-                                            applications.map((app, i) => (
-                                                <motion.div
-                                                    key={app._id}
-                                                    initial={{ opacity: 0, y: 15 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ delay: i * 0.05 }}
-                                                    className='bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-4 md:p-5'
-                                                >
-                                                    <div className='flex items-start justify-between gap-3 mb-3'>
-                                                        <div className='flex items-center gap-3'>
-                                                            <div className='w-10 h-10 rounded-full bg-green-50 dark:bg-green-900 flex items-center justify-center text-green-700 dark:text-green-300 font-semibold shrink-0'>
-                                                                {app.user?.name?.charAt(0)}
-                                                            </div>
-                                                            <div>
-                                                                <p className='text-sm font-semibold text-gray-800 dark:text-white'>
-                                                                    {app.user?.name}
-                                                                </p>
-                                                                <p className='text-xs text-gray-500 dark:text-gray-400'>
-                                                                    {app.user?.email}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                        <span className={`text-xs px-3 py-1 rounded-full font-medium shrink-0 ${statusColors[app.status] || statusColors.applied}`}>
-                                                            {app.status}
-                                                        </span>
-                                                    </div>
-
-                                                    {app.cover_letter && (
-                                                        <div className='bg-gray-50 dark:bg-gray-700 rounded-xl p-3 mb-3'>
-                                                            <p className='text-xs text-gray-600 dark:text-gray-300 line-clamp-2'>
-                                                                {app.cover_letter}
-                                                            </p>
-                                                        </div>
-                                                    )}
-
-                                                    {app.cv_url && (
-                                                        <a href={app.cv_url} target='_blank' rel='noreferrer'
-                                                            className='text-xs text-green-600 hover:underline block mb-3'>
-                                                            View CV
-                                                        </a>
-                                                    )}
-
-                                                    <div className='flex gap-2 flex-wrap'>
-                                                        {['applied', 'seen', 'shortlisted', 'interview', 'hired', 'rejected'].map(status => (
-                                                            <button
-                                                                key={status}
-                                                                onClick={() => handleStatusUpdate(app._id, status)}
-                                                                className={`text-xs px-3 py-1.5 rounded-lg capitalize transition-colors ${
-                                                                    app.status === status
-                                                                        ? 'bg-green-600 text-white'
-                                                                        : 'border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-                                                                }`}
-                                                            >
-                                                                {status}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </motion.div>
-                                            ))
-                                        )}
+                                {app.cover_letter && (
+                                    <div className='bg-gray-50 dark:bg-gray-700 rounded-xl p-3 mb-3'>
+                                        <p className='text-xs text-gray-600 dark:text-gray-300 line-clamp-2'>
+                                            {app.cover_letter}
+                                        </p>
                                     </div>
                                 )}
+
+                                {app.cv_url && (
+                                    <a href={app.cv_url} target='_blank' rel='noreferrer'
+                                        className='text-xs text-green-600 hover:underline block mb-3'>
+                                        View CV
+                                    </a>
+                                )}
+
+                                <div className='flex gap-2 flex-wrap'>
+                                    {Object.keys(kanbanColumns).map(status => (
+                                        <button
+                                            key={status}
+                                            onClick={() => handleStatusUpdate(app._id, status)}
+                                            className={`text-xs px-3 py-1.5 rounded-lg capitalize transition-colors ${
+                                                app.status === status
+                                                    ? 'bg-green-600 text-white'
+                                                    : 'border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                            }`}
+                                        >
+                                            {status}
+                                        </button>
+                                    ))}
+                                </div>
                             </motion.div>
-                        )}
+                        ))}
+                    </div>
+                ) : (
+                    // Kanban/Pipeline View
+                    <DragDropContext onDragEnd={handleDragEnd}>
+                        <div className='flex gap-3 overflow-x-auto pb-4'>
+                            {Object.entries(kanbanColumns).map(([status, col]) => {
+                                const colApps = applications.filter(a => a.status === status)
+                                return (
+                                    <div key={status} className='shrink-0 w-64'>
+                                        {/* Column Header */}
+                                        <div className={`flex items-center gap-2 px-3 py-2 rounded-xl mb-2 border ${col.color}`}>
+                                            <div className={`w-2 h-2 rounded-full ${col.dot}`} />
+                                            <span className='text-xs font-semibold text-gray-700 dark:text-gray-200'>
+                                                {col.title}
+                                            </span>
+                                            <span className='ml-auto text-xs bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full font-medium'>
+                                                {colApps.length}
+                                            </span>
+                                        </div>
+
+                                        {/* Droppable Column */}
+                                        <Droppable droppableId={status}>
+                                            {(provided, snapshot) => (
+                                                <div
+                                                    ref={provided.innerRef}
+                                                    {...provided.droppableProps}
+                                                    className={`min-h-32 rounded-xl p-2 transition-colors ${
+                                                        snapshot.isDraggingOver
+                                                            ? 'bg-green-50 dark:bg-green-900'
+                                                            : 'bg-gray-50 dark:bg-gray-800'
+                                                    }`}
+                                                >
+                                                    {colApps.map((app, i) => (
+                                                        <Draggable key={app._id} draggableId={app._id} index={i}>
+                                                            {(provided, snapshot) => (
+                                                                <div
+                                                                    ref={provided.innerRef}
+                                                                    {...provided.draggableProps}
+                                                                    {...provided.dragHandleProps}
+                                                                    className={`bg-white dark:bg-gray-700 rounded-xl p-3 mb-2 border border-gray-100 dark:border-gray-600 shadow-sm transition-shadow ${
+                                                                        snapshot.isDragging ? 'shadow-lg rotate-1' : ''
+                                                                    }`}
+                                                                >
+                                                                    <div className='flex items-center gap-2 mb-2'>
+                                                                        <div className='w-8 h-8 rounded-full bg-green-50 dark:bg-green-900 flex items-center justify-center text-green-700 dark:text-green-300 font-semibold text-xs shrink-0'>
+                                                                            {app.user?.name?.charAt(0)}
+                                                                        </div>
+                                                                        <div className='min-w-0'>
+                                                                            <p className='text-xs font-semibold text-gray-800 dark:text-white truncate'>
+                                                                                {app.user?.name}
+                                                                            </p>
+                                                                            <p className='text-xs text-gray-400 truncate'>
+                                                                                {app.user?.location || 'No location'}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                    {app.cover_letter && (
+                                                                        <p className='text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-2'>
+                                                                            {app.cover_letter}
+                                                                        </p>
+                                                                    )}
+                                                                    {app.cv_url && (
+                                                                        <a href={app.cv_url} target='_blank' rel='noreferrer'
+                                                                            className='text-xs text-green-600 hover:underline block'>
+                                                                            View CV
+                                                                        </a>
+                                                                    )}
+                                                                    <p className='text-xs text-gray-400 mt-2'>
+                                                                        {new Date(app.createdAt).toLocaleDateString()}
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                        </Draggable>
+                                                    ))}
+                                                    {provided.placeholder}
+                                                </div>
+                                            )}
+                                        </Droppable>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </DragDropContext>
+                )}
+            </div>
+        )}
+    </motion.div>
+)}
+                {activeTab === 'crm' && (
+    <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className='space-y-4'
+    >
+        {/* Header */}
+        <div className='flex items-center justify-between'>
+            <div>
+                <h2 className='text-lg font-semibold text-gray-800 dark:text-white'>
+                    Candidate CRM
+                </h2>
+                <p className='text-xs text-gray-500 dark:text-gray-400 mt-0.5'>
+                    Track and manage your candidates
+                </p>
+            </div>
+            <button
+                onClick={() => setShowAddCandidate(true)}
+                className='bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-green-700 transition-colors'
+            >
+                + Add Candidate
+            </button>
+        </div>
+
+        {/* Add Candidate Form */}
+        {showAddCandidate && (
+            <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className='bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-5'
+            >
+                <h3 className='text-sm font-semibold text-gray-800 dark:text-white mb-4'>
+                    Add New Candidate
+                </h3>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+                    {[
+                        { name: 'name', placeholder: 'Full Name *' },
+                        { name: 'email', placeholder: 'Email' },
+                        { name: 'phone', placeholder: 'Phone' },
+                        { name: 'location', placeholder: 'Location' },
+                    ].map(field => (
+                        <input
+                            key={field.name}
+                            type='text'
+                            placeholder={field.placeholder}
+                            value={candidateForm[field.name]}
+                            onChange={(e) => setCandidateForm({ ...candidateForm, [field.name]: e.target.value })}
+                            className='border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white'
+                        />
+                    ))}
+                    <input
+                        type='text'
+                        placeholder='Skills (comma separated)'
+                        value={candidateForm.skills}
+                        onChange={(e) => setCandidateForm({ ...candidateForm, skills: e.target.value })}
+                        className='border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white'
+                    />
+                    <select
+                        value={candidateForm.source}
+                        onChange={(e) => setCandidateForm({ ...candidateForm, source: e.target.value })}
+                        className='border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white'
+                    >
+                        <option value='jobmate'>Jobmate</option>
+                        <option value='linkedin'>LinkedIn</option>
+                        <option value='referral'>Referral</option>
+                        <option value='direct'>Direct</option>
+                        <option value='other'>Other</option>
+                    </select>
+                </div>
+                <div className='flex gap-2 mt-4'>
+                    <button
+                        onClick={handleAddCandidate}
+                        disabled={!candidateForm.name}
+                        className='flex-1 bg-green-600 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors'
+                    >
+                        Add Candidate
+                    </button>
+                    <button
+                        onClick={() => setShowAddCandidate(false)}
+                        className='flex-1 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 py-2.5 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </motion.div>
+        )}
+
+        {/* Stats */}
+        <div className='grid grid-cols-3 md:grid-cols-6 gap-2'>
+            {[
+                { status: 'new', label: 'New', color: 'text-gray-600' },
+                { status: 'interested', label: 'Interested', color: 'text-blue-600' },
+                { status: 'follow_up', label: 'Follow Up', color: 'text-yellow-600' },
+                { status: 'interview', label: 'Interview', color: 'text-purple-600' },
+                { status: 'hired', label: 'Hired', color: 'text-green-600' },
+                { status: 'rejected', label: 'Rejected', color: 'text-red-600' },
+            ].map(s => (
+                <div key={s.status} className='bg-white dark:bg-gray-800 rounded-xl p-3 text-center border border-gray-100 dark:border-gray-700'>
+                    <p className={`text-lg font-bold ${s.color}`}>
+                        {crmCandidates.filter(c => c.status === s.status).length}
+                    </p>
+                    <p className='text-xs text-gray-500 dark:text-gray-400'>{s.label}</p>
+                </div>
+            ))}
+        </div>
+
+        {/* Candidates List + Detail */}
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            {/* Left — Candidates List */}
+            <div className='space-y-2'>
+                {crmCandidates.length === 0 ? (
+                    <div className='text-center py-16 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700'>
+                        <p className='text-gray-500 dark:text-gray-400 text-sm'>No candidates yet</p>
+                        <button
+                            onClick={() => setShowAddCandidate(true)}
+                            className='mt-3 text-xs text-green-600 hover:underline'
+                        >
+                            Add your first candidate
+                        </button>
+                    </div>
+                ) : (
+                    crmCandidates.map((candidate, i) => (
+                        <motion.div
+                            key={candidate._id}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.05 }}
+                            onClick={() => setSelectedCandidate(candidate)}
+                            className={`bg-white dark:bg-gray-800 border rounded-xl p-4 cursor-pointer transition-all ${
+                                selectedCandidate?._id === candidate._id
+                                    ? 'border-green-500 shadow-sm'
+                                    : 'border-gray-100 dark:border-gray-700 hover:border-green-300'
+                            }`}
+                        >
+                            <div className='flex items-center justify-between gap-3'>
+                                <div className='flex items-center gap-3'>
+                                    <div className='w-9 h-9 rounded-full bg-green-50 dark:bg-green-900 flex items-center justify-center text-green-700 dark:text-green-300 font-semibold text-sm shrink-0'>
+                                        {candidate.candidate.name?.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <p className='text-sm font-medium text-gray-800 dark:text-white'>
+                                            {candidate.candidate.name}
+                                        </p>
+                                        <p className='text-xs text-gray-500 dark:text-gray-400'>
+                                            {candidate.candidate.location || 'No location'} · {candidate.source}
+                                        </p>
+                                    </div>
+                                </div>
+                                <span className={`text-xs px-2 py-1 rounded-full font-medium shrink-0 ${
+                                    candidate.status === 'hired' ? 'bg-green-50 text-green-600' :
+                                    candidate.status === 'interview' ? 'bg-purple-50 text-purple-600' :
+                                    candidate.status === 'follow_up' ? 'bg-yellow-50 text-yellow-600' :
+                                    candidate.status === 'rejected' ? 'bg-red-50 text-red-600' :
+                                    candidate.status === 'interested' ? 'bg-blue-50 text-blue-600' :
+                                    'bg-gray-100 text-gray-500'
+                                }`}>
+                                    {candidate.status.replace('_', ' ')}
+                                </span>
+                            </div>
+                        </motion.div>
+                    ))
+                )}
+            </div>
+
+            {/* Right — Candidate Detail */}
+            {selectedCandidate ? (
+                <motion.div
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className='bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 h-fit'
+                >
+                    {/* Header */}
+                    <div className='flex items-start justify-between mb-4'>
+                        <div className='flex items-center gap-3'>
+                            <div className='w-12 h-12 rounded-full bg-green-50 dark:bg-green-900 flex items-center justify-center text-green-700 dark:text-green-300 font-bold text-lg'>
+                                {selectedCandidate.candidate.name?.charAt(0)}
+                            </div>
+                            <div>
+                                <h3 className='text-sm font-semibold text-gray-800 dark:text-white'>
+                                    {selectedCandidate.candidate.name}
+                                </h3>
+                                <p className='text-xs text-gray-500 dark:text-gray-400'>
+                                    {selectedCandidate.candidate.email}
+                                </p>
+                                <p className='text-xs text-gray-500 dark:text-gray-400'>
+                                    {selectedCandidate.candidate.phone} · {selectedCandidate.candidate.location}
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => handleDeleteCandidate(selectedCandidate._id)}
+                            className='text-xs text-red-500 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors'
+                        >
+                            Delete
+                        </button>
+                    </div>
+
+                    {/* Skills */}
+                    {selectedCandidate.candidate.skills && (
+                        <div className='mb-4'>
+                            <p className='text-xs font-medium text-gray-500 dark:text-gray-400 mb-2'>Skills</p>
+                            <div className='flex flex-wrap gap-1'>
+                                {selectedCandidate.candidate.skills.split(',').map((skill, i) => (
+                                    <span key={i} className='text-xs bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded-full'>
+                                        {skill.trim()}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Status Update */}
+                    <div className='mb-4'>
+                        <p className='text-xs font-medium text-gray-500 dark:text-gray-400 mb-2'>Status</p>
+                        <div className='flex flex-wrap gap-2'>
+                            {['new', 'interested', 'follow_up', 'interview', 'hired', 'rejected'].map(status => (
+                                <button
+                                    key={status}
+                                    onClick={() => handleCRMStatus(selectedCandidate._id, status)}
+                                    className={`text-xs px-3 py-1.5 rounded-lg capitalize transition-colors ${
+                                        selectedCandidate.status === status
+                                            ? 'bg-green-600 text-white'
+                                            : 'border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                    }`}
+                                >
+                                    {status.replace('_', ' ')}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Follow Up Date */}
+                    <div className='mb-4'>
+                        <p className='text-xs font-medium text-gray-500 dark:text-gray-400 mb-2'>Follow Up Date</p>
+                        <input
+                            type='date'
+                            defaultValue={selectedCandidate.follow_up_date?.split('T')[0]}
+                            onChange={(e) => setCRMFollowUp(selectedCandidate._id, e.target.value)}
+                            className='w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white'
+                        />
+                    </div>
+
+                    {/* Notes */}
+                    <div>
+                        <p className='text-xs font-medium text-gray-500 dark:text-gray-400 mb-2'>
+                            Notes ({selectedCandidate.notes?.length || 0})
+                        </p>
+                        <div className='space-y-2 mb-3 max-h-40 overflow-y-auto'>
+                            {selectedCandidate.notes?.map((note, i) => (
+                                <div key={i} className='bg-gray-50 dark:bg-gray-700 rounded-xl p-3'>
+                                    <p className='text-xs text-gray-700 dark:text-gray-300'>{note.text}</p>
+                                    <p className='text-xs text-gray-400 mt-1'>
+                                        {new Date(note.createdAt).toLocaleDateString()}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                        <div className='flex gap-2'>
+                            <input
+                                type='text'
+                                placeholder='Add a note...'
+                                value={newNote}
+                                onChange={(e) => setNewNote(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleAddNote(selectedCandidate._id)}
+                                className='flex-1 border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-xs outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white'
+                            />
+                            <button
+                                onClick={() => handleAddNote(selectedCandidate._id)}
+                                className='bg-green-600 text-white px-3 py-2 rounded-xl text-xs hover:bg-green-700 transition-colors'
+                            >
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+            ) : (
+                <div className='text-center py-16 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700'>
+                    <p className='text-sm text-gray-500 dark:text-gray-400'>
+                        Select a candidate to view details
+                    </p>
+                </div>
+            )}
+        </div>
+    </motion.div>
+)}
                     </div>
                 </div>
             </div>
@@ -537,6 +1000,7 @@ const EmployerDashboard = () => {
                         { id: 'overview', label: 'Dashboard', icon: '▣' },
                         { id: 'jobs', label: 'Jobs', icon: '◈', count: myJobs.length },
                         { id: 'applications', label: 'Apps', icon: '◎', count: totalApplications },
+                        { id: 'crm', label: 'CRM', icon: '◆' },
                     ].map((item) => (
                         <button
                             key={item.id}
