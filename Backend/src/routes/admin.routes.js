@@ -11,7 +11,8 @@ import {
     getAllUsers,
     updateUserRole,
      banUser, unbanUser,
-     getAnalytics
+     getAnalytics,
+     toggleFeaturedJob
 } from '../controllers/admin.controller.js'
 import {  authMiddleware,adminMiddleware } from '../middleware/auth.middleware.js'
 
@@ -33,5 +34,6 @@ adminRouter.put('/users/:id/role', updateUserRole)
 adminRouter.put('/users/:id/ban', banUser)
 adminRouter.put('/users/:id/unban', unbanUser)
 adminRouter.get('/analytics', getAnalytics)
+adminRouter.put('/jobs/:id/feature', authMiddleware, adminMiddleware, toggleFeaturedJob)
 
 export default adminRouter

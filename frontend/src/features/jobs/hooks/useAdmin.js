@@ -215,6 +215,15 @@ const deleteTestimonialAdmin = async (id) => {
     }
 }
 
+const toggleFeaturedJob = async (id) => {
+    try {
+        await axios.put(`${API_URL}/api/admin/jobs/${id}/feature`, {}, getAuthHeaders())
+        return true
+    } catch (err) {
+        return false
+    }
+}
+
     return {
         loading,
         error,
@@ -237,7 +246,9 @@ const deleteTestimonialAdmin = async (id) => {
     getAllTestimonials,
     approveTestimonial,
     rejectTestimonial,
-    deleteTestimonialAdmin
+    deleteTestimonialAdmin,
+    toggleFeaturedJob
+
 }
 }
 export default useAdmin

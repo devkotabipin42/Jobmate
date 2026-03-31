@@ -345,3 +345,19 @@ export const getAnalytics = async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
+export const toggleFeaturedJob = async (req, res) => {
+    try {
+        const job = await Job.findById(req.params.id)
+        if (!job) return res.status(404).json({ message: 'Job not found' })
+        
+        job.is_featured = !job.is_featured
+        await job.save()
+        
+        res.status(200).json({
+            message: `Job ${job.is_featured ? 'featured' : 'unfeatured'} successfully`,
+            job
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
