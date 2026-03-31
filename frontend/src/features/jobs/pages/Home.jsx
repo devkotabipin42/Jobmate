@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import Navbar from "../../../components/Navbar.jsx";
 import Footer from '../../../components/Footer.jsx'
-import API_URL from '../../../config/api.js'
 import useJobs from '../hooks/useJobs.js'
 import {
   fadeUp,
@@ -21,11 +20,12 @@ const Home = () => {
   const statsRef = useRef(null);
   const categoriesRef = useRef(null);
   const ctaRef = useRef(null);
-  const { latestJobs, loadLatestJobs } = useJobs()
+  const { latestJobs, loadLatestJobs,stats, loadStats  } = useJobs()
   
 
   useEffect(() => {
     loadLatestJobs()
+    loadStats()
 }, [])
 
 
@@ -197,24 +197,21 @@ const Home = () => {
         ref={statsRef}
         className='grid grid-cols-2 md:flex md:justify-center border-y border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
       >
-        {[
-          { num: "1,240+", label: "Verified jobs", color: "text-green-600" },
-          { num: "850+", label: "Companies", color: "text-green-600" },
-          { num: "12,000+", label: "Job seekers", color: "text-green-600" },
-          { num: "0", label: "Fake jobs", color: "text-red-500" },
-        ].map((stat, i) => (
-          <div
-            key={i}
-             className='stat-item px-6 py-5 text-center border-r border-b md:border-b-0 last:border-r-0 border-gray-200 dark:border-gray-700'
-          >
-            <div className={`text-2xl font-semibold ${stat.color}`}>
-              {stat.num}
-            </div>
-            <div className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
-              {stat.label}
-            </div>
-          </div>
-        ))}
+       {[
+    { num: `${stats.totalJobs}+`, label: 'Verified jobs', color: 'text-green-600' },
+    { num: `${stats.totalCompanies}+`, label: 'Companies', color: 'text-green-600' },
+    { num: `${stats.totalJobSeekers}+`, label: 'Job seekers', color: 'text-green-600' },
+    { num: stats.fakeJobs, label: 'Fake jobs', color: 'text-red-500' },
+].map((stat, i) => (
+    <div key={i} className='stat-item px-6 py-5 text-center border-r border-b md:border-b-0 last:border-r-0 border-gray-200 dark:border-gray-700'>
+        <div className={`text-2xl font-semibold ${stat.color}`}>
+            {stat.num}
+        </div>
+        <div className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
+            {stat.label}
+        </div>
+    </div>
+))}
       </div>
 
       {/* Categories — GSAP scrollFadeUp */}

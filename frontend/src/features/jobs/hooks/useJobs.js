@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { setJobs, setFilters } from '../job.slice.js'
-import { fetchJobs, fetchJob } from '../services/job.api.js'
+import { fetchJobs, fetchJob , fetchStats } from '../services/job.api.js'
 import { useEffect} from 'react'
 import { useCallback } from 'react'
 import axios from 'axios'
@@ -74,6 +74,21 @@ useEffect(() => {
         console.log(err)
     }
 }
+const [stats, setStats] = useState({
+    totalJobs: 0,
+    totalCompanies: 0,
+    totalJobSeekers: 0,
+    fakeJobs: 0
+})
+
+const loadStats = async () => {
+    try {
+        const data = await fetchStats()
+        setStats(data)
+    } catch (err) {
+        console.log(err)
+    }
+}
 
     return {
         jobs,
@@ -86,6 +101,8 @@ useEffect(() => {
         handleFilter,
         clearFilters,
         loadLatestJobs,
+        stats,
+        loadStats
     }
 }
 

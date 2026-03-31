@@ -23,3 +23,8 @@ export const fetchJob = async (id) => {
     const res = await api.get(`/api/jobs/${id}`)
     return res.data
 }
+
+export const fetchStats = async () => {
+    const res = await axios.get(`${API_URL}/api/stats`)
+    return res.data
+}
