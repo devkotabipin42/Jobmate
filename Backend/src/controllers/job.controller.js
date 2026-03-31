@@ -1,6 +1,7 @@
 import Job from '../models/Job.model.js'
 import User from '../models/user.model.js'
 import transporter from '../config/mailer.js'
+
 // Create Job — Employer only
 export const createJob = async (req, res) => {
     try {
@@ -18,6 +19,59 @@ export const createJob = async (req, res) => {
             type, experience, deadline,
             employer: req.user._id
         })
+
+        // Job alerts — matching users email sent
+        try {
+            const matchingUsers = await User.find({
+                'job_alerts.enabled': true,
+                $or: [
+                    { 'job_alerts.categories': category },
+                    { 'job_alerts.locations': location },
+                    { 'job_alerts.job_types': type },
+                    {
+                        'job_alerts.categories': { $size: 0 },
+                        'job_alerts.locations': { $size: 0 },
+                        'job_alerts.job_types': { $size: 0 }
+                    }
+                ]
+            })
+
+            if (matchingUsers.length > 0) {
+                const emailPromises = matchingUsers.map(user =>
+                    transporter.sendMail({
+                        from: process.env.MAIL_USER,
+                        to: user.email,
+                        subject: `🔔 New Job Alert — ${title}`,
+                        html: `
+                            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                                <div style="background: #16a34a; padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
+                                    <h1 style="color: white; margin: 0;">Jobmate</h1>
+                                </div>
+                                <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 12px 12px;">
+                                    <h2 style="color: #111827;">New Job Alert! 🎯</h2>
+                                    <p style="color: #6b7280;">Hi ${user.name}, a new job matches your preferences:</p>
+                                    <div style="background: white; border: 2px solid #22c55e; border-radius: 12px; padding: 20px; margin: 20px 0;">
+                                        <h3 style="color: #16a34a; margin: 0 0 8px 0;">${title}</h3>
+                                        <p style="color: #6b7280; margin: 0;">📍 ${location} · ${type}</p>
+                                        <p style="color: #6b7280; margin: 8px 0 0;">💰 Rs. ${Number(salary_min).toLocaleString()} – ${Number(salary_max).toLocaleString()}</p>
+                                    </div>
+                                    <a href="https://jobmate-two.vercel.app/jobs/${job._id}"
+                                       style="background: #16a34a; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block;">
+                                        View & Apply →
+                                    </a>
+                                    <p style="color: #9ca3af; font-size: 12px; margin-top: 20px;">
+                                        To unsubscribe, go to Profile → Job Alerts.
+                                    </p>
+                                </div>
+                            </div>
+                        `
+                    }).catch(err => console.log('Alert email error:', err.message))
+                )
+                await Promise.allSettled(emailPromises)
+            }
+        } catch (alertErr) {
+            console.log('Job alert error:', alertErr.message)
+        }
 
         res.status(201).json({
             message: 'Job created successfully',
@@ -92,17 +146,11 @@ export const getJob = async (req, res) => {
 // Update Job — Employer only
 export const updateJob = async (req, res) => {
     try {
-        console.log('Update job called:', req.params.id)
-        console.log('User ID:', req.user?._id)
-        
         const job = await Job.findById(req.params.id)
 
         if (!job) {
             return res.status(404).json({ message: 'Job not found' })
         }
-
-        console.log('Job employer:', job.employer)
-        console.log('Match:', job.employer.toString() === req.user._id.toString())
 
         if (job.employer.toString() !== req.user._id.toString()) {
             return res.status(403).json({ message: 'Not authorized' })
@@ -119,7 +167,6 @@ export const updateJob = async (req, res) => {
             job: updatedJob
         })
     } catch (error) {
-        console.log('Update job error:', error.message)
         res.status(500).json({ message: error.message })
     }
 }

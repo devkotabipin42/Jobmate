@@ -424,3 +424,28 @@ export const verifyOTP = async (req, res) => {
     }
 }
 
+export const updateJobAlerts = async (req, res) => {
+    try {
+        const { enabled, categories, locations, job_types } = req.body
+
+        const user = await User.findByIdAndUpdate(
+            req.user._id,
+            {
+                job_alerts: {
+                    enabled,
+                    categories: categories || [],
+                    locations: locations || [],
+                    job_types: job_types || []
+                }
+            },
+            { new: true }
+        ).select('-password')
+
+        res.status(200).json({
+            message: 'Job alerts updated',
+            user
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}

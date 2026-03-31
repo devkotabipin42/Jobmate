@@ -97,7 +97,48 @@ const verifyOTP = async (email, otp, role) => {
     return res.data.user
 }
 
-    return { user, isLoading, error, login, register, logoutUser, updateProfile,uploadCV, deleteCV, sendOTP, verifyOTP }
+    const updateJobAlerts = async (alertData) => {
+    const token = localStorage.getItem('token')
+    const res = await axios.put(
+        `${API_URL}/api/auth/job-alerts`,
+        alertData,
+        {
+            withCredentials: true,
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+        }
+    )
+    dispatch(setUser({ ...user, job_alerts: alertData }))
+    return res.data
+}
+
+const handleCVUpload = async (file) => {
+    if (!file) return
+    try {
+        await uploadCV(file)
+        return true
+    } catch (err) {
+        throw err
+    }
+}
+
+const handleCVDelete = async () => {
+    try {
+        await deleteCV()
+        return true
+    } catch (err) {
+        throw err
+    }
+}
+
+const handleAlertsSubmit = async (alerts) => {
+    try {
+        await updateJobAlerts(alerts)
+        return true
+    } catch (err) {
+        throw err
+    }
+}
+    return { user, isLoading, error, login, register, logoutUser, updateProfile,uploadCV, deleteCV, sendOTP, verifyOTP, updateJobAlerts, handleCVUpload, handleCVDelete, handleAlertsSubmit }
 }
 
 export default useAuth
