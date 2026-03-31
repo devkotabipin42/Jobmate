@@ -2,32 +2,13 @@ import Job from '../models/Job.model.js'
 import User from '../models/user.model.js'
 import Employer from '../models/Employer.model.js'
 import Application from '../models/Application.model.js'
+import transporter from '../config/mailer.js'
 
 
 
 
-import nodemailer from 'nodemailer'
 
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS
-    },
-    tls: {
-        rejectUnauthorized: false
-    }
-})
 
-transporter.verify((error, success) => {
-    if (error) {
-        console.log('Email transporter error:', error)
-    } else {
-        console.log('Email transporter ready!')
-    }
-})
 // Verify employer
 export const verifyEmployer = async (req, res) => {
     try {

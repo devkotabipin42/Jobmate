@@ -1,14 +1,12 @@
 import Application from '../models/Application.model.js'
 import Job from '../models/Job.model.js'
-
+import Employer from '../models/Employer.model.js'
+import transporter from '../config/mailer.js'
 // Apply for job
 export const applyJob = async (req, res) => {
     try {
-        console.log('User:', req.user)
-        console.log('Job ID:', req.params.id)
-        console.log('Body:', req.body)
-
         const job = await Job.findById(req.params.id)
+            .populate('employer', 'company_name email')
 
         if (!job) {
             return res.status(404).json({ message: 'Job not found' })
@@ -26,7 +24,7 @@ export const applyJob = async (req, res) => {
         const application = await Application.create({
             job: req.params.id,
             user: req.user._id,
-            cv_url: req.user.cv_url || 'https://placeholder.com/cv.pdf',
+            cv_url: req.user.cv_url || '',
             cover_letter: req.body.cover_letter || ''
         })
 
@@ -34,12 +32,47 @@ export const applyJob = async (req, res) => {
             $inc: { application_count: 1 }
         })
 
+        // Email to employer
+        try {
+            await transporter.sendMail({
+                from: process.env.MAIL_USER,
+                to: job.employer.email,
+                subject: `🎯 New Application — ${job.title}`,
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <div style="background: #16a34a; padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
+                            <h1 style="color: white; margin: 0;">Jobmate</h1>
+                        </div>
+                        <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 12px 12px;">
+                            <h2 style="color: #111827;">New Application Received! 🎉</h2>
+                            <p style="color: #6b7280;">Someone applied for your job posting:</p>
+                            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin: 20px 0;">
+                                <h3 style="color: #16a34a; margin: 0 0 10px 0;">${job.title}</h3>
+                                <p style="color: #6b7280; margin: 0;">📍 ${job.location} · ${job.type}</p>
+                            </div>
+                            <p style="color: #6b7280;">
+                                <strong>Applicant:</strong> ${req.user.name}<br/>
+                                <strong>Email:</strong> ${req.user.email}<br/>
+                                <strong>Location:</strong> ${req.user.location || 'Not specified'}<br/>
+                                ${req.body.cover_letter ? `<strong>Cover Letter:</strong> ${req.body.cover_letter}` : ''}
+                            </p>
+                            <a href="https://jobmate-two.vercel.app/employer/dashboard" 
+                               style="background: #16a34a; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block; margin-top: 15px;">
+                                View Application →
+                            </a>
+                        </div>
+                    </div>
+                `
+            })
+        } catch (emailErr) {
+            console.log('Email error:', emailErr.message)
+        }
+
         res.status(201).json({
             message: 'Applied successfully',
             application
         })
     } catch (error) {
-        console.log('Apply Error:', error.message)
         res.status(500).json({ message: error.message })
     }
 }
@@ -111,3 +144,4 @@ export const updateApplicationStatus = async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
+

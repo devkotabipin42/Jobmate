@@ -5,20 +5,13 @@ import bcrypt from 'bcryptjs'
 import OTP from '../models/OTP.model.js'
 import nodemailer from 'nodemailer'
 import Blacklist from '../models/Blacklist.model.js'
+import transporter from '../config/mailer.js'
 const generateToken = (id, role) => {
     return jwt.sign({ id, role }, process.env.JWT_SECRET, {
         expiresIn: '7d'
     })
 }
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS
-    }
-})
+
 
 // Job Seeker Register
 export const registerUser = async (req, res) => {
