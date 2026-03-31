@@ -13,7 +13,7 @@ const applicationSchema = new mongoose.Schema({
     },
     cv_url: {
         type: String,
-        required: true
+        default: ''  // required hatao
     },
     cover_letter: {
         type: String
@@ -21,7 +21,7 @@ const applicationSchema = new mongoose.Schema({
     status: {
         type: String,
         enum: ['applied', 'seen', 'shortlisted', 'interview', 'hired', 'rejected'],
-        default: ''
+        default: 'applied'  // '' se 'applied' karo
     }
 }, { timestamps: true })
 
