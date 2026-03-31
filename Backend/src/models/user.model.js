@@ -39,6 +39,21 @@ const userSchema = new mongoose.Schema({
     is_banned: {
     type: Boolean,
     default: false
+},
+job_alerts: {
+    enabled: {
+        type: Boolean,
+        default: false
+    },
+    categories: [{
+        type: String
+    }],
+    locations: [{
+        type: String
+    }],
+    job_types: [{
+        type: String
+    }]
 }
 }, { timestamps: true })
 

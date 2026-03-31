@@ -117,8 +117,11 @@ export const login = async (req, res) => {
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid password' })
         }
+        if (account.is_banned) {
+        return res.status(403).json({ message: 'Your account has been banned. Contact support at hello@jobmate.com.np' })
+        }       
 
-        // Database do actual role 
+        // Database  actual role 
         const actualRole = account.role || role
 
         const token = generateToken(account._id, actualRole)
@@ -395,8 +398,8 @@ export const verifyOTP = async (req, res) => {
         }
 
         if (account.is_banned) {
-            return res.status(403).json({ message: 'Your account has been banned' })
-        }
+    return res.status(403).json({ message: 'Your account has been banned. Contact support at hello@jobmate.com.np' })
+}
 
         const actualRole = account.role || role
         const token = generateToken(account._id, actualRole)
