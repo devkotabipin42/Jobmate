@@ -311,9 +311,13 @@ const Home = () => {
                     className='bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:border-green-400 transition-colors'
                 >
                     <div className='flex items-start gap-3 mb-3'>
-                        <div className='w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900 flex items-center justify-center text-green-700 dark:text-green-300 font-bold text-sm shrink-0'>
-                            {job.employer?.company_name?.charAt(0) || 'C'}
-                        </div>
+                        <div className='w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900 flex items-center justify-center text-green-700 dark:text-green-300 font-semibold text-sm shrink-0'>
+                                            {job.employer?.logo_url ? (
+            <img src={job.employer.logo_url} alt={job.employer.company_name} className='w-full h-full object-cover' />
+        ) : (
+            job.employer?.company_name?.charAt(0) || 'C'
+        )}
+                                        </div>
                         <div className='flex-1 min-w-0'>
                             <h3 className='text-sm font-semibold text-gray-800 dark:text-white truncate'>
                                 {job.title}
