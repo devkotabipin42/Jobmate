@@ -98,10 +98,10 @@ const About = () => {
                     </p>
                     <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
                         {[
-                            { icon: '📋', title: 'Job Listings', desc: 'Verified job postings from trusted companies across Nepal.' },
-                            { icon: '🤖', title: 'AI Resume Scorer', desc: 'Free AI-powered resume analysis and improvement suggestions.' },
-                            { icon: '🎯', title: 'Job Matching', desc: 'Smart matching between candidates and job requirements.' },
-                            { icon: '📊', title: 'Employer Dashboard', desc: 'Complete hiring management tool for employers.' },
+                            { icon: '', title: 'Job Listings', desc: 'Verified job postings from trusted companies across Nepal.' },
+                            { icon: '', title: 'AI Resume Scorer', desc: 'Free AI-powered resume analysis and improvement suggestions.' },
+                            { icon: '', title: 'Job Matching', desc: 'Smart matching between candidates and job requirements.' },
+                            { icon: '', title: 'Employer Dashboard', desc: 'Complete hiring management tool for employers.' },
                         ].map((item, i) => (
                             <motion.div
                                 key={i}
@@ -128,19 +128,19 @@ const About = () => {
                 <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-16'>
                     {[
                         {
-                            icon: '🎯',
+                            icon: '',
                             title: 'Our Mission',
                             desc: 'To provide verified, transparent and accessible job opportunities to every job seeker in Nepal — with salary always visible and no fake listings.',
                             color: 'border-green-500 bg-green-50 dark:bg-green-900'
                         },
                         {
-                            icon: '👁️',
+                            icon: '',
                             title: 'Our Vision',
                             desc: "To become Nepal's most trusted job platform — where every job seeker finds their dream job and every employer finds the right talent.",
                             color: 'border-blue-500 bg-blue-50 dark:bg-blue-900'
                         },
                         {
-                            icon: '⭐',
+                            icon: '',
                             title: 'Our Goal',
                             desc: 'To reduce unemployment in Nepal by connecting 100,000+ job seekers with verified employers by 2026.',
                             color: 'border-purple-500 bg-purple-50 dark:bg-purple-900'

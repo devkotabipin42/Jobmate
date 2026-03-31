@@ -22,9 +22,13 @@ const Navbar = () => {
             <div className='flex items-center justify-between'>
 
                 {/* Logo */}
-                <Link to='/' className='text-xl font-semibold text-green-600'>
-                    Job<span className='text-gray-800 dark:text-white'>mate</span>
-                </Link>
+               <Link to='/' className='flex items-center gap-2'>
+    {/* <img src='/logo.png' alt='Jobmate' className='w-8 h-8 object-contain' /> */}
+    <span className='text-xl font-semibold'>
+        <span className='text-green-600'>Job</span>
+        <span className='text-gray-800 dark:text-white'>mate</span>
+    </span>
+</Link>
 
                 {/* Desktop Nav Links */}
                 <div className='hidden md:flex items-center gap-6 text-sm text-gray-600 dark:text-gray-300'>

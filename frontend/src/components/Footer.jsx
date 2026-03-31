@@ -107,16 +107,16 @@ const Footer = () => {
                               <a  href='mailto:hello@jobmate.com.np'
                                 className='flex items-center gap-2 text-sm text-gray-400 hover:text-green-400 transition-colors'
                             >
-                                📧 hello@jobmate.com.np
+                                hello@jobmate.com.np
                             </a>
                             
                              <a   href='tel:+977-9800000000'
                                 className='flex items-center gap-2 text-sm text-gray-400 hover:text-green-400 transition-colors'
                             >
-                                📱 +977-9800000000
+                                +977-9800000000
                             </a>
                             <p className='flex items-center gap-2 text-sm text-gray-400'>
-                                📍 Kathmandu, Nepal
+                                Kathmandu, Nepal
                             </p>
                         </div>
                     </div>

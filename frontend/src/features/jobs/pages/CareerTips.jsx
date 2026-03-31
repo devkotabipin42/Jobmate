@@ -7,7 +7,7 @@ const tips = [
     {
         id: 1,
         category: 'Resume',
-        emoji: '📄',
+        
         title: 'How to Craft a Standout Resume',
         summary: 'Essential resume tips to get past the ATS and impress recruiters.',
         content: `
@@ -26,7 +26,7 @@ const tips = [
     {
         id: 2,
         category: 'Interview',
-        emoji: '🎯',
+        
         title: 'Mastering the Technical Interview',
         summary: 'Strategies to make a strong impression during your interviews.',
         content: `
@@ -48,7 +48,7 @@ const tips = [
     {
         id: 3,
         category: 'Salary',
-        emoji: '💰',
+       
         title: 'Strategies for Salary Negotiation',
         summary: 'How to confidently negotiate your compensation package.',
         content: `
@@ -67,7 +67,7 @@ const tips = [
     {
         id: 4,
         category: 'LinkedIn',
-        emoji: '💼',
+        
         title: 'Optimizing Your LinkedIn Profile',
         summary: 'How to attract tech recruiters and build a professional network.',
         content: `
@@ -86,7 +86,7 @@ const tips = [
     {
         id: 5,
         category: 'Skills',
-        emoji: '🚀',
+        
         title: 'In-Demand Tech Skills for 2026',
         summary: 'The top programming languages and tools companies are looking for.',
         content: `
@@ -115,7 +115,7 @@ const tips = [
     {
         id: 6,
         category: 'Freelance',
-        emoji: '🌐',
+        
         title: 'Launching a Global Freelance Career',
         summary: 'How to secure international clients and build a freelance business.',
         content: `

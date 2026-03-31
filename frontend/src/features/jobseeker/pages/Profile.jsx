@@ -215,10 +215,10 @@ const Profile = () => {
                     <h3 className='text-sm font-medium text-gray-800 dark:text-white mb-3'>Quick Links</h3>
                     <div className='space-y-2'>
                         {[
-                            { label: 'My Applications', path: '/my-applications', emoji: '📋' },
-                            { label: 'Saved Jobs', path: '/saved-jobs', emoji: '🔖' },
-                            { label: 'Browse Jobs', path: '/jobs', emoji: '🔍' },
-                            { label: 'Career Tips', path: '/career-tips', emoji: '💡' },
+                            { label: 'My Applications', path: '/my-applications', emoji: '' },
+                            { label: 'Saved Jobs', path: '/saved-jobs', emoji: '' },
+                            { label: 'Browse Jobs', path: '/jobs', emoji: '' },
+                            { label: 'Career Tips', path: '/career-tips', emoji: '' },
                         ].map((link, i) => (
                             <a key={i} href={link.path}
                                 className='flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'>
