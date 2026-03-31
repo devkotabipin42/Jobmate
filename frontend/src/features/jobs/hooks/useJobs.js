@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { setJobs, setFilters } from '../job.slice.js'
-import { fetchJobs, fetchJob , fetchStats } from '../services/job.api.js'
+import { fetchJobs, fetchJob , fetchStats,fetchTestimonials  } from '../services/job.api.js'
 import { useEffect} from 'react'
 import { useCallback } from 'react'
 import axios from 'axios'
@@ -12,6 +12,7 @@ const useJobs = () => {
     const { jobs, filters } = useSelector(state => state.jobs)
     const [loading, setLoading] = useState(false)
     const [latestJobs, setLatestJobs] = useState([])
+    const [testimonials, setTestimonials] = useState([])
     const [error, setError] = useState('')
 
     useEffect(() => {
@@ -89,6 +90,14 @@ const loadStats = async () => {
         console.log(err)
     }
 }
+const loadTestimonials = async () => {
+    try {
+        const data = await fetchTestimonials()
+        setTestimonials(data.testimonials)
+    } catch (err) {
+        console.log(err)
+    }
+}
 
     return {
         jobs,
@@ -102,7 +111,9 @@ const loadStats = async () => {
         clearFilters,
         loadLatestJobs,
         stats,
-        loadStats
+        loadStats,
+        testimonials,
+        loadTestimonials
     }
 }
 

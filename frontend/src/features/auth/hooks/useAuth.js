@@ -138,7 +138,19 @@ const handleAlertsSubmit = async (alerts) => {
         throw err
     }
 }
-    return { user, isLoading, error, login, register, logoutUser, updateProfile,uploadCV, deleteCV, sendOTP, verifyOTP, updateJobAlerts, handleCVUpload, handleCVDelete, handleAlertsSubmit }
+const submitTestimonial = async (formData) => {
+    const token = localStorage.getItem('token')
+    const res = await axios.post(
+        `${API_URL}/api/testimonials/submit`,
+        formData,
+        {
+            withCredentials: true,
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+        }
+    )
+    return res.data
+}
+    return { user, isLoading, error, login, register, logoutUser, updateProfile,uploadCV, deleteCV, sendOTP, verifyOTP, updateJobAlerts, handleCVUpload, handleCVDelete, handleAlertsSubmit, submitTestimonial }
 }
 
 export default useAuth

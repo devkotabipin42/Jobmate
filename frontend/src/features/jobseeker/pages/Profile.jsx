@@ -2,12 +2,13 @@ import { useState } from 'react'
 import useAuth from '../../auth/hooks/useAuth.js'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '../../../components/Navbar.jsx'
-
+import axios from 'axios'
+import API_URL from '../../../config/api.js'
 const Profile = () => {
     const { 
         user, updateProfile, 
         handleCVUpload, handleCVDelete, 
-        handleAlertsSubmit 
+        handleAlertsSubmit, submitTestimonial 
     } = useAuth()
 
     const [editing, setEditing] = useState(false)
@@ -19,6 +20,15 @@ const Profile = () => {
         phone: user?.phone || '',
         location: user?.location || '',
     })
+    const [testimonialForm, setTestimonialForm] = useState({
+    name: user?.name || '',
+    role: '',
+    company: '',
+    text: '',
+    rating: 5
+})
+const [testimonialLoading, setTestimonialLoading] = useState(false)
+const [testimonialSuccess, setTestimonialSuccess] = useState(false)
     const [cvUploading, setCvUploading] = useState(false)
     const [cvSuccess, setCvSuccess] = useState(false)
     const [cvDeleting, setCvDeleting] = useState(false)
@@ -89,6 +99,18 @@ const Profile = () => {
         }
     }
 
+   const handleTestimonialSubmit = async () => {
+    setTestimonialLoading(true)
+    try {
+        await submitTestimonial(testimonialForm)
+        setTestimonialSuccess(true)
+        setTimeout(() => setTestimonialSuccess(false), 3000)
+    } catch (err) {
+        console.log(err)
+    } finally {
+        setTestimonialLoading(false)
+    }
+}
     return (
         <div className='min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors'>
             <Navbar />
@@ -392,7 +414,68 @@ const Profile = () => {
                         </motion.div>
                     )}
                 </motion.div>
+                    {/* Submit Testimonial */}
+<motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.5 }}
+    className='mt-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6'
+>
+    <h3 className='text-sm font-semibold text-gray-800 dark:text-white mb-4'>
+        Share Your Experience
+    </h3>
 
+    {testimonialSuccess && (
+        <div className='bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 text-xs px-4 py-2 rounded-lg mb-3'>
+            Submitted! Admin will review it soon.
+        </div>
+    )}
+
+    <div className='space-y-3'>
+        <input
+            type='text'
+            placeholder='Your role (e.g. Software Engineer)'
+            value={testimonialForm.role}
+            onChange={(e) => setTestimonialForm({ ...testimonialForm, role: e.target.value })}
+            className='w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white'
+        />
+        <input
+            type='text'
+            placeholder='Company (e.g. Hired at TechCorp Nepal)'
+            value={testimonialForm.company}
+            onChange={(e) => setTestimonialForm({ ...testimonialForm, company: e.target.value })}
+            className='w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white'
+        />
+        <textarea
+            placeholder='Share your experience with Jobmate...'
+            value={testimonialForm.text}
+            onChange={(e) => setTestimonialForm({ ...testimonialForm, text: e.target.value })}
+            rows={3}
+            className='w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white resize-none'
+        />
+        <select
+            value={testimonialForm.rating}
+            onChange={(e) => setTestimonialForm({ ...testimonialForm, rating: Number(e.target.value) })}
+            className='w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white'
+        >
+            <option value={5}>5 - Excellent</option>
+            <option value={4}>4 - Very Good</option>
+            <option value={3}>3 - Good</option>
+            <option value={2}>2 - Fair</option>
+            <option value={1}>1 - Poor</option>
+        </select>
+    </div>
+
+    <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={handleTestimonialSubmit}
+        disabled={testimonialLoading || !testimonialForm.role || !testimonialForm.text}
+        className='w-full mt-4 bg-green-600 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors'
+    >
+        {testimonialLoading ? 'Submitting...' : 'Submit Review'}
+    </motion.button>
+</motion.div>
             </div>
         </div>
     )

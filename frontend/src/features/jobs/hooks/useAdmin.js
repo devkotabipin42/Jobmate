@@ -157,20 +157,58 @@ const useAdmin = () => {
     } finally {
         setLoading(false)
     }
-}
+    }
 
-const resolveReport = async (id) => {
+    const resolveReport = async (id) => {
     try {
         await axios.put(`${API_URL}/api/reports/${id}/resolve`, {}, getAuthHeaders())
         return true
     } catch (err) {
         return false
     }
-}
+    }
 
-const dismissReport = async (id) => {
+    const dismissReport = async (id) => {
     try {
         await axios.put(`${API_URL}/api/reports/${id}/dismiss`, {}, getAuthHeaders())
+        return true
+    } catch (err) {
+        return false
+    }
+    }
+    const getAllTestimonials = async () => {
+    setLoading(true)
+    try {
+        const res = await axios.get(`${API_URL}/api/testimonials/all`, getAuthHeaders())
+        return res.data.testimonials
+    } catch (err) {
+        return []
+    } finally {
+        setLoading(false)
+    }
+}
+
+const approveTestimonial = async (id) => {
+    try {
+        await axios.put(`${API_URL}/api/testimonials/${id}/approve`, {}, getAuthHeaders())
+        return true
+    } catch (err) {
+        return false
+    }
+}
+
+const rejectTestimonial = async (id) => {
+    try {
+        await axios.put(`${API_URL}/api/testimonials/${id}/reject`, {}, getAuthHeaders())
+        return true
+    } catch (err) {
+        return false
+    }
+}
+
+const deleteTestimonialAdmin = async (id) => {
+    try {
+        await axios.delete(`${API_URL}/api/testimonials/${id}`, getAuthHeaders())
         return true
     } catch (err) {
         return false
@@ -195,8 +233,11 @@ const dismissReport = async (id) => {
         updateUserRole,
         getAllReports,
     resolveReport,
-    dismissReport
-    }
+    dismissReport,
+    getAllTestimonials,
+    approveTestimonial,
+    rejectTestimonial,
+    deleteTestimonialAdmin
 }
-
+}
 export default useAdmin

@@ -11,6 +11,7 @@ import adminRouter from './routes/admin.routes.js'
 import reportRouter from './routes/report.routes.js'
 import resumeRouter from './routes/resume.routes.js'
 import statsRouter from './routes/stats.routes.js'
+import testimonialRouter from './routes/testimonial.routes.js'
 const app = express()
 
 app.use(express.json())
@@ -38,5 +39,6 @@ app.use('/api/admin', adminRouter)
 app.use('/api/reports', reportRouter)
 app.use('/api/resume', resumeRouter)
 app.use('/api/stats', statsRouter)
+app.use('/api/testimonials', testimonialRouter)
 
 export default app

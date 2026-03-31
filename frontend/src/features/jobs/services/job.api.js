@@ -28,3 +28,7 @@ export const fetchStats = async () => {
     const res = await axios.get(`${API_URL}/api/stats`)
     return res.data
 }
+export const fetchTestimonials = async () => {
+    const res = await axios.get(`${API_URL}/api/testimonials`)
+    return res.data
+}

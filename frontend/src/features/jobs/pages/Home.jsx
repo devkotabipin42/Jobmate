@@ -20,12 +20,13 @@ const Home = () => {
   const statsRef = useRef(null);
   const categoriesRef = useRef(null);
   const ctaRef = useRef(null);
-  const { latestJobs, loadLatestJobs,stats, loadStats  } = useJobs()
+  const { latestJobs, loadLatestJobs,stats, loadStats,testimonials, loadTestimonials   } = useJobs()
   
 
   useEffect(() => {
     loadLatestJobs()
     loadStats()
+    loadTestimonials()
 }, [])
 
 
@@ -299,56 +300,56 @@ const Home = () => {
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
             {latestJobs.slice(0, 6).map((job, i) => (
                 <motion.div
-                    key={job._id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.1 }}
-                    whileHover={{ y: -4 }}
-                    className='bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:border-green-400 transition-colors'
-                >
-                    <div className='flex items-start gap-3 mb-3'>
-                        <div className='w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900 flex items-center justify-center text-green-700 dark:text-green-300 font-semibold text-sm shrink-0'>
-                                            {job.employer?.logo_url ? (
-            <img src={job.employer.logo_url} alt={job.employer.company_name} className='w-full h-full object-cover' />
-        ) : (
-            job.employer?.company_name?.charAt(0) || 'C'
-        )}
-                                        </div>
-                        <div className='flex-1 min-w-0'>
-                            <h3 className='text-sm font-semibold text-gray-800 dark:text-white truncate'>
-                                {job.title}
-                            </h3>
-                            <p className='text-xs text-gray-500 dark:text-gray-400 truncate'>
-                                {job.employer?.company_name} · {job.location}
-                            </p>
-                        </div>
-                    </div>
+    key={job._id}
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ delay: i * 0.1 }}
+    whileHover={{ y: -4 }}
+    className='bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:border-green-400 transition-colors'
+>
+    <div className='flex items-start gap-3 mb-3'>
+        <div className='w-10 h-10 rounded-lg shrink-0 overflow-hidden bg-green-50 dark:bg-green-900 flex items-center justify-center text-green-700 font-semibold text-sm'>
+            {job.employer?.logo_url ? (
+                <img src={job.employer.logo_url} alt={job.employer.company_name} className='w-full h-full object-cover' />
+            ) : (
+                job.employer?.company_name?.charAt(0) || 'C'
+            )}
+        </div>
+        <div className='flex-1 min-w-0'>
+            <h3 className='text-sm font-semibold text-gray-800 dark:text-white truncate'>
+                {job.title}
+            </h3>
+            <p className='text-xs text-gray-500 dark:text-gray-400 truncate'>
+                🏢 {job.employer?.company_name} · 📍 {job.location}
+            </p>
+        </div>
+    </div>
 
-                    <div className='flex gap-2 flex-wrap mb-3'>
-                        <span className='text-xs bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded-full font-medium'>
-                            ✓ Verified
-                        </span>
-                        <span className='text-xs bg-emerald-50 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 px-2 py-1 rounded-full'>
-                            Rs. {job.salary_min?.toLocaleString()} – {job.salary_max?.toLocaleString()}
-                        </span>
-                        <span className='text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-full'>
-                            {job.type}
-                        </span>
-                    </div>
+    <div className='flex gap-2 flex-wrap mb-3'>
+        <span className='text-xs bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-1 rounded-full font-medium'>
+            ✓ Verified
+        </span>
+        <span className='text-xs bg-emerald-50 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 px-2 py-1 rounded-full'>
+            Rs. {job.salary_min?.toLocaleString()} – {job.salary_max?.toLocaleString()}
+        </span>
+        <span className='text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-full'>
+            {job.type}
+        </span>
+    </div>
 
-                    <div className='flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700'>
-                        <span className='text-xs text-gray-400'>
-                            {job.application_count} applied
-                        </span>
-                        <Link
-                            to={`/jobs/${job._id}`}
-                            className='text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 transition-colors'
-                        >
-                            Apply →
-                        </Link>
-                    </div>
-                </motion.div>
+    <div className='flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700'>
+        <span className='text-xs text-red-500 font-medium'>
+            ⏰ Deadline: {new Date(job.deadline).toLocaleDateString()}
+        </span>
+        <Link
+            to={`/jobs/${job._id}`}
+            className='text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 transition-colors'
+        >
+            Apply →
+        </Link>
+    </div>
+</motion.div>
             ))}
         </div>
 
@@ -359,6 +360,56 @@ const Home = () => {
         )}
     </div>
 </div>
+{/* Testimonials */}
+{/* Testimonials */}
+{testimonials.length > 0 && (
+    <div className='py-16 px-6 bg-gray-50 dark:bg-gray-900'>
+        <div className='max-w-5xl mx-auto'>
+            <div className='text-center mb-10'>
+                <h2 className='text-2xl font-semibold text-gray-800 dark:text-white mb-2'>
+                    What People Say
+                </h2>
+                <p className='text-sm text-gray-500 dark:text-gray-400'>
+                    Job seekers and employers love Jobmate
+                </p>
+            </div>
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+                {testimonials.map((t, i) => (
+                    <motion.div
+                        key={t._id}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: i * 0.1 }}
+                        className='bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6'
+                    >
+                        <div className='flex gap-1 mb-4'>
+                            {[...Array(t.rating)].map((_, j) => (
+                                <span key={j} className='text-yellow-400 text-sm'>*</span>
+                            ))}
+                        </div>
+                        <p className='text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4'>
+                            "{t.text}"
+                        </p>
+                        <div className='flex items-center gap-3'>
+                            <div className='w-10 h-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center text-green-700 dark:text-green-300 font-bold'>
+                                {t.name.charAt(0)}
+                            </div>
+                            <div>
+                                <p className='text-sm font-semibold text-gray-800 dark:text-white'>
+                                    {t.name}
+                                </p>
+                                <p className='text-xs text-gray-500 dark:text-gray-400'>
+                                    {t.role} · {t.company}
+                                </p>
+                            </div>
+                        </div>
+                    </motion.div>
+                ))}
+            </div>
+        </div>
+    </div>
+)}
       {/* CTA — GSAP scrollFadeUp */}
       <div
         ref={ctaRef}
