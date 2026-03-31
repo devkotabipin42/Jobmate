@@ -9,6 +9,7 @@ import aiRouter from './routes/ai.routes.js'
 import employerRouter from './routes/employer.routes.js'
 import adminRouter from './routes/admin.routes.js'
 import reportRouter from './routes/report.routes.js'
+import resumeRouter from './routes/resume.routes.js'
 const app = express()
 
 app.use(express.json())
@@ -34,5 +35,6 @@ app.use('/api/ai', aiRouter)
 app.use('/api/employer', employerRouter)
 app.use('/api/admin', adminRouter)
 app.use('/api/reports', reportRouter)
+app.use('/api/resume', resumeRouter)
 
 export default app

@@ -5,6 +5,7 @@ import transporter from '../config/mailer.js'
 // Apply for job
 export const applyJob = async (req, res) => {
     try {
+        
         const job = await Job.findById(req.params.id)
             .populate('employer', 'company_name email')
 

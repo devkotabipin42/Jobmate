@@ -133,6 +133,25 @@ const useJobseeker = () => {
         setLoading(false)
     }
 }
+const generateResume = async (formData) => {
+    setLoading(true)
+    try {
+        const token = localStorage.getItem('token')
+        const res = await axios.post(
+            `${API_URL}/api/resume/generate`,
+            formData,
+            {
+                withCredentials: true,
+                headers: token ? { Authorization: `Bearer ${token}` } : {}
+            }
+        )
+        return res.data
+    } catch (err) {
+        throw err
+    } finally {
+        setLoading(false)
+    }
+}
     return {
         loading,
         error,
@@ -143,7 +162,8 @@ const useJobseeker = () => {
         getSavedJobs,
         toggleSaveJob,
         reportJob,
-        uploadCV
+        uploadCV,
+        generateResume
     }
 }
 

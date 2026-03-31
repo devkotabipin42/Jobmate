@@ -55,29 +55,34 @@ const Navbar = () => {
         Admin Panel
     </Link>
 )}
-                            {user.role === 'jobseeker' && (
-                                <>
-                                    <Link
-                                        to='/profile'
-                                        className='text-sm text-gray-600 dark:text-gray-300 hover:text-green-600 transition-colors'
-                                    >
-                                        Profile
-                                    </Link>
-                                    <Link
-                                        to='/my-applications'
-                                        className='text-sm text-gray-600 dark:text-gray-300 hover:text-green-600 transition-colors'
-                                    >
-                                        Applications
-                                    </Link><Link
+                         {user.role === 'jobseeker' && (
+    <>
+        <Link
+            to='/profile'
+            className='text-sm text-gray-600 dark:text-gray-300 hover:text-green-600 transition-colors'
+        >
+            Profile
+        </Link>
+        <Link
+            to='/my-applications'
+            className='text-sm text-gray-600 dark:text-gray-300 hover:text-green-600 transition-colors'
+        >
+            Applications
+        </Link>
+        <Link
             to='/resume-scorer'
-            onClick={() => setMenuOpen(false)}
-            className='block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg'
+            className='text-sm text-gray-600 dark:text-gray-300 hover:text-green-600 transition-colors'
         >
             AI Resume
         </Link>
-
-                                </>
-                            )}
+        <Link
+            to='/resume-builder'
+            className='text-sm text-gray-600 dark:text-gray-300 hover:text-green-600 transition-colors'
+        >
+            Resume Builder
+        </Link>
+    </>
+)}
 
                             {/* Employer links */}
                             {user.role === 'employer' && (
@@ -189,30 +194,30 @@ const Navbar = () => {
 )}
 
 
-                                    {user.role === 'jobseeker' && (
-                                        <>
-                                            <Link
-                                                to='/profile'
-                                                onClick={() => setMenuOpen(false)}
-                                                className='block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg'
-                                            >
-                                                Profile
-                                            </Link>
-                                            <Link
-                                                to='/my-applications'
-                                                onClick={() => setMenuOpen(false)}
-                                                className='block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg'
-                                            >
-                                                My Applications
-                                            </Link>
-                                             <Link
-                                                to='/resume-scorer'
-                                                     className='text-sm text-gray-600 dark:text-gray-300 hover:text-green-600 transition-colors'
-                                                         >
-                                                        AI Resume
-                                            </Link>
-                                        </>
-                                    )}
+                                    {user?.role === 'jobseeker' && (
+    <>
+        <Link to='/profile' onClick={() => setMenuOpen(false)}
+            className='block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg'>
+            Profile
+        </Link>
+        <Link to='/my-applications' onClick={() => setMenuOpen(false)}
+            className='block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg'>
+            My Applications
+        </Link>
+        <Link to='/resume-scorer' onClick={() => setMenuOpen(false)}
+            className='block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg'>
+            AI Resume
+        </Link>
+        <Link to='/resume-builder' onClick={() => setMenuOpen(false)}
+            className='block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg'>
+            Resume Builder
+        </Link>
+        <Link to='/saved-jobs' onClick={() => setMenuOpen(false)}
+            className='block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg'>
+            Saved Jobs
+        </Link>
+    </>
+)}
 
                                     {/* Employer mobile links */}
                                     {user.role === 'employer' && (
