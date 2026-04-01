@@ -252,7 +252,18 @@ const updateTicketStatus = async (id, status) => {
         return false
     }
 }
-
+const broadcastEmail = async (data) => {
+    setLoading(true)
+    try {
+        const res = await axios.post(`${API_URL}/api/admin/broadcast`, data, getAuthHeaders())
+        return res.data
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed')
+        return null
+    } finally {
+        setLoading(false)
+    }
+}
     return {
         loading,
         error,
@@ -279,7 +290,8 @@ const updateTicketStatus = async (id, status) => {
     toggleFeaturedJob,
     getAllTickets,
     replyTicket,
-    updateTicketStatus
+    updateTicketStatus,
+    broadcastEmail
 
 }
 }

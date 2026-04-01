@@ -10,13 +10,15 @@ import useAdmin from "../hooks/useAdmin.js";
 const COLORS = ["#22c55e", "#f59e0b", "#8b5cf6", "#3b82f6", "#ef4444"];
 
 const AdminPanel = () => {
-  const {
+  const { 
     loading, getStats, getAnalytics, getPendingJobs, getAllJobs,
     getAllEmployers, getAllUsers, verifyJob, rejectJob, deleteJob,
     verifyEmployer, banUser, unbanUser, updateUserRole, getAllReports,
     resolveReport, dismissReport, getAllTestimonials, approveTestimonial,
-    rejectTestimonial, deleteTestimonialAdmin,toggleFeaturedJob
-  } = useAdmin();
+    rejectTestimonial, deleteTestimonialAdmin,
+    getAllTickets, replyTicket, updateTicketStatus,
+    broadcastEmail
+} = useAdmin()
 
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -31,7 +33,12 @@ const AdminPanel = () => {
   const [tickets, setTickets] = useState([])
   const [selectedTicket, setSelectedTicket] = useState(null)
   const [replyText, setReplyText] = useState('')
-  const { getAllTickets, replyTicket, updateTicketStatus } = useAdmin()   
+  const [broadcastForm, setBroadcastForm] = useState({
+    subject: '',
+    message: '',
+    target: 'all'
+})
+const [broadcastSuccess, setBroadcastSuccess] = useState('')
 
   useEffect(() => {
     loadStats();
@@ -84,6 +91,7 @@ const AdminPanel = () => {
     { id: "reports", label: "Reports", icon: "⚑" },
     { id: "testimonials", label: "Testimonials", icon: "◗" },
     { id: "tickets", label: "Tickets", icon: "◑" },
+    { id: "broadcast", label: "Broadcast", icon: "◎" },
   ];
 
   const pieData = stats ? [{ name: "Verified", value: stats.verifiedJobs }, { name: "Pending", value: stats.pendingJobs }] : [];
@@ -653,6 +661,85 @@ const AdminPanel = () => {
                 )}
               </motion.div>
             )}
+            {activeTab === "broadcast" && (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-6">
+            Email Broadcast
+        </h2>
+
+        <div className="max-w-2xl">
+            <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 space-y-4">
+                
+                {broadcastSuccess && (
+                    <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm">
+                        {broadcastSuccess}
+                    </div>
+                )}
+
+                <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Target Audience
+                    </label>
+                    <select
+                        value={broadcastForm.target}
+                        onChange={(e) => setBroadcastForm({ ...broadcastForm, target: e.target.value })}
+                        className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-500 bg-white dark:bg-gray-700 dark:text-white"
+                    >
+                        <option value="all">All Users + Employers</option>
+                        <option value="jobseekers">Job Seekers Only</option>
+                        <option value="employers">Employers Only</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Subject *
+                    </label>
+                    <input
+                        type="text"
+                        placeholder="Email subject..."
+                        value={broadcastForm.subject}
+                        onChange={(e) => setBroadcastForm({ ...broadcastForm, subject: e.target.value })}
+                        className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-500 bg-white dark:bg-gray-700 dark:text-white"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Message *
+                    </label>
+                    <textarea
+                        placeholder="Write your message..."
+                        value={broadcastForm.message}
+                        onChange={(e) => setBroadcastForm({ ...broadcastForm, message: e.target.value })}
+                        rows={6}
+                        className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-purple-500 bg-white dark:bg-gray-700 dark:text-white resize-none"
+                    />
+                </div>
+
+                <button
+                    onClick={async () => {
+                        if (!broadcastForm.subject || !broadcastForm.message) return
+                        const data = await broadcastEmail(broadcastForm)
+                        if (data) {
+                            setBroadcastSuccess(`✓ ${data.message}`)
+                            setBroadcastForm({ subject: '', message: '', target: 'all' })
+                            setTimeout(() => setBroadcastSuccess(''), 5000)
+                        }
+                    }}
+                    disabled={loading || !broadcastForm.subject || !broadcastForm.message}
+                    className="w-full bg-purple-600 text-white py-3 rounded-xl text-sm font-medium hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                >
+                    {loading ? 'Sending...' : 'Send Broadcast Email'}
+                </button>
+
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                    Email will be sent to all selected users
+                </p>
+            </div>
+        </div>
+    </motion.div>
+)}
             {activeTab === "tickets" && (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center justify-between mb-4">
@@ -716,7 +803,7 @@ const AdminPanel = () => {
                     ))
                 )}
             </div>
-
+                
             {/* Ticket Detail */}
             {selectedTicket ? (
                 <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 h-fit">

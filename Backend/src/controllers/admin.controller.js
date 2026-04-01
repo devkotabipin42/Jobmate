@@ -8,7 +8,6 @@ import transporter from '../config/mailer.js'
 
 
 
-
 // Verify employer
 export const verifyEmployer = async (req, res) => {
     try {
@@ -356,6 +355,72 @@ export const toggleFeaturedJob = async (req, res) => {
         res.status(200).json({
             message: `Job ${job.is_featured ? 'featured' : 'unfeatured'} successfully`,
             job
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+
+
+export const broadcastEmail = async (req, res) => {
+    try {
+        const { subject, message, target } = req.body
+
+        let emails = []
+
+        if (target === 'all' || target === 'jobseekers') {
+            const users = await User.find({ is_banned: false }).select('email name')
+            emails = [...emails, ...users.map(u => ({ email: u.email, name: u.name }))]
+        }
+
+        if (target === 'all' || target === 'employers') {
+            const employers = await Employer.find().select('email company_name')
+            emails = [...emails, ...employers.map(e => ({ email: e.email, name: e.company_name }))]
+        }
+
+        // Send in batches of 10
+        const batchSize = 10
+        let sent = 0
+
+        for (let i = 0; i < emails.length; i += batchSize) {
+            const batch = emails.slice(i, i + batchSize)
+            await Promise.allSettled(
+                batch.map(({ email, name }) =>
+                    transporter.sendMail({
+                        from: process.env.MAIL_USER,
+                        to: email,
+                        subject: subject,
+                        html: `
+                            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                                <div style="background: #16a34a; padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
+                                    <h1 style="color: white; margin: 0;">Jobmate</h1>
+                                </div>
+                                <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 12px 12px;">
+                                    <p style="color: #374151; font-size: 15px; line-height: 1.7;">
+                                        Hi ${name},
+                                    </p>
+                                    <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin: 20px 0;">
+                                        <p style="color: #374151; font-size: 14px; line-height: 1.8; margin: 0;">
+                                            ${message.replace(/\n/g, '<br>')}
+                                        </p>
+                                    </div>
+                                    <p style="color: #9ca3af; font-size: 12px; margin-top: 20px;">
+                                        This email was sent by Jobmate Admin Team.<br>
+                                        hello@jobmate.com.np
+                                    </p>
+                                </div>
+                            </div>
+                        `
+                    })
+                )
+            )
+            sent += batch.length
+        }
+
+        res.status(200).json({
+            message: `Email sent to ${sent} recipients`,
+            sent
         })
     } catch (error) {
         res.status(500).json({ message: error.message })
