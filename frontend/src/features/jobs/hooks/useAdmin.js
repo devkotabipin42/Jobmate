@@ -223,6 +223,35 @@ const toggleFeaturedJob = async (id) => {
         return false
     }
 }
+const getAllTickets = async () => {
+    setLoading(true)
+    try {
+        const res = await axios.get(`${API_URL}/api/tickets/all`, getAuthHeaders())
+        return res.data.tickets
+    } catch (err) {
+        return []
+    } finally {
+        setLoading(false)
+    }
+}
+
+const replyTicket = async (id, message) => {
+    try {
+        const res = await axios.post(`${API_URL}/api/tickets/${id}/reply`, { message }, getAuthHeaders())
+        return res.data.ticket
+    } catch (err) {
+        return null
+    }
+}
+
+const updateTicketStatus = async (id, status) => {
+    try {
+        await axios.put(`${API_URL}/api/tickets/${id}/status`, { status }, getAuthHeaders())
+        return true
+    } catch (err) {
+        return false
+    }
+}
 
     return {
         loading,
@@ -247,7 +276,10 @@ const toggleFeaturedJob = async (id) => {
     approveTestimonial,
     rejectTestimonial,
     deleteTestimonialAdmin,
-    toggleFeaturedJob
+    toggleFeaturedJob,
+    getAllTickets,
+    replyTicket,
+    updateTicketStatus
 
 }
 }

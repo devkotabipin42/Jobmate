@@ -45,6 +45,7 @@ const Footer = () => {
                                 { label: 'AI Resume Scorer', path: '/resume-scorer' },
                                 { label: 'My Applications', path: '/my-applications' },
                                 { label: 'Saved Jobs', path: '/saved-jobs' },
+                                { label: 'Support', path: '/support' },
                             ].map((link, i) => (
                                 <li key={i}>
                                     <Link

@@ -241,6 +241,7 @@ const [testimonialSuccess, setTestimonialSuccess] = useState(false)
                             { label: 'Saved Jobs', path: '/saved-jobs', emoji: '' },
                             { label: 'Browse Jobs', path: '/jobs', emoji: '' },
                             { label: 'Career Tips', path: '/career-tips', emoji: '' },
+                            { label: 'Support', path: '/support', emoji: '🎫' },
                         ].map((link, i) => (
                             <a key={i} href={link.path}
                                 className='flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'>

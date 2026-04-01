@@ -18,6 +18,7 @@ import EmployerDashboard from "../features/employer/pages/EmployerDashboard.jsx"
 import PostJob from "../features/employer/pages/PostJob.jsx";
 import ManageJobs from "../features/employer/pages/ManageJobs.jsx";
 import EditJob from "../features/employer/pages/EditJob.jsx";
+import Support from '../features/jobseeker/pages/Support.jsx'
 
 // Job Seeker
 import Profile from "../features/jobseeker/pages/Profile.jsx";
@@ -137,7 +138,13 @@ const AppRoutes = () => {
           </Protected>
         }
       />
+      <Route path='/support' element={
+    <Protected>
+        <Support />
+    </Protected>
+} />
     </Routes>
+    
   );
 };
 

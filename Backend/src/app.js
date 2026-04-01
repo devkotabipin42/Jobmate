@@ -13,6 +13,7 @@ import resumeRouter from './routes/resume.routes.js'
 import statsRouter from './routes/stats.routes.js'
 import testimonialRouter from './routes/testimonial.routes.js'
 import crmRouter from './routes/crm.routes.js'
+import ticketRouter from './routes/ticket.routes.js'
 const app = express()
 
 app.use(express.json())
@@ -42,5 +43,6 @@ app.use('/api/resume', resumeRouter)
 app.use('/api/stats', statsRouter)
 app.use('/api/testimonials', testimonialRouter)
 app.use('/api/crm', crmRouter)
+app.use('/api/tickets', ticketRouter)
 
 export default app

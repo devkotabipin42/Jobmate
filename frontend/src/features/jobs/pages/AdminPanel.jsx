@@ -28,6 +28,10 @@ const AdminPanel = () => {
   const [analytics, setAnalytics] = useState(null);
   const [reports, setReports] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
+  const [tickets, setTickets] = useState([])
+  const [selectedTicket, setSelectedTicket] = useState(null)
+  const [replyText, setReplyText] = useState('')
+  const { getAllTickets, replyTicket, updateTicketStatus } = useAdmin()   
 
   useEffect(() => {
     loadStats();
@@ -67,6 +71,7 @@ const AdminPanel = () => {
     if (tab === "analytics") loadAnalytics();
     if (tab === "reports") loadReports();
     if (tab === "testimonials") getAllTestimonials().then((data) => setTestimonials(data || []));
+    if (tab === "tickets") getAllTickets().then(data => setTickets(data || []))
   };
 
   const sidebarItems = [
@@ -78,6 +83,7 @@ const AdminPanel = () => {
     { id: "analytics", label: "Analytics", icon: "◆" },
     { id: "reports", label: "Reports", icon: "⚑" },
     { id: "testimonials", label: "Testimonials", icon: "◗" },
+    { id: "tickets", label: "Tickets", icon: "◑" },
   ];
 
   const pieData = stats ? [{ name: "Verified", value: stats.verifiedJobs }, { name: "Pending", value: stats.pendingJobs }] : [];
@@ -647,6 +653,150 @@ const AdminPanel = () => {
                 )}
               </motion.div>
             )}
+            {activeTab === "tickets" && (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+        <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+                Support Tickets
+            </h2>
+            <div className="flex gap-2 text-xs">
+                <span className="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full">
+                    {tickets.filter(t => t.status === 'open').length} Open
+                </span>
+                <span className="bg-yellow-50 text-yellow-600 px-3 py-1.5 rounded-full">
+                    {tickets.filter(t => t.status === 'in_progress').length} In Progress
+                </span>
+            </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Tickets List */}
+            <div className="space-y-2">
+                {tickets.length === 0 ? (
+                    <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
+                        <p className="text-gray-500 text-sm">No tickets yet</p>
+                    </div>
+                ) : (
+                    tickets.map((ticket, i) => (
+                        <div key={ticket._id}
+                            onClick={() => setSelectedTicket(ticket)}
+                            className={`bg-white dark:bg-gray-800 border rounded-xl p-4 cursor-pointer transition-all ${
+                                selectedTicket?._id === ticket._id
+                                    ? 'border-purple-500 shadow-sm'
+                                    : 'border-gray-100 dark:border-gray-700 hover:border-purple-300'
+                            }`}
+                        >
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                                <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
+                                    {ticket.subject}
+                                </p>
+                                <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
+                                    ticket.status === 'open' ? 'bg-blue-50 text-blue-600' :
+                                    ticket.status === 'in_progress' ? 'bg-yellow-50 text-yellow-600' :
+                                    ticket.status === 'resolved' ? 'bg-green-50 text-green-600' :
+                                    'bg-gray-100 text-gray-500'
+                                }`}>
+                                    {ticket.status.replace('_', ' ')}
+                                </span>
+                            </div>
+                            <p className="text-xs text-gray-500">{ticket.name} · {ticket.email}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                    ticket.priority === 'high' ? 'bg-red-50 text-red-600' :
+                                    ticket.priority === 'medium' ? 'bg-blue-50 text-blue-600' :
+                                    'bg-gray-100 text-gray-500'
+                                }`}>
+                                    {ticket.priority}
+                                </span>
+                                <span className="text-xs text-gray-400">
+                                    {new Date(ticket.createdAt).toLocaleDateString()}
+                                </span>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            {/* Ticket Detail */}
+            {selectedTicket ? (
+                <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 h-fit">
+                    <div className="flex items-start justify-between mb-3">
+                        <div>
+                            <h3 className="text-sm font-semibold text-gray-800 dark:text-white">
+                                {selectedTicket.subject}
+                            </h3>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                                {selectedTicket.name} · {selectedTicket.email}
+                            </p>
+                        </div>
+                        <select
+                            value={selectedTicket.status}
+                            onChange={async (e) => {
+                                await updateTicketStatus(selectedTicket._id, e.target.value)
+                                setTickets(prev => prev.map(t => t._id === selectedTicket._id ? { ...t, status: e.target.value } : t))
+                                setSelectedTicket(prev => ({ ...prev, status: e.target.value }))
+                            }}
+                            className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white dark:bg-gray-700 dark:text-white outline-none"
+                        >
+                            <option value="open">Open</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
+
+                    {/* Message */}
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-3 mb-4">
+                        <p className="text-xs text-gray-600 dark:text-gray-300">{selectedTicket.message}</p>
+                    </div>
+
+                    {/* Replies */}
+                    {selectedTicket.replies?.length > 0 && (
+                        <div className="space-y-2 mb-4">
+                            {selectedTicket.replies.map((reply, i) => (
+                                <div key={i} className={`rounded-xl p-3 ${reply.isAdmin ? 'bg-purple-50 dark:bg-purple-900' : 'bg-gray-50 dark:bg-gray-700'}`}>
+                                    <p className="text-xs font-medium mb-1 text-gray-700 dark:text-gray-300">
+                                        {reply.isAdmin ? 'Support Team' : selectedTicket.name}
+                                    </p>
+                                    <p className="text-xs text-gray-600 dark:text-gray-300">{reply.message}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Reply Input */}
+                    <div className="space-y-2">
+                        <textarea
+                            placeholder="Type your reply..."
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            rows={3}
+                            className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-xs outline-none focus:border-purple-500 bg-white dark:bg-gray-700 dark:text-white resize-none"
+                        />
+                        <button
+                            onClick={async () => {
+                                if (!replyText.trim()) return
+                                const updated = await replyTicket(selectedTicket._id, replyText)
+                                if (updated) {
+                                    setSelectedTicket(updated)
+                                    setTickets(prev => prev.map(t => t._id === updated._id ? updated : t))
+                                    setReplyText('')
+                                }
+                            }}
+                            className="w-full bg-purple-600 text-white py-2 rounded-xl text-xs font-medium hover:bg-purple-700 transition-colors"
+                        >
+                            Send Reply
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
+                    <p className="text-sm text-gray-500">Select a ticket to reply</p>
+                </div>
+            )}
+        </div>
+    </motion.div>
+)}
 
           </div>
         </div>
