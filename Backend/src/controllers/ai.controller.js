@@ -5,7 +5,7 @@ import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
 import { HumanMessage, SystemMessage } from '@langchain/core/messages'
 
 const geminiModel = new ChatGoogleGenerativeAI({
-    model: 'gemini-2.5-flash-lite',
+    model: 'gemini-1.5-flash-latest',
     apiKey: process.env.GOOGLE_API_KEY
 })
 

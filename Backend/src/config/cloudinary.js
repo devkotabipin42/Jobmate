@@ -2,13 +2,18 @@ import 'dotenv/config'
 import { v2 as cloudinary } from 'cloudinary'
 import { CloudinaryStorage } from 'multer-storage-cloudinary'
 import multer from 'multer'
+import ImageKit from 'imagekit'
 
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
+// cloudinary.config({
+//     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+//     api_key: process.env.CLOUDINARY_API_KEY,
+//     api_secret: process.env.CLOUDINARY_API_SECRET
+// })
+const imagekit = new ImageKit({
+    publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
 })
-
 const logoStorage = new CloudinaryStorage({
     cloudinary,
     params: {
@@ -18,29 +23,17 @@ const logoStorage = new CloudinaryStorage({
     }
 })
 
-const cvStorage = new CloudinaryStorage({
-    cloudinary,
-    params: async (req, file) => ({
-        folder: 'jobmate/cvs',
-        resource_type: 'raw',
-        public_id: `cv_${Date.now()}`,
-        format: 'pdf',
-        access_mode: "public",
-    })
-})
+
 
 export const uploadLogo = multer({ storage: logoStorage })
 
 export const uploadCV = multer({
-    storage: cvStorage,
+    storage: multer.memoryStorage(),
     limits: { fileSize: 10 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
-        if (file.mimetype === 'application/pdf') {
-            cb(null, true)
-        } else {
-            cb(new Error('Only PDF files allowed!'), false)
-        }
+        const allowed = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+        allowed.includes(file.mimetype) ? cb(null, true) : cb(new Error('Only PDF/DOC files allowed!'), false)
     }
 })
 
-export default cloudinary
+export { imagekit }

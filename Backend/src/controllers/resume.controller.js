@@ -1,10 +1,8 @@
 import puppeteer from 'puppeteer'
 import ImageKit from 'imagekit'
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import 'dotenv/config'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-
+import { generateAIText } from '../config/api.js'
 const imagekit = new ImageKit({
     publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
     privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
@@ -20,90 +18,93 @@ export const generateResume = async (req, res) => {
         } = req.body
 
         // Gemini AI summary
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
-        const prompt = `Write a professional resume summary (3-4 sentences) for:
-        Name: ${fullName}
-        Skills: ${skills}
-        Experience: ${experience}
-        Keep it professional, ATS-friendly, and impactful.`
+        const prompt = `Write a strong professional resume summary (3-4 sentences) for a job seeker with these details:
+Name: ${fullName}
+Skills: ${skills}
+Experience: ${experience}
+Be specific, ATS-friendly, and impactful. Do not use placeholder words like "professional" alone.`
 
         let aiSummary = summary
-        try {
-            const result = await model.generateContent(prompt)
-            aiSummary = result.response.text()
-        } catch (aiErr) {
-            console.log('AI error:', aiErr.message)
-        }
+try {
+    aiSummary = await generateAIText(prompt)
+    aiSummary = aiSummary.replace(/\*\*(.*?)\*\*/g, '$1')
+} catch (aiErr) {
+    console.log('AI error:', aiErr.message)
+}
 
         // HTML template
         const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body { font-family: Arial, sans-serif; color: #1a1a1a; background: white; }
-                .header { background: #16a34a; color: white; padding: 30px 40px; }
-                .header h1 { font-size: 32px; font-weight: 700; margin-bottom: 6px; }
-                .contact { display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px; opacity: 0.9; margin-top: 10px; }
-                .body { padding: 30px 40px; }
-                .section { margin-bottom: 24px; }
-                .section-title { font-size: 14px; font-weight: 700; color: #16a34a; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #16a34a; padding-bottom: 4px; margin-bottom: 12px; }
-                .text { font-size: 13px; line-height: 1.7; color: #374151; }
-                .skills-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-                .skill-tag { background: #f0fdf4; border: 1px solid #86efac; color: #166534; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
-                .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-                .footer { text-align: center; padding: 20px; font-size: 11px; color: #9ca3af; border-top: 1px solid #e5e7eb; margin-top: 20px; }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h1>${fullName}</h1>
-                <div class="contact">
-                    ${email ? `<span>✉ ${email}</span>` : ''}
-                    ${phone ? `<span>📱 ${phone}</span>` : ''}
-                    ${location ? `<span>📍 ${location}</span>` : ''}
-                    ${linkedin ? `<span>💼 ${linkedin}</span>` : ''}
-                    ${website ? `<span>🌐 ${website}</span>` : ''}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; color: #1a1a1a; background: white; font-size: 13px; }
+        .header { background: #16a34a; color: white; padding: 28px 40px; }
+        .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .contact { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; opacity: 0.9; }
+        .body { padding: 24px 40px; }
+        .section { margin-bottom: 20px; }
+        .section-title { font-size: 11px; font-weight: 700; color: #16a34a; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 2px solid #16a34a; padding-bottom: 4px; margin-bottom: 10px; }
+        .text { font-size: 13px; line-height: 1.7; color: #374151; }
+        .skills-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+        .skill-tag { background: #f0fdf4; border: 1px solid #86efac; color: #166534; padding: 3px 10px; border-radius: 20px; font-size: 11px; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .footer { text-align: center; padding: 16px; font-size: 10px; color: #9ca3af; border-top: 1px solid #e5e7eb; margin-top: 16px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>${fullName}</h1>
+        <div class="contact">
+            ${email ? `<span>Email: ${email}</span>` : ''}
+            ${phone ? `<span>Phone: ${phone}</span>` : ''}
+            ${location ? `<span>Location: ${location}</span>` : ''}
+            ${linkedin ? `<span>LinkedIn: ${linkedin}</span>` : ''}
+            ${website ? `<span>Web: ${website}</span>` : ''}
+        </div>
+    </div>
+    <div class="body">
+        ${aiSummary ? `
+        <div class="section">
+            <div class="section-title">Professional Summary</div>
+            <p class="text">${aiSummary}</p>
+        </div>` : ''}
+
+        ${experience ? `
+        <div class="section">
+            <div class="section-title">Experience</div>
+            <p class="text">${experience.replace(/\n/g, '<br>')}</p>
+        </div>` : ''}
+
+        ${education ? `
+        <div class="section">
+            <div class="section-title">Education</div>
+            <p class="text">${education.replace(/\n/g, '<br>')}</p>
+        </div>` : ''}
+
+        <div class="two-col">
+            ${skills ? `
+            <div class="section">
+                <div class="section-title">Skills</div>
+                <div class="skills-grid">
+                    ${skills.split(',').map(s => `<span class="skill-tag">${s.trim()}</span>`).join('')}
                 </div>
-            </div>
-            <div class="body">
-                ${aiSummary ? `
-                <div class="section">
-                    <div class="section-title">Professional Summary</div>
-                    <p class="text">${aiSummary}</p>
-                </div>` : ''}
-                ${experience ? `
-                <div class="section">
-                    <div class="section-title">Experience</div>
-                    <p class="text">${experience.replace(/\n/g, '<br>')}</p>
-                </div>` : ''}
-                ${education ? `
-                <div class="section">
-                    <div class="section-title">Education</div>
-                    <p class="text">${education.replace(/\n/g, '<br>')}</p>
-                </div>` : ''}
-                <div class="two-col">
-                    ${skills ? `
-                    <div class="section">
-                        <div class="section-title">Skills</div>
-                        <div class="skills-grid">
-                            ${skills.split(',').map(s => `<span class="skill-tag">${s.trim()}</span>`).join('')}
-                        </div>
-                    </div>` : ''}
-                    ${languages ? `
-                    <div class="section">
-                        <div class="section-title">Languages</div>
-                        <div class="skills-grid">
-                            ${languages.split(',').map(l => `<span class="skill-tag">${l.trim()}</span>`).join('')}
-                        </div>
-                    </div>` : ''}
+            </div>` : ''}
+
+            ${languages ? `
+            <div class="section">
+                <div class="section-title">Languages</div>
+                <div class="skills-grid">
+                    ${languages.split(',').map(l => `<span class="skill-tag">${l.trim()}</span>`).join('')}
                 </div>
-            </div>
-            <div class="footer">Generated by Jobmate — Nepal's First Verified Job Platform</div>
-        </body>
-        </html>`
+            </div>` : ''}
+        </div>
+    </div>
+    <div class="footer">Generated by Jobmate — Nepal's First Verified Job Platform</div>
+</body>
+</html>`
 
         // Puppeteer PDF generate
         const browser = await puppeteer.launch({

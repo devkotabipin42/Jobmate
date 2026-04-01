@@ -120,7 +120,8 @@ const verifyOTP = async (email, otp, role) => {
 const handleCVUpload = async (file) => {
     if (!file) return
     try {
-        await uploadCV(file)
+        const data = await uploadCV(file)
+        dispatch(setUser({ ...user, cv_url: data.cv_url }))
         return true
     } catch (err) {
         throw err

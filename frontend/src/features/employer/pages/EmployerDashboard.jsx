@@ -592,12 +592,18 @@ console.log('User:', user)
                                     </div>
                                 )}
 
-                                {app.cv_url && (
-                                    <a href={app.cv_url} target='_blank' rel='noreferrer'
-                                        className='text-xs text-green-600 hover:underline block mb-3'>
-                                        View CV
-                                    </a>
-                                )}
+                               {app.cv_url && (
+    <div className='flex gap-3 mb-3'>
+        <a href={app.cv_url} target='_blank' rel='noreferrer'
+            className='text-xs text-green-600 hover:underline'>
+            👁 View CV
+        </a>
+        <a href={app.cv_url} download
+            className='text-xs text-blue-600 hover:underline'>
+            ⬇️ Download CV
+        </a>
+    </div>
+)}
 
                                 <div className='flex gap-2 flex-wrap'>
                                     {Object.keys(kanbanColumns).map(status => (
@@ -678,11 +684,17 @@ console.log('User:', user)
                                                                         </p>
                                                                     )}
                                                                     {app.cv_url && (
-                                                                        <a href={app.cv_url} target='_blank' rel='noreferrer'
-                                                                            className='text-xs text-green-600 hover:underline block'>
-                                                                            View CV
-                                                                        </a>
-                                                                    )}
+    <div className='flex gap-3 mb-3'>
+        <a href={app.cv_url} target='_blank' rel='noreferrer'
+            className='text-xs text-green-600 hover:underline'>
+            👁 View CV
+        </a>
+        <a href={app.cv_url} download
+            className='text-xs text-blue-600 hover:underline'>
+            ⬇️ Download CV
+        </a>
+    </div>
+)}
                                                                     <p className='text-xs text-gray-400 mt-2'>
                                                                         {new Date(app.createdAt).toLocaleDateString()}
                                                                     </p>

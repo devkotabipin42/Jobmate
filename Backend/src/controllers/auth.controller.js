@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs'
 import OTP from '../models/OTP.model.js'
 import nodemailer from 'nodemailer'
 import Blacklist from '../models/Blacklist.model.js'
+import { imagekit } from '../config/cloudinary.js'
 import transporter from '../config/mailer.js'
 import crypto from 'crypto'
 const generateToken = (id, role) => {
@@ -286,24 +287,32 @@ export const getSavedJobs = async (req, res) => {
     }
 }
 
+
 export const uploadCV = async (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({ message: 'No file uploaded' })
-        }
+        if (!req.file) return res.status(400).json({ message: 'No file uploaded' })
 
+        const result = await imagekit.upload({
+            file: req.file.buffer,
+            fileName: `cv_${req.user._id}_${Date.now()}.pdf`,
+            folder: '/jobmate/cvs',
+            useUniqueFileName: true
+        })
+        console.log('File:', req.file)
+    console.log('User ID:', req.user._id)
         const user = await User.findByIdAndUpdate(
             req.user._id,
-            { cv_url: req.file.path },
+            { cv_url: result.url },
             { new: true }
         ).select('-password')
 
         res.status(200).json({
             message: 'CV uploaded successfully',
-            cv_url: req.file.path,
+            cv_url: result.url,
             user
         })
     } catch (error) {
+        console.log('CV upload error:', error.message)
         res.status(500).json({ message: error.message })
     }
 }
