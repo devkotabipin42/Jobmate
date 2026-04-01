@@ -6,6 +6,7 @@ import OTP from '../models/OTP.model.js'
 import nodemailer from 'nodemailer'
 import Blacklist from '../models/Blacklist.model.js'
 import transporter from '../config/mailer.js'
+import crypto from 'crypto'
 const generateToken = (id, role) => {
     return jwt.sign({ id, role }, process.env.JWT_SECRET, {
         expiresIn: '7d'
@@ -23,33 +24,49 @@ export const registerUser = async (req, res) => {
             return res.status(400).json({ message: 'Email already exists' })
         }
 
-       const salt = await bcrypt.genSalt(10)
+        const salt = await bcrypt.genSalt(10)
         const hashedPassword = await bcrypt.hash(password, salt)
+
+        // Verify token 
+        const verifyToken = crypto.randomBytes(32).toString('hex')
 
         const user = await User.create({
             name, email,
             password: hashedPassword,
-            phone, location
+            phone, location,
+            email_verify_token: verifyToken,
+            email_verify_expires: Date.now() + 24 * 60 * 60 * 1000
         })
 
-        const token = generateToken(user._id, 'jobseeker')
-
-        res.cookie('token', token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    maxAge: 7 * 24 * 60 * 60 * 1000
-})
+        // Verification 
+        try {
+            await transporter.sendMail({
+                from: process.env.MAIL_USER,
+                to: user.email,
+                subject: 'Verify your Jobmate account',
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <div style="background: #16a34a; padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
+                            <h1 style="color: white; margin: 0;">Jobmate</h1>
+                        </div>
+                        <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 12px 12px;">
+                            <h2 style="color: #111827;">Verify your email</h2>
+                            <p style="color: #6b7280;">Hi ${name}, click below to verify your account.</p>
+                            <a href="${process.env.FRONTEND_URL}/verify-email?token=${verifyToken}&role=jobseeker"
+                                style="display: inline-block; background: #16a34a; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 20px 0;">
+                                Verify Email
+                            </a>
+                            <p style="color: #9ca3af; font-size: 12px;">Link expires in 24 hours.</p>
+                        </div>
+                    </div>
+                `
+            })
+        } catch (emailErr) {
+            console.log('Email error:', emailErr.message)
+        }
 
         res.status(201).json({
-            message: 'Registration successful',
-            token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role
-            }
+            message: 'Registration successful! Please verify your email.',
         })
     } catch (error) {
         console.log('Error:', error)
@@ -69,6 +86,40 @@ export const registerEmployer = async (req, res) => {
         const salt = await bcrypt.genSalt(10)
         const hashedPassword = await bcrypt.hash(password, salt)
 
+        const verifyToken = crypto.randomBytes(32).toString('hex')
+
+        const user = await User.create({
+            company_name, email,
+            password: hashedPassword,
+            phone, location,
+            email_verify_token: verifyToken,
+            email_verify_expires: Date.now() + 24 * 60 * 60 * 1000
+        })
+         try {
+            await transporter.sendMail({
+                from: process.env.MAIL_USER,
+                to: user.email,
+                subject: 'Verify your Jobmate account',
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <div style="background: #16a34a; padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
+                            <h1 style="color: white; margin: 0;">Jobmate</h1>
+                        </div>
+                        <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 12px 12px;">
+                            <h2 style="color: #111827;">Verify your email</h2>
+                            <p style="color: #6b7280;">Hi ${company_name}, click below to verify your account.</p>
+                            <a href="${process.env.FRONTEND_URL}/verify-email?token=${verifyToken}&role=employer"
+                                style="display: inline-block; background: #16a34a; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 20px 0;">
+                                Verify Email
+                            </a>
+                            <p style="color: #9ca3af; font-size: 12px;">Link expires in 24 hours.</p>
+                        </div>
+                    </div>
+                `
+            })
+        } catch (emailErr) {
+            console.log('Email error:', emailErr.message)
+        }
         const employer = await Employer.create({
             company_name, email, password:hashedPassword,
             phone, location, website
@@ -120,7 +171,9 @@ export const login = async (req, res) => {
         if (account.is_banned) {
         return res.status(403).json({ message: 'Your account has been banned. Contact support at hello@jobmate.com.np' })
         }       
-
+        if (account.email_verify_token && !account.is_email_verified) {
+    return res.status(403).json({ message: 'Please verify your email first. Check your inbox.' })
+}
         // Database  actual role 
         const actualRole = account.role || role
 
@@ -453,6 +506,32 @@ export const updateJobAlerts = async (req, res) => {
             message: 'Job alerts updated',
             user
         })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const verifyEmail = async (req, res) => {
+    try {
+        const { token, role } = req.query
+
+        const Model = role === 'employer' ? Employer : User
+
+        const account = await Model.findOne({
+            email_verify_token: token,
+            email_verify_expires: { $gt: Date.now() }
+        })
+
+        if (!account) {
+            return res.status(400).json({ message: 'Invalid or expired token' })
+        }
+
+        account.is_email_verified = true
+        account.email_verify_token = undefined
+        account.email_verify_expires = undefined
+        await account.save()
+
+        res.status(200).json({ message: 'Email verified successfully' })
     } catch (error) {
         res.status(500).json({ message: error.message })
     }

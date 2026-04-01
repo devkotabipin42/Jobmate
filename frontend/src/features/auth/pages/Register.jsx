@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import useAuth from '../hooks/useAuth.js'
-
 const Register = () => {
     const [role, setRole] = useState('jobseeker')
     const [formData, setFormData] = useState({
@@ -15,6 +14,8 @@ const Register = () => {
     })
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
+    const [success, setSuccess] = useState(false)
+
     const { register } = useAuth()
     const navigate = useNavigate()
 
@@ -22,29 +23,54 @@ const Register = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value })
     }
 
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-        setLoading(true)
-        setError('')
-        try {
-            const data = role === 'employer'
-                ? { company_name: formData.company_name, email: formData.email, password: formData.password, phone: formData.phone, location: formData.location }
-                : { name: formData.name, email: formData.email, password: formData.password, phone: formData.phone, location: formData.location }
+   const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    try {
+        const data = role === 'employer'
+            ? { company_name: formData.company_name, email: formData.email, password: formData.password, phone: formData.phone, location: formData.location }
+            : { name: formData.name, email: formData.email, password: formData.password, phone: formData.phone, location: formData.location }
 
-            await register(data, role)
-
-            if (role === 'employer') {
-                navigate('/employer/dashboard')
-            } else {
-                navigate('/')
-            }
-        } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed')
-        } finally {
-            setLoading(false)
-        }
+        await register(data, role)
+        setSuccess(true) 
+    } catch (err) {
+        setError(err.response?.data?.message || 'Registration failed')
+    } finally {
+        setLoading(false)
     }
-
+}
+    if (success) return (
+    <div className='min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4'>
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className='bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-8 max-w-md w-full text-center'
+        >
+            <div className='w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4'>
+                <span className='text-3xl'>✓</span>
+            </div>
+            <h2 className='text-xl font-bold text-gray-800 dark:text-white mb-2'>
+                Check your email!
+            </h2>
+            <p className='text-sm text-gray-500 dark:text-gray-400 mb-2'>
+                We sent a verification link to
+            </p>
+            <p className='text-sm font-semibold text-green-600 mb-6'>
+                {formData.email}
+            </p>
+            <p className='text-xs text-gray-400 mb-6'>
+                Click the link in your email to verify your account. Link expires in 24 hours.
+            </p>
+            <Link
+                to='/login'
+                className='block w-full bg-green-600 text-white py-3 rounded-xl text-sm font-medium hover:bg-green-700 transition-colors'
+            >
+                Back to Login
+            </Link>
+        </motion.div>
+    </div>
+)
     return (
         <div className='min-h-screen bg-gray-50 dark:bg-gray-900 flex transition-colors'>
 

@@ -13,7 +13,8 @@ import {
      deleteCV,
      sendOTP,
      verifyOTP,
-     updateJobAlerts
+     updateJobAlerts,
+     verifyEmail
 } from '../controllers/auth.controller.js'
 import { authMiddleware } from '../middleware/auth.middleware.js'
 
@@ -32,5 +33,6 @@ authRouter.delete('/delete-cv', authMiddleware, deleteCV)
 authRouter.post('/send-otp', sendOTP)
 authRouter.post('/verify-otp', verifyOTP)
 authRouter.put('/job-alerts', authMiddleware, updateJobAlerts)
+authRouter.get('/verify-email', verifyEmail)
 
 export default authRouter

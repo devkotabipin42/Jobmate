@@ -44,7 +44,10 @@ const employerSchema = new mongoose.Schema({
     role: {
         type: String,
         default: 'employer'
-    }
+    },
+    is_email_verified: { type: Boolean, default: false },
+email_verify_token: { type: String },
+email_verify_expires: { type: Date },
 }, { timestamps: true })
 
 employerSchema.methods.comparePassword = async function(password) {

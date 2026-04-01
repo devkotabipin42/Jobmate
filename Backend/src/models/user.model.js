@@ -53,7 +53,10 @@ job_alerts: {
     }],
     job_types: [{
         type: String
-    }]
+    }],
+    is_email_verified: { type: Boolean, default: false },
+email_verify_token: { type: String },
+email_verify_expires: { type: Date },
 }
 }, { timestamps: true })
 
