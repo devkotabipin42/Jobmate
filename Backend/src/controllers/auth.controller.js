@@ -141,10 +141,10 @@ export const login = async (req, res) => {
         name: account.name || account.company_name,
         email: account.email,
         role: actualRole,
-        job_alerts: account.job_alerts || {},
-        cv_url: account.cv_url || '',
-        location: account.location || '',
-        phone: account.phone || ''
+        job_alerts: account.job_alerts || undefined,
+        cv_url: account.cv_url || undefined,
+        location: account.location || undefined,
+        phone: account.phone || undefined
     }
 })
     } catch (error) {
@@ -422,7 +422,7 @@ export const verifyOTP = async (req, res) => {
                 id: account._id,
                 name: account.name || account.company_name,
                 email: account.email,
-                job_alerts: account.job_alerts || {},
+                job_alerts: account.job_alerts ||undefined,
                 role: actualRole
             }
         })

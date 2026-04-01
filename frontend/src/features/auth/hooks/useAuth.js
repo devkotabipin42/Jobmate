@@ -10,23 +10,24 @@ const useAuth = () => {
     const dispatch = useDispatch()
     const navigate = useNavigate()
 
-    const login = async (formData) => {
-        const res = await axios.post(
-            `${API_URL}/api/auth/login`,
-            formData,
-            { withCredentials: true }
-        )
-        if (res.data.token) {
-            localStorage.setItem('token', res.data.token)
-        }
-        dispatch(setUser({
-    id: data.user.id,
-    name: data.user.name,
-    email: data.user.email,
-    role: data.user.role,
-    job_alerts: data.user.job_alerts  
-}))
+   const login = async (formData) => {
+    const res = await axios.post(
+        `${API_URL}/api/auth/login`,
+        formData,
+        { withCredentials: true }
+    )
+    if (res.data.token) {
+        localStorage.setItem('token', res.data.token)
     }
+    dispatch(setUser({
+        id: res.data.user.id,
+        name: res.data.user.name,
+        email: res.data.user.email,
+        role: res.data.user.role,
+        job_alerts: res.data.user.job_alerts
+    }))
+    return res.data.user
+}
 
     const register = async (formData, role) => {
         const url = role === 'employer'
