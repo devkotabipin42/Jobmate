@@ -19,6 +19,7 @@ import PostJob from "../features/employer/pages/PostJob.jsx";
 import ManageJobs from "../features/employer/pages/ManageJobs.jsx";
 import EditJob from "../features/employer/pages/EditJob.jsx";
 import Support from '../features/jobseeker/pages/Support.jsx'
+import Pricing from '../features/jobs/pages/Pricing.jsx'
 
 // Job Seeker
 import Profile from "../features/jobseeker/pages/Profile.jsx";
@@ -54,6 +55,7 @@ const AppRoutes = () => {
       <Route path="/contact" element={<Contact />} />
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
+      <Route path='/pricing' element={<Pricing />} />
       <Route
         path="/resume-scorer"
         element={
