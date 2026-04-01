@@ -49,7 +49,6 @@ export const verifyEmployer = async (req, res) => {
                 `
             })
         } catch (emailErr) {
-            console.log('Email error:', emailErr.message)
         }
 
         res.status(200).json({

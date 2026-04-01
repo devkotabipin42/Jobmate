@@ -65,12 +65,11 @@ export const createJob = async (req, res) => {
                                 </div>
                             </div>
                         `
-                    }).catch(err => console.log('Alert email error:', err.message))
+                    })
                 )
                 await Promise.allSettled(emailPromises)
             }
         } catch (alertErr) {
-            console.log('Job alert error:', alertErr.message)
         }
 
         res.status(201).json({

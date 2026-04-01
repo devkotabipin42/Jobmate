@@ -5,7 +5,11 @@ import { PersistGate } from 'redux-persist/integration/react'
 import { store, persistor } from './app/store.js'
 import './index.css'
 import App from './app/App.jsx'
-
+if (import.meta.env.PROD) {
+    console.log = () => {}
+    console.error = () => {}
+    console.warn = () => {}
+}
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Provider store={store}>

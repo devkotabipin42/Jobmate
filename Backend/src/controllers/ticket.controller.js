@@ -40,7 +40,6 @@ export const createTicket = async (req, res) => {
                 `
             })
         } catch (emailErr) {
-            console.log('Email error:', emailErr.message)
         }
 
         res.status(201).json({ message: 'Ticket created', ticket })
@@ -109,7 +108,6 @@ export const replyTicket = async (req, res) => {
                 `
             })
         } catch (emailErr) {
-            console.log('Email error:', emailErr.message)
         }
 
         res.status(200).json({ message: 'Reply sent', ticket })

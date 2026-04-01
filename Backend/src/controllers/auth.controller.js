@@ -63,14 +63,12 @@ export const registerUser = async (req, res) => {
                 `
             })
         } catch (emailErr) {
-            console.log('Email error:', emailErr.message)
         }
 
         res.status(201).json({
             message: 'Registration successful! Please verify your email.',
         })
     } catch (error) {
-        console.log('Error:', error)
         res.status(500).json({ message: error.message })
     }
 }
@@ -122,14 +120,12 @@ export const registerEmployer = async (req, res) => {
                 `
             })
         } catch (emailErr) {
-            console.log('Email error:', emailErr.message)
         }
 
         res.status(201).json({
             message: 'Registration successful! Please verify your email.',
         })
     } catch (error) {
-        console.log('Error:', error.message)
         res.status(500).json({ message: error.message })
     }
 }
@@ -298,8 +294,8 @@ export const uploadCV = async (req, res) => {
             folder: '/jobmate/cvs',
             useUniqueFileName: true
         })
-        console.log('File:', req.file)
-    console.log('User ID:', req.user._id)
+        
+    
         const user = await User.findByIdAndUpdate(
             req.user._id,
             { cv_url: result.url },
@@ -312,7 +308,6 @@ export const uploadCV = async (req, res) => {
             user
         })
     } catch (error) {
-        console.log('CV upload error:', error.message)
         res.status(500).json({ message: error.message })
     }
 }
@@ -405,14 +400,12 @@ export const sendOTP = async (req, res) => {
                 `
             })
         } catch (emailErr) {
-            console.log('Email error:', emailErr.message)
             return res.status(500).json({ message: 'Failed to send OTP email — try again' })
         }
 
         res.status(200).json({ message: 'OTP sent to your email' })
 
     } catch (error) {
-        console.log('sendOTP error:', error.message)
         res.status(500).json({ message: 'Server error — try again' })
     }
 }
@@ -474,7 +467,6 @@ export const verifyOTP = async (req, res) => {
             }
         })
     } catch (error) {
-        console.log('verifyOTP error:', error.message)
         res.status(500).json({ message: 'Server error — try again' })
     }
 }

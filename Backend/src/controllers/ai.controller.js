@@ -62,7 +62,6 @@ export const scoreResume = async (req, res) => {
             result: parsed
         })
     } catch (error) {
-        console.log('AI Error:', error.message)
         res.status(500).json({ message: error.message })
     }
 }

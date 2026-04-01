@@ -66,7 +66,6 @@ export const applyJob = async (req, res) => {
                 `
             })
         } catch (emailErr) {
-            console.log('Email error:', emailErr.message)
         }
 
         res.status(201).json({

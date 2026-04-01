@@ -29,7 +29,6 @@ try {
     aiSummary = await generateAIText(prompt)
     aiSummary = aiSummary.replace(/\*\*(.*?)\*\*/g, '$1')
 } catch (aiErr) {
-    console.log('AI error:', aiErr.message)
 }
 
         // HTML template
@@ -135,7 +134,6 @@ try {
         })
 
     } catch (error) {
-        console.log('Resume error:', error.message)
         res.status(500).json({ message: error.message })
     }
 }
