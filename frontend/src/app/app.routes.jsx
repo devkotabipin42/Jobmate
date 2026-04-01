@@ -12,6 +12,7 @@ import Terms from "../features/jobs/pages/Terms.jsx";
 // Auth
 import Login from "../features/auth/pages/Login.jsx";
 import Register from "../features/auth/pages/Register.jsx";
+import VerifyEmail from '../features/auth/pages/VerifyEmail.jsx'
 
 // Employer
 import EmployerDashboard from "../features/employer/pages/EmployerDashboard.jsx";
@@ -56,6 +57,7 @@ const AppRoutes = () => {
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/terms" element={<Terms />} />
       <Route path='/pricing' element={<Pricing />} />
+      <Route path='/verify-email' element={<VerifyEmail />} />
       <Route
         path="/resume-scorer"
         element={
