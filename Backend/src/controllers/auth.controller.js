@@ -133,16 +133,20 @@ export const login = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000
         })
 
-        res.status(200).json({
-            message: 'Login successful',
-            token,
-            user: {
-                id: account._id,
-                name: account.name || account.company_name,
-                email: account.email,
-                role: actualRole
-            }
-        })
+       res.status(200).json({
+    message: 'Login successful',
+    token,
+    user: {
+        id: account._id,
+        name: account.name || account.company_name,
+        email: account.email,
+        role: actualRole,
+        job_alerts: account.job_alerts || {},
+        cv_url: account.cv_url || '',
+        location: account.location || '',
+        phone: account.phone || ''
+    }
+})
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
@@ -418,6 +422,7 @@ export const verifyOTP = async (req, res) => {
                 id: account._id,
                 name: account.name || account.company_name,
                 email: account.email,
+                job_alerts: account.job_alerts || {},
                 role: actualRole
             }
         })

@@ -19,8 +19,13 @@ const useAuth = () => {
         if (res.data.token) {
             localStorage.setItem('token', res.data.token)
         }
-        dispatch(setUser(res.data.user))
-        return res.data.user
+        dispatch(setUser({
+    id: data.user.id,
+    name: data.user.name,
+    email: data.user.email,
+    role: data.user.role,
+    job_alerts: data.user.job_alerts  
+}))
     }
 
     const register = async (formData, role) => {
