@@ -14,8 +14,21 @@ import statsRouter from './routes/stats.routes.js'
 import testimonialRouter from './routes/testimonial.routes.js'
 import crmRouter from './routes/crm.routes.js'
 import ticketRouter from './routes/ticket.routes.js'
+import rateLimit from 'express-rate-limit'
+import helmet from 'helmet'
+import mongoSanitize from 'express-mongo-sanitize'
+import compression from 'compression'
 const app = express()
+app.use(helmet())
+app.use(compression())
+app.use(mongoSanitize())
 
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: { message: 'Too many requests — try again after 15 minutes' }
+})
+app.use('/api/', limiter)
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())

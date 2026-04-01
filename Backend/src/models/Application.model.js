@@ -24,5 +24,5 @@ const applicationSchema = new mongoose.Schema({
         default: 'applied'  // '' se 'applied' karo
     }
 }, { timestamps: true })
-
+applicationSchema.index({ job: 1, user: 1 })
 export default mongoose.model('Application', applicationSchema)

@@ -71,7 +71,9 @@ const jobSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Employer',
         required: true
-    }
+    },
+    
 }, { timestamps: true })
-
+jobSchema.index({ title: 'text', description: 'text' })
+jobSchema.index({ location: 1, category: 1, is_active: 1 })
 export default mongoose.model('Job', jobSchema)
