@@ -83,22 +83,25 @@ export const registerEmployer = async (req, res) => {
         if (existingEmployer) {
             return res.status(400).json({ message: 'Email already exists' })
         }
+
         const salt = await bcrypt.genSalt(10)
         const hashedPassword = await bcrypt.hash(password, salt)
-
         const verifyToken = crypto.randomBytes(32).toString('hex')
 
-        const user = await User.create({
+        // Employer create karo — User.create nahi!
+        const employer = await Employer.create({
             company_name, email,
             password: hashedPassword,
             phone, location,
             email_verify_token: verifyToken,
             email_verify_expires: Date.now() + 24 * 60 * 60 * 1000
         })
-         try {
+       
+        // Email send
+        try {
             await transporter.sendMail({
                 from: process.env.MAIL_USER,
-                to: user.email,
+                to: employer.email,
                 subject: 'Verify your Jobmate account',
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -120,33 +123,15 @@ export const registerEmployer = async (req, res) => {
         } catch (emailErr) {
             console.log('Email error:', emailErr.message)
         }
-        const employer = await Employer.create({
-            company_name, email, password:hashedPassword,
-            phone, location, website
-        })
-
-        const token = generateToken(employer._id, 'employer')
-
-        res.cookie('token', token, {
-            httpOnly: true,
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        })
 
         res.status(201).json({
-            message: 'Employer registration successful',
-            token,
-            employer: {
-                id: employer._id,
-                company_name: employer.company_name,
-                email: employer.email,
-                role: employer.role
-            }
+            message: 'Registration successful! Please verify your email.',
         })
     } catch (error) {
+        console.log('Error:', error.message)
         res.status(500).json({ message: error.message })
     }
 }
-
 // Login
 export const login = async (req, res) => {
     try {
@@ -523,7 +508,11 @@ export const verifyEmail = async (req, res) => {
         })
 
         if (!account) {
-            return res.status(400).json({ message: 'Invalid or expired token' })
+            return res.status(200).json({ message: 'Email already verified' })
+        }
+
+        if (account.is_email_verified) {
+            return res.status(200).json({ message: 'Email already verified' })
         }
 
         account.is_email_verified = true
