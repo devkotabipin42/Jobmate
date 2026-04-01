@@ -145,7 +145,7 @@ const Companies = () => {
                                    {/* Buttons */}
 <div className='flex gap-2 mt-4'>
     <Link
-        to={`/company/${company._id}`}
+        to={`/companies/${company._id}`}
         className='flex-1 text-center text-sm bg-green-600 text-white py-2.5 rounded-lg hover:bg-green-700 transition-colors font-medium'
     >
         View Profile

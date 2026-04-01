@@ -125,7 +125,7 @@ if (loading)
                   {job.title}
                 </h1>
                 <Link
-    to={`/company/${job.employer?._id}`}
+    to={`/companies/${job.employer?._id}`}
     className='text-gray-500 dark:text-gray-400 hover:text-green-600 transition-colors'
 >
     {job.employer?.company_name} · {job.location}

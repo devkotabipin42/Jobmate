@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import axios from 'axios'
 import Navbar from '../../../components/Navbar.jsx'
-import API_URL from '../../../config/api.js'
 import useEmployer from '../../employer/hooks/useEmployer.js'
-
+import CompanyMap from '../../../components/CompanyMap.jsx'
 const CompanyProfile = () => {
     const { id } = useParams()
     const [company, setCompany] = useState(null)
@@ -148,7 +146,8 @@ const CompanyProfile = () => {
                         </motion.div>
                     ))}
                 </div>
-
+                {/* Map */}
+                    <CompanyMap location={company.location} companyName={company.company_name} />
                 {/* Active Jobs */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
