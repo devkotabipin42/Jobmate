@@ -24,7 +24,11 @@ const useAuth = () => {
         name: res.data.user.name,
         email: res.data.user.email,
         role: res.data.user.role,
-        job_alerts: res.data.user.job_alerts
+        job_alerts: res.data.user.job_alerts,
+        cv_url: res.data.user.cv_url || '',     
+    cv_text: res.data.user.cv_text || '',   
+    location: res.data.user.location || '', 
+    phone: res.data.user.phone || '', 
     }))
     return res.data.user
 }
@@ -59,23 +63,27 @@ const useAuth = () => {
         dispatch(setUser({ ...user, ...formData }))
         return res.data
     }
-    const uploadCV = async (file) => {
-    const formData = new FormData()
-    formData.append('cv', file)
-    const token = localStorage.getItem('token')
-    const res = await axios.post(
-        `${API_URL}/api/auth/upload-cv`,
-        formData,
-        {
-            withCredentials: true,
-            headers: {
-                'Content-Type': 'multipart/form-data',
-                ...(token ? { Authorization: `Bearer ${token}` } : {})
+   const uploadCV = async (file) => {
+    try {
+        const formData = new FormData()
+        formData.append('cv', file)
+        const token = localStorage.getItem('token')
+        const res = await axios.post(
+            `${API_URL}/api/auth/upload-cv`,
+            formData,
+            {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                }
             }
-        }
-    )
-    dispatch(setUser({ ...user, cv_url: res.data.cv_url }))
-    return res.data
+        )
+        dispatch(setUser(res.data.user))
+        return res.data
+    } catch (err) {
+        throw err
+    }
 }
     const deleteCV = async () => {
     const token = localStorage.getItem('token')

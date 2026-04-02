@@ -300,7 +300,11 @@ export const uploadCV = async (req, res) => {
         
         let cv_text = ''
 try {
+    
     const pdfData = await pdfParse(req.file.buffer)
+    console.log('PDF text length:', pdfData.text?.length)
+    console.log('PDF text:', pdfData.text?.substring(0, 200))
+    console.log('PDF pages:', pdfData.numpages)
     cv_text = pdfData.text?.slice(0, 3000) // max 3000 chars
 } catch (e) {
     cv_text = ''
@@ -319,6 +323,7 @@ try {
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
+    
 }
 export const deleteCV = async (req, res) => {
     try {
