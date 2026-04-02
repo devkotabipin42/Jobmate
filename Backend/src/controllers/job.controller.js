@@ -9,7 +9,8 @@ export const createJob = async (req, res) => {
             title, description,
             salary_min, salary_max,
             location, category,
-            type, experience, deadline
+            type, experience, deadline,
+            cv_required 
         } = req.body
 
         const job = await Job.create({
@@ -17,7 +18,8 @@ export const createJob = async (req, res) => {
             salary_min, salary_max,
             location, category,
             type, experience, deadline,
-            employer: req.user._id
+            employer: req.user._id,
+            cv_required 
         })
 
         // Job alerts — matching users email sent
