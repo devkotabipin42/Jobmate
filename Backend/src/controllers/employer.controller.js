@@ -49,3 +49,22 @@ export const uploadLogos = async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
+
+export const updateCompanyProfile = async (req, res) => {
+    try {
+        const { description, location, industry, company_size, founded_year, website, phone, social_links } = req.body
+
+        const employer = await Employer.findByIdAndUpdate(
+            req.user._id,
+            { description, location, industry, company_size, founded_year, website, phone, social_links },
+            { new: true }
+        ).select('-password')
+
+        res.status(200).json({
+            message: 'Company profile updated',
+            employer
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}

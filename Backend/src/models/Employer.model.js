@@ -30,6 +30,21 @@ const employerSchema = new mongoose.Schema({
     description: {
         type: String,
     },
+    industry: {
+    type: String,
+    enum: ['IT/Tech', 'Finance/Banking', 'Healthcare', 'Education', 'NGO/INGO', 'Manufacturing', 'Hospitality', 'Other'],
+},
+company_size: {
+    type: String,
+    enum: ['1-10', '11-50', '51-200', '200+'],
+},
+founded_year: {
+    type: String,
+},
+social_links: {
+    linkedin: { type: String },
+    facebook: { type: String },
+},
     location: {
         type: String,
     },

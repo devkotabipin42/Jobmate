@@ -188,6 +188,22 @@ const deleteCRMCandidate = async (id) => {
     })
 }
 
+const updateCompanyProfile = async (formData) => {
+    setLoading(true)
+    try {
+        const res = await axios.put(
+            `${API_URL}/api/employer/update-profile`,
+            formData,
+            { withCredentials: true }
+        )
+        return res.data
+    } catch (err) {
+        throw err
+    } finally {
+        setLoading(false)
+    }
+}
+
     return {
         loading,
         error,
@@ -204,7 +220,8 @@ const deleteCRMCandidate = async (id) => {
         updateCRMStatus,
         addCRMNote,
         setCRMFollowUp,
-        deleteCRMCandidate
+        deleteCRMCandidate,
+        updateCompanyProfile
     }
 }
 

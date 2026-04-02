@@ -26,7 +26,7 @@ const EmployerDashboard = () => {
     const dispatch = useDispatch()
     const { user } = useAuth()
     const { myJobs, applications } = useSelector(state => state.employer)
-    const { fetchMyJobs, removeJobById, fetchJobApplications, updateStatus, loading, uploadLogo } = useEmployer()
+    const { fetchMyJobs, removeJobById, fetchJobApplications, updateStatus, loading, uploadLogo, updateCompanyProfile } = useEmployer()
     const [logoPreview, setLogoPreview] = useState(null)
     const [uploading, setUploading] = useState(false)
     const [activeTab, setActiveTab] = useState('overview')
@@ -60,10 +60,42 @@ useEffect(() => {
     if (activeTab === 'crm') loadCandidates()
 }, [activeTab])
 
+    const [companyForm, setCompanyForm] = useState({
+    description: user?.description || '',
+    location: user?.location || '',
+    customLocation: '',
+    industry: user?.industry || '',
+    company_size: user?.company_size || '',
+    founded_year: user?.founded_year || '',
+    website: user?.website || '',
+    phone: user?.phone || '',
+    social_links: {
+        linkedin: user?.social_links?.linkedin || '',
+        facebook: user?.social_links?.facebook || '',
+    }
+})
+const [companySaving, setCompanySaving] = useState(false)
+const [companySuccess, setCompanySuccess] = useState(false)
     const loadJobs = async () => {
         const jobs = await fetchMyJobs()
         dispatch(setMyJobs(jobs))
     }
+
+    const handleCompanySave = async () => {
+    setCompanySaving(true)
+    try {
+        const finalLocation = companyForm.location === 'Other'
+            ? companyForm.customLocation
+            : companyForm.location
+        await updateCompanyProfile({ ...companyForm, location: finalLocation })
+        setCompanySuccess(true)
+        setTimeout(() => setCompanySuccess(false), 3000)
+    } catch (err) {
+        console.error(err)
+    } finally {
+        setCompanySaving(false)
+    }
+}
 
     const handleViewApplications = async (job) => {
         setSelectedJob(job)
@@ -146,6 +178,7 @@ const handleDeleteCandidate = async (id) => {
     { id: 'crm', label: 'CRM', icon: '◆' },
     { id: 'post-job', label: 'Post a Job', icon: '+', link: '/employer/post-job' },
     { id: 'company', label: 'Company Profile', icon: '◉', link: `/companies/${user?.id}` },
+    { id: 'company-settings', label: 'Company Settings', icon: '⚙️' },
 ]
 
     const pieData = [
@@ -158,7 +191,6 @@ const handleDeleteCandidate = async (id) => {
     ].filter(d => d.value > 0)
 
     
-console.log('User:', user)
     const kanbanColumns = {
     applied: { title: 'Applied', color: 'bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700', dot: 'bg-blue-500' },
     seen: { title: 'Seen', color: 'bg-yellow-50 dark:bg-yellow-900 border-yellow-200 dark:border-yellow-700', dot: 'bg-yellow-500' },
@@ -998,6 +1030,146 @@ console.log('User:', user)
                     </p>
                 </div>
             )}
+        </div>
+    </motion.div>
+)}
+{activeTab === 'company-settings' && (
+    <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className='space-y-4'
+    >
+        <div className='bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 rounded-2xl p-6'>
+            <h2 className='text-lg font-semibold text-gray-800 dark:text-white mb-6'>Company Settings</h2>
+            <div className='space-y-4'>
+                {/* Company Name */}
+                <div>
+                    <label className='block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1'>Company Name</label>
+                    <input type='text' value={user?.company_name || ''} disabled
+                        className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-gray-50 dark:bg-gray-700 dark:text-white' />
+                </div>
+
+                {/* Description */}
+                <div>
+                    <label className='block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1'>About Company</label>
+                    <textarea rows={4} placeholder='Describe your company...'
+                    value={companyForm.description}
+    onChange={(e) => setCompanyForm({ ...companyForm, description: e.target.value })}
+                        className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white resize-none' />
+                </div>
+
+                {/* Location */}
+                <div>
+                    <label className='block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1'>Location</label>
+                   <select 
+    value={companyForm.location}
+    onChange={(e) => setCompanyForm({ ...companyForm, location: e.target.value })}
+    className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white'
+>
+    <option value=''>Select location</option>
+    {['Kathmandu', 'Lalitpur', 'Bhaktapur', 'Pokhara', 'Chitwan', 'Butwal', 'Biratnagar', 'Dharan', 'Hetauda', 'Other'].map(l => (
+        <option key={l} value={l}>{l}</option>
+    ))}
+</select>
+
+{/* Other location text input */}
+{companyForm.location === 'Other' && (
+    <input
+        type='text'
+        placeholder='Enter your location...'
+        value={companyForm.customLocation}
+        onChange={(e) => setCompanyForm({ ...companyForm, customLocation: e.target.value })}
+        className='w-full mt-2 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white'
+    />
+)}
+                </div>
+
+                {/* Industry */}
+                <div>
+                    <label className='block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1'>Industry</label>
+                    <select  value={companyForm.industry}
+    onChange={(e) => setCompanyForm({ ...companyForm, industry: e.target.value })}
+                     className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white'>
+                        <option value=''>Select industry</option>
+                        {['IT/Tech', 'Finance/Banking', 'Healthcare', 'Education', 'NGO/INGO', 'Manufacturing', 'Hospitality', 'Other'].map(i => (
+                            <option key={i} value={i}>{i}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Company Size + Founded Year */}
+                <div className='grid grid-cols-2 gap-3'>
+                    <div>
+                        <label className='block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1'>Company Size</label>
+                        <select 
+                         value={companyForm.founded_year}
+    onChange={(e) => setCompanyForm({ ...companyForm, founded_year: e.target.value })}
+                         className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white'>
+                            <option value=''>Select size</option>
+                            {['1-10', '11-50', '51-200', '200+'].map(s => (
+                                <option key={s} value={s}>{s} employees</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label className='block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1'>Founded Year</label>
+                        <input type='text' placeholder='e.g. 2015'
+                        value={companyForm.founded_year}
+                        onChange={(e) => setCompanyForm({ ...companyForm, founded_year: e.target.value })}
+                            className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white' />
+                    </div>
+                </div>
+
+                {/* Website + Phone */}
+                <div className='grid grid-cols-2 gap-3'>
+                    <div>
+                        <label className='block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1'>Website</label>
+                        <input type='text' placeholder='https://yourcompany.com'
+                        value={companyForm.website}
+    onChange={(e) => setCompanyForm({ ...companyForm, website: e.target.value })}
+                            className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white' />
+                    </div>
+                    <div>
+                        <label className='block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1'>Phone</label>
+                        <input type='text' placeholder='98XXXXXXXX'
+                        value={companyForm.phone}
+    onChange={(e) => setCompanyForm({ ...companyForm, phone: e.target.value })}
+                            className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white' />
+                    </div>
+                </div>
+
+                {/* Social Links */}
+                <div className='grid grid-cols-2 gap-3'>
+                    <div>
+                        <label className='block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1'>LinkedIn</label>
+                        <input type='text' placeholder='linkedin.com/company/...'
+                        value={companyForm.social_links.linkedin}
+    onChange={(e) => setCompanyForm({ ...companyForm, social_links: { ...companyForm.social_links, linkedin: e.target.value } })}
+                            className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white' />
+                    </div>
+                    <div>
+                        <label className='block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1'>Facebook</label>
+                        <input type='text' placeholder='facebook.com/...'
+                        value={companyForm.social_links.facebook}
+    onChange={(e) => setCompanyForm({ ...companyForm, social_links: { ...companyForm.social_links, facebook: e.target.value } })}
+                            className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white' />
+                    </div>
+                </div>
+                        {companySuccess && (
+    <div className='...'>✅ Company profile saved!</div>
+)}
+                <button 
+    onClick={handleCompanySave}
+    disabled={companySaving}
+    className='w-full bg-green-600 text-white py-3 rounded-xl text-sm font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors'>
+    {companySaving ? (
+        <span className='flex items-center justify-center gap-2'>
+            <span className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin' />
+            Saving...
+        </span>
+    ) : 'Save Changes'}
+</button>
+            </div>
         </div>
     </motion.div>
 )}

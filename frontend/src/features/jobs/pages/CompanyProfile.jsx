@@ -146,6 +146,54 @@ const CompanyProfile = () => {
                         </motion.div>
                     ))}
                 </div>
+                {/* Company Details */}
+{(company.industry || company.company_size || company.founded_year) && (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className='bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-5 mb-6'
+    >
+        <h3 className='text-sm font-semibold text-gray-800 dark:text-white mb-4'>Company Details</h3>
+        <div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
+            {company.industry && (
+                <div>
+                    <p className='text-xs text-gray-500 dark:text-gray-400 mb-1'>Industry</p>
+                    <p className='text-sm font-medium text-gray-800 dark:text-white'>{company.industry}</p>
+                </div>
+            )}
+            {company.company_size && (
+                <div>
+                    <p className='text-xs text-gray-500 dark:text-gray-400 mb-1'>Company Size</p>
+                    <p className='text-sm font-medium text-gray-800 dark:text-white'>{company.company_size} employees</p>
+                </div>
+            )}
+            {company.founded_year && (
+                <div>
+                    <p className='text-xs text-gray-500 dark:text-gray-400 mb-1'>Founded</p>
+                    <p className='text-sm font-medium text-gray-800 dark:text-white'>{company.founded_year}</p>
+                </div>
+            )}
+        </div>
+
+        {/* Social Links */}
+        {(company.social_links?.linkedin || company.social_links?.facebook) && (
+            <div className='flex gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700'>
+                {company.social_links?.linkedin && (
+                    <a href={company.social_links.linkedin} target='_blank' rel='noreferrer'
+                        className='text-xs bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-300 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors'>
+                        💼 LinkedIn
+                    </a>
+                )}
+                {company.social_links?.facebook && (
+                    <a href={company.social_links.facebook} target='_blank' rel='noreferrer'
+                        className='text-xs bg-indigo-50 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 px-3 py-2 rounded-lg hover:bg-indigo-100 transition-colors'>
+                        📘 Facebook
+                    </a>
+                )}
+            </div>
+        )}
+    </motion.div>
+)}
                 {/* Map */}
                     <CompanyMap location={company.location} companyName={company.company_name} />
                 {/* Active Jobs */}
