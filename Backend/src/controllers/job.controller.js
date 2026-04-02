@@ -1,7 +1,7 @@
 import Job from '../models/Job.model.js'
 import User from '../models/user.model.js'
 import transporter from '../config/mailer.js'
-
+import redis, { isRedisConnected } from '../config/redis.js'
 // Create Job — Employer only
 export const createJob = async (req, res) => {
     try {
@@ -73,7 +73,10 @@ export const createJob = async (req, res) => {
             }
         } catch (alertErr) {
         }
-
+        try {
+    const keys = await redis.keys('jobs:*')
+    if (keys.length > 0) await redis.del(keys)
+} catch (e) {}
         res.status(201).json({
             message: 'Job created successfully',
             job
@@ -92,6 +95,13 @@ export const getAllJobs = async (req, res) => {
             experience, salary_min,
             salary_max, featured
         } = req.query
+
+        // Check cache first
+        const cacheKey = `jobs:${JSON.stringify(req.query)}`
+        try {
+            const cached = await redis.get(cacheKey)
+            if (cached) return res.status(200).json(JSON.parse(cached))
+        } catch (e) {}
 
         let query = { is_active: true, is_verified: true }
 
@@ -118,11 +128,35 @@ export const getAllJobs = async (req, res) => {
             .populate('employer', 'company_name logo_url location is_verified')
             .sort({ is_featured: -1, createdAt: -1 })
 
-        res.status(200).json({
+        const responseData = {
             message: 'Jobs fetched successfully',
             count: jobs.length,
             jobs
-        })
+        }
+        if (isRedisConnected) {
+    try {
+        const cached = await redis.get(cacheKey)
+        console.log('getAllJobs called')
+        if (cached) return res.status(200).json(JSON.parse(cached))
+    } catch (e) {}
+}
+if (isRedisConnected) {
+    try {
+        await redis.setEx(cacheKey, 300, JSON.stringify(responseData))
+    } catch (e) {}
+}
+if (isRedisConnected) {
+    try {
+        const keys = await redis.keys('jobs:*')
+        if (keys.length > 0) await redis.del(keys)
+    } catch (e) {}
+}
+        // Save to cache — 5 minutes
+        try {
+            await redis.setEx(cacheKey, 300, JSON.stringify(responseData))
+        } catch (e) {}
+
+        res.status(200).json(responseData)
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
