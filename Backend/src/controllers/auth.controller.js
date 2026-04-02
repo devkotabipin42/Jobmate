@@ -7,6 +7,9 @@ import nodemailer from 'nodemailer'
 import Blacklist from '../models/Blacklist.model.js'
 import { imagekit } from '../config/cloudinary.js'
 import transporter from '../config/mailer.js'
+import { createRequire } from 'module'
+const require = createRequire(import.meta.url)
+const pdfParse = require('pdf-parse')
 import crypto from 'crypto'
 const generateToken = (id, role) => {
     return jwt.sign({ id, role }, process.env.JWT_SECRET, {
@@ -295,10 +298,16 @@ export const uploadCV = async (req, res) => {
             useUniqueFileName: true
         })
         
-    
+        let cv_text = ''
+try {
+    const pdfData = await pdfParse(req.file.buffer)
+    cv_text = pdfData.text?.slice(0, 3000) // max 3000 chars
+} catch (e) {
+    cv_text = ''
+}
         const user = await User.findByIdAndUpdate(
             req.user._id,
-            { cv_url: result.url },
+            { cv_url: result.url , cv_text },
             { new: true }
         ).select('-password')
 

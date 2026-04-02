@@ -27,6 +27,10 @@ const userSchema = new mongoose.Schema({
     cv_url: {
         type: String,
     },
+    cv_text: {
+    type: String,
+    default: ''
+},
     saved_jobs: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Job',

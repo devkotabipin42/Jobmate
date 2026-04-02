@@ -71,6 +71,10 @@ const handleApply = async () => {
     navigate("/login");
     return;
   }
+  if (job.cv_required && !user.cv_url) {
+        setError('This job requires a CV. Please upload your CV from your Profile first.')
+        return
+    }
   setApplying(true);
   try {
     await applyJob(id, "");

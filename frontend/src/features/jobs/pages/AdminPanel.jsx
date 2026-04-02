@@ -46,6 +46,7 @@ const AdminPanel = () => {
     replyTicket,
     updateTicketStatus,
     broadcastEmail,
+    toggleFeaturedJob
   } = useAdmin();
 
   const [activeTab, setActiveTab] = useState("dashboard");

@@ -10,7 +10,9 @@ export const applyJob = async (req, res) => {
         
         const job = await Job.findById(req.params.id)
             .populate('employer', 'company_name email')
-
+        if (job.cv_required && !req.user.cv_url) {
+    return res.status(400).json({ message: 'This job requires a CV. Please upload your CV first.' })
+}
         if (!job) {
             return res.status(404).json({ message: 'Job not found' })
         }
@@ -23,7 +25,8 @@ export const applyJob = async (req, res) => {
         if (existing) {
             return res.status(400).json({ message: 'Already applied' })
         }
-
+        console.log('CV Required:', job.cv_required)
+console.log('User CV:', req.user.cv_url)
         const application = await Application.create({
             job: req.params.id,
             user: req.user._id,
@@ -161,21 +164,30 @@ export const matchCV = async (req, res) => {
         if (!job) return res.status(404).json({ message: 'Job not found' })
 
         const prompt = `
-You are an expert HR recruiter. Compare this job with the candidate profile and give a match score.
+You are a senior HR recruiter with 10+ years of experience in Nepal's job market.
 
-Job Title: ${job.title}
-Job Description: ${job.description}
+=== JOB DETAILS ===
+Title: ${job.title}
+Description: ${job.description}
 Category: ${job.category}
 Experience Required: ${job.experience}
+Location: ${job.location}
 
-Candidate CV URL: ${user.cv_url}
+=== CANDIDATE CV CONTENT ===
+${user.cv_text ? user.cv_text : 'CV not available — analyze based on job requirements'}
 
-Respond ONLY in this exact JSON format:
+=== INSTRUCTIONS ===
+- Carefully analyze CV content against job requirements
+- Give realistic match score 0-100
+- List specific matched and missing skills
+- should_apply true if score >= 55
+
+Respond ONLY in this exact JSON:
 {
     "match_score": 75,
-    "matched_skills": ["React", "Node.js"],
-    "missing_skills": ["Docker", "AWS"],
-    "verdict": "Good match! You have most required skills.",
+    "matched_skills": ["skill1", "skill2"],
+    "missing_skills": ["missing1", "missing2"],
+    "verdict": "2-3 sentence personalized feedback",
     "should_apply": true
 }
 `

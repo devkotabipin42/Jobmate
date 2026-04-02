@@ -19,7 +19,8 @@ const PostJob = () => {
         category: '',
         type: '',
         experience: '',
-        deadline: ''
+        deadline: '',
+        cv_required: false
     })
 
     const handleChange = (e) => {
@@ -254,7 +255,24 @@ const PostJob = () => {
                                 className='w-full border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white transition-all'
                             />
                         </div>
-
+                        {/* CV Required Toggle */}
+<div className='flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl'>
+    <div>
+        <p className='text-sm font-medium text-gray-800 dark:text-white'>CV Required</p>
+        <p className='text-xs text-gray-500 dark:text-gray-400'>Applicants must upload CV to apply</p>
+    </div>
+    <button
+        type='button'
+        onClick={() => setFormData({ ...formData, cv_required: !formData.cv_required })}
+        className={`relative w-12 h-6 rounded-full transition-colors ${
+            formData.cv_required ? 'bg-green-600' : 'bg-gray-300 dark:bg-gray-600'
+        }`}
+    >
+        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+            formData.cv_required ? 'translate-x-7' : 'translate-x-1'
+        }`} />
+    </button>
+</div>
                         {/* Submit */}
                         <motion.button
                             whileHover={{ scale: 1.01 }}

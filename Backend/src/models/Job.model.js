@@ -72,6 +72,10 @@ const jobSchema = new mongoose.Schema({
         ref: 'Employer',
         required: true
     },
+    cv_required: {
+    type: Boolean,
+    default: false
+},
     
 }, { timestamps: true })
 jobSchema.index({ title: 'text', description: 'text' })
