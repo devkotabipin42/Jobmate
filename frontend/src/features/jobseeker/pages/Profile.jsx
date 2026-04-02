@@ -8,7 +8,7 @@ const Profile = () => {
     const { 
         user, updateProfile, 
         handleCVUpload, handleCVDelete, 
-        handleAlertsSubmit, submitTestimonial 
+        handleAlertsSubmit, submitTestimonial,uploadAvatar 
     } = useAuth()
 
     const [editing, setEditing] = useState(false)
@@ -137,30 +137,46 @@ const [testimonialSuccess, setTestimonialSuccess] = useState(false)
                     animate={{ opacity: 1, y: 0 }}
                     className='bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden'
                 >
-                    <div className='h-24 bg-gradient-to-r from-green-500 to-green-700' />
+                    {/* Cover */}
+<div className='h-28 bg-gradient-to-r from-green-500 to-green-700' />
 
-                    <div className='px-6 pb-6'>
-                        <div className='flex items-end justify-between -mt-10 mb-4'>
-                            <div className='w-20 h-20 rounded-2xl bg-white dark:bg-gray-700 border-4 border-white dark:border-gray-800 flex items-center justify-center text-green-600 font-bold text-3xl shadow-sm'>
-                                {user?.name?.charAt(0)?.toUpperCase()}
-                            </div>
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => setEditing(!editing)}
-                                className='text-sm border border-gray-200 dark:border-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-white transition-colors'
-                            >
-                                {editing ? 'Cancel' : 'Edit Profile'}
-                            </motion.button>
-                        </div>
+<div className='px-6 pb-6'>
+    <div className='flex items-end justify-between -mt-10 mb-4'>
+        {/* Avatar */}
+       <div className='relative'>
+    <div className='w-20 h-20 rounded-2xl bg-white dark:bg-gray-700 border-4 border-white dark:border-gray-800 flex items-center justify-center text-green-600 font-bold text-3xl shadow-sm overflow-hidden'>
+        {user?.avatar_url ? (
+            <img src={user.avatar_url} alt='avatar' className='w-full h-full object-cover' />
+        ) : (
+            user?.name?.charAt(0)?.toUpperCase()
+        )}
+    </div>
+    <label className='absolute bottom-0 right-0 w-6 h-6 bg-green-600 rounded-full flex items-center justify-center cursor-pointer shadow-md hover:bg-green-700 transition-colors'>
+        <span className='text-white text-xs'>📷</span>
+        <input type='file' accept='image/*' onChange={async (e) => {
+            const file = e.target.files[0]
+            if (!file) return
+            try { await uploadAvatar(file) } catch (err) { console.log(err) }
+        }} className='hidden' />
+    </label>
+</div>
+        <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setEditing(!editing)}
+            className='text-sm border border-gray-200 dark:border-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-white transition-colors'
+        >
+            {editing ? 'Cancel' : 'Edit Profile'}
+        </motion.button>
+    </div>
 
-                        <h1 className='text-xl font-semibold text-gray-800 dark:text-white mb-1'>
-                            {user?.name}
-                        </h1>
-                        <p className='text-sm text-gray-500 dark:text-gray-400'>
-                            {user?.email}
-                        </p>
-                    </div>
+    <h1 className='text-xl font-semibold text-gray-800 dark:text-white mb-1'>
+        {user?.name}
+    </h1>
+    <p className='text-sm text-gray-500 dark:text-gray-400'>
+        {user?.email}
+    </p>
+</div>
 
                     <div className='border-t border-gray-100 dark:border-gray-700 px-6 py-4'>
                         <div className='grid grid-cols-2 gap-4'>

@@ -1,6 +1,8 @@
 import { Router } from 'express'
 import { uploadCV } from '../config/cloudinary.js'
 import { uploadCV as uploadCVController } from '../controllers/auth.controller.js'
+import { uploadAvatar as uploadAvatarMiddleware } from '../config/cloudinary.js'
+import { uploadAvatar as uploadAvatarController } from '../controllers/auth.controller.js'
 import {
     registerUser,
     registerEmployer,
@@ -14,7 +16,8 @@ import {
      sendOTP,
      verifyOTP,
      updateJobAlerts,
-     verifyEmail
+     verifyEmail,
+     uploadAvatar
     
 } from '../controllers/auth.controller.js'
 import { authMiddleware } from '../middleware/auth.middleware.js'
@@ -35,5 +38,5 @@ authRouter.post('/send-otp', sendOTP)
 authRouter.post('/verify-otp', verifyOTP)
 authRouter.put('/job-alerts', authMiddleware, updateJobAlerts)
 authRouter.get('/verify-email', verifyEmail)
-
+authRouter.post('/upload-avatar', authMiddleware, uploadAvatarMiddleware.single('avatar'), uploadAvatarController)
 export default authRouter

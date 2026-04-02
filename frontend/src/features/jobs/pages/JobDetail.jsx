@@ -130,7 +130,7 @@ if (loading)
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-8"
+          className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 md:p-8"
         >
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
@@ -143,7 +143,7 @@ if (loading)
     )}
 </div>
               <div>
-                <h1 className="text-2xl font-semibold text-gray-800 dark:text-white mb-1">
+                <h1 className="text-xl md:text-2xl font-semibold text-gray-800 dark:text-white mb-1">
                   {job.title}
                 </h1>
                 <Link
@@ -155,7 +155,7 @@ if (loading)
               </div>
             </div>
 
-            {/* Buttons — mobile pe full width */}
+            {/* Buttons — mobile full width */}
             {user?.role !== "employer" && (
               <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
                 <motion.button
@@ -391,7 +391,7 @@ if (loading)
                 whileTap={{ scale: 0.98 }}
                 onClick={handleApply}
                 disabled={applying}
-                className="bg-green-600 text-white px-12 py-3 rounded-xl text-sm font-medium hover:bg-green-700 disabled:opacity-60"
+                className="flex-1 bg-green-600 text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-green-700 disabled:opacity-60"
               >
                 {applying ? "Applying..." : "Apply for this job"}
               </motion.button>

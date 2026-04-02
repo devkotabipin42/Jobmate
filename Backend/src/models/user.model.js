@@ -27,6 +27,10 @@ const userSchema = new mongoose.Schema({
     cv_url: {
         type: String,
     },
+    avatar_url: {
+    type: String,
+    default: ''
+},
     cv_text: {
     type: String,
     default: ''

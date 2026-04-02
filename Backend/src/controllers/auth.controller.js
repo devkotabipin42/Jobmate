@@ -182,7 +182,8 @@ export const login = async (req, res) => {
         job_alerts: account.job_alerts || undefined,
         cv_url: account.cv_url || undefined,
         location: account.location || undefined,
-        phone: account.phone || undefined
+        phone: account.phone || undefined,
+         avatar_url: account.avatar_url || '',
     }
 })
     } catch (error) {
@@ -537,6 +538,32 @@ export const verifyEmail = async (req, res) => {
 
         res.status(200).json({ message: 'Email verified successfully' })
     } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+export const uploadAvatar = async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ message: 'No file uploaded' })
+
+        const result = await imagekit.upload({
+            file: req.file.buffer,
+            fileName: `avatar_${req.user._id}_${Date.now()}`,
+            folder: '/jobmate/avatars',
+            useUniqueFileName: true
+        })
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user._id,
+            { avatar_url: result.url },
+            { new: true }
+        ).select('-password')
+
+        res.status(200).json({
+            message: 'Avatar uploaded successfully',
+            avatar_url: result.url,
+            user: updatedUser
+        })
+    } catch (error) {
+        console.log('Avatar error:', error.message)
         res.status(500).json({ message: error.message })
     }
 }

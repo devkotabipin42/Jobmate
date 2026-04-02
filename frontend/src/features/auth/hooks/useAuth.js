@@ -29,6 +29,7 @@ const useAuth = () => {
     cv_text: res.data.user.cv_text || '',   
     location: res.data.user.location || '', 
     phone: res.data.user.phone || '', 
+    avatar_url: res.data.user.avatar_url || '',
     }))
     return res.data.user
 }
@@ -165,7 +166,29 @@ const submitTestimonial = async (formData) => {
     )
     return res.data
 }
-    return { user, isLoading, error, login, register, logoutUser, updateProfile,uploadCV, deleteCV, sendOTP, verifyOTP, updateJobAlerts, handleCVUpload, handleCVDelete, handleAlertsSubmit, submitTestimonial }
+const uploadAvatar = async (file) => {
+    try {
+        const formData = new FormData()
+        formData.append('avatar', file)
+        const token = localStorage.getItem('token')
+        const res = await axios.post(
+            `${API_URL}/api/auth/upload-avatar`,
+            formData,
+            {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                }
+            }
+        )
+        dispatch(setUser({ ...user, avatar_url: res.data.avatar_url,id: user.id || user._id  }))
+        return res.data
+    } catch (err) {
+        throw err
+    }
+}
+    return { user, isLoading, error, login, register, logoutUser, updateProfile,uploadCV, deleteCV, sendOTP, verifyOTP, updateJobAlerts, handleCVUpload, handleCVDelete, handleAlertsSubmit, submitTestimonial, uploadAvatar }
 }
 
 export default useAuth
