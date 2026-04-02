@@ -1,403 +1,160 @@
-import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Navbar from '../../../components/Navbar.jsx'
-import useJobseeker from '../hooks/useJobseeker.js'
-import { pdf, Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer'
-const emptyForm = {
-    fullName: '', email: '', phone: '', location: '',
-    linkedin: '', website: '', summary: '',
-    experience: '', education: '', skills: '', languages: ''
-}
-const pdfStyles = StyleSheet.create({
-    page: { fontFamily: 'Helvetica', fontSize: 10, color: '#1a1a1a', backgroundColor: 'white' },
-    header: { backgroundColor: '#15803d', color: 'white', padding: '20 30' },
-    headerName: { fontSize: 20, fontWeight: 'bold', marginBottom: 6 },
-    headerContact: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, fontSize: 9, opacity: 0.9 },
-    body: { padding: '20 30' },
-    section: { marginBottom: 14 },
-    sectionTitle: { fontSize: 8, fontWeight: 'bold', color: '#15803d', textTransform: 'uppercase', letterSpacing: 1.5, borderBottomWidth: 1, borderBottomColor: '#bbf7d0', paddingBottom: 3, marginBottom: 8 },
-    text: { fontSize: 10, lineHeight: 1.6, color: '#374151' },
-    skillsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
-    skillTag: { backgroundColor: '#f0fdf4', border: '1 solid #86efac', color: '#166534', fontSize: 8, padding: '3 8', borderRadius: 10 },
-    twoCol: { flexDirection: 'row', gap: 20 },
-    col: { flex: 1 },
-    footer: { textAlign: 'center', fontSize: 8, color: '#9ca3af', borderTopWidth: 1, borderTopColor: '#e5e7eb', padding: '10 0', marginTop: 10 }
-})
+import useResumeBuilder from '../hooks/useResumeBuilder.js'
+import ResumePreview from './ResumePreview.jsx'
 
-const ResumePDF = ({ data }) => {
-    const skills = data.skills ? data.skills.split(',').map(s => s.trim()).filter(Boolean) : []
-    const languages = data.languages ? data.languages.split(',').map(l => l.trim()).filter(Boolean) : []
+const ResumeBuilder = () => {
+    const {
+        formData, pdfReady, error, loading,
+        handleChange, handleGenerate, handleDownload, handleReset
+    } = useResumeBuilder()
 
     return (
-        <Document>
-            <Page size='A4' style={pdfStyles.page}>
-                {/* Header */}
-                <View style={pdfStyles.header}>
-                    <Text style={pdfStyles.headerName}>{data.fullName || 'Your Name'}</Text>
-                    <View style={pdfStyles.headerContact}>
-                        {data.email && <Text>Email: {data.email}</Text>}
-                        {data.phone && <Text>Phone: {data.phone}</Text>}
-                        {data.location && <Text>Location: {data.location}</Text>}
-                        {data.linkedin && <Text>LinkedIn: {data.linkedin}</Text>}
-                        {data.website && <Text>Web: {data.website}</Text>}
-                    </View>
-                </View>
+        <div className='min-h-screen bg-gray-50 dark:bg-gray-950'>
+            <Navbar />
 
-                <View style={pdfStyles.body}>
-                    {/* Summary */}
-                    {data.summary && (
-                        <View style={pdfStyles.section}>
-                            <Text style={pdfStyles.sectionTitle}>Professional Summary</Text>
-                            <Text style={pdfStyles.text}>{data.summary}</Text>
-                        </View>
+            {/* Header */}
+            <div className='bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-6 py-4'>
+                <div className='max-w-6xl mx-auto flex items-center justify-between'>
+                    <div>
+                        <h1 className='text-lg font-bold text-gray-900 dark:text-white'>🤖 AI Resume Builder</h1>
+                        <p className='text-xs text-gray-500 dark:text-gray-400'>Fill details — live preview updates instantly</p>
+                    </div>
+                    {pdfReady && (
+                        <button onClick={handleDownload}
+                            className='bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors'>
+                            ⬇️ Download PDF
+                        </button>
                     )}
+                </div>
+            </div>
+
+            <div className='max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-2 gap-6'>
+
+                {/* LEFT — Form */}
+                <div className='space-y-4'>
+                    {error && (
+                        <div className='bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl text-sm'>
+                            {error}
+                        </div>
+                    )}
+
+                    {/* Personal Info */}
+                    <div className='bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5'>
+                        <h3 className='text-sm font-semibold text-gray-800 dark:text-white mb-4'>👤 Personal Info</h3>
+                        <div className='grid grid-cols-2 gap-3'>
+                            {[
+                                { label: 'Full Name *', name: 'fullName', placeholder: 'Bipin Devkota' },
+                                { label: 'Email *', name: 'email', placeholder: 'your@email.com' },
+                                { label: 'Phone', name: 'phone', placeholder: '+977-98XXXXXXXX' },
+                                { label: 'Location', name: 'location', placeholder: 'Kathmandu, Nepal' },
+                                { label: 'LinkedIn', name: 'linkedin', placeholder: 'linkedin.com/in/yourname' },
+                                { label: 'Website', name: 'website', placeholder: 'yourwebsite.com' },
+                            ].map((field) => (
+                                <div key={field.name}>
+                                    <label className='block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1'>{field.label}</label>
+                                    <input type='text' name={field.name} value={formData[field.name]}
+                                        onChange={handleChange} placeholder={field.placeholder}
+                                        className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white' />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
 
                     {/* Experience */}
-                    {data.experience && (
-                        <View style={pdfStyles.section}>
-                            <Text style={pdfStyles.sectionTitle}>Work Experience</Text>
-                            <Text style={pdfStyles.text}>{data.experience}</Text>
-                        </View>
-                    )}
+                    <div className='bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5'>
+                        <h3 className='text-sm font-semibold text-gray-800 dark:text-white mb-1'>💼 Work Experience</h3>
+                        <p className='text-xs text-gray-400 mb-3'>Separate multiple jobs with a blank line</p>
+                        <textarea name='experience' value={formData.experience} onChange={handleChange} rows={5}
+                            placeholder={'Software Engineer — TechCorp\nJan 2023 - Present\n- Built React apps'}
+                            className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white resize-none' />
+                    </div>
 
                     {/* Education */}
-                    {data.education && (
-                        <View style={pdfStyles.section}>
-                            <Text style={pdfStyles.sectionTitle}>Education</Text>
-                            <Text style={pdfStyles.text}>{data.education}</Text>
-                        </View>
+                    <div className='bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5'>
+                        <h3 className='text-sm font-semibold text-gray-800 dark:text-white mb-1'>🎓 Education</h3>
+                        <p className='text-xs text-gray-400 mb-3'>Separate multiple entries with a blank line</p>
+                        <textarea name='education' value={formData.education} onChange={handleChange} rows={4}
+                            placeholder={'BSc Computer Science\nTribhuvan University\n2018 - 2022'}
+                            className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white resize-none' />
+                    </div>
+
+                    {/* Skills */}
+                    <div className='bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5'>
+                        <h3 className='text-sm font-semibold text-gray-800 dark:text-white mb-4'>⚡ Skills & Languages</h3>
+                        <div className='space-y-3'>
+                            <div>
+                                <label className='block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1'>Skills * (comma separated)</label>
+                                <input type='text' name='skills' value={formData.skills} onChange={handleChange}
+                                    placeholder='React, Node.js, MongoDB, Git'
+                                    className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white' />
+                            </div>
+                            <div>
+                                <label className='block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1'>Languages (comma separated)</label>
+                                <input type='text' name='languages' value={formData.languages} onChange={handleChange}
+                                    placeholder='Nepali, English, Hindi'
+                                    className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white' />
+                            </div>
+                            <div>
+                                <label className='block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1'>Summary (optional — AI will enhance)</label>
+                                <textarea name='summary' value={formData.summary} onChange={handleChange} rows={3}
+                                    placeholder='Brief about yourself...'
+                                    className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white resize-none' />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Generate Button */}
+                    <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}
+                        onClick={handleGenerate}
+                        disabled={loading || !formData.fullName || !formData.email}
+                        className='w-full bg-green-600 hover:bg-green-700 text-white py-3.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors'>
+                        {loading ? (
+                            <span className='flex items-center justify-center gap-2'>
+                                <span className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin' />
+                                AI is generating your resume...
+                            </span>
+                        ) : '🤖 Generate AI Resume'}
+                    </motion.button>
+
+                    {/* Download + Reset */}
+                    {pdfReady && (
+                        <div className='bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 text-center'>
+                            <p className='text-green-700 dark:text-green-400 text-sm font-medium mb-3'>🎉 Resume ready!</p>
+                            <div className='flex gap-3 justify-center'>
+                                <button onClick={handleDownload}
+                                    className='bg-green-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-green-700'>
+                                    ⬇️ Download PDF
+                                </button>
+                                <button onClick={handleReset}
+                                    className='border border-green-600 text-green-600 px-5 py-2 rounded-lg text-sm hover:bg-green-50'>
+                                    Build Another
+                                </button>
+                            </div>
+                        </div>
                     )}
-
-                    {/* Skills + Languages */}
-                    <View style={pdfStyles.twoCol}>
-                        {skills.length > 0 && (
-                            <View style={pdfStyles.col}>
-                                <Text style={pdfStyles.sectionTitle}>Skills</Text>
-                                <View style={pdfStyles.skillsRow}>
-                                    {skills.map((s, i) => (
-                                        <Text key={i} style={pdfStyles.skillTag}>{s}</Text>
-                                    ))}
-                                </View>
-                            </View>
-                        )}
-                        {languages.length > 0 && (
-                            <View style={pdfStyles.col}>
-                                <Text style={pdfStyles.sectionTitle}>Languages</Text>
-                                <View style={pdfStyles.skillsRow}>
-                                    {languages.map((l, i) => (
-                                        <Text key={i} style={pdfStyles.skillTag}>{l}</Text>
-                                    ))}
-                                </View>
-                            </View>
-                        )}
-                    </View>
-                </View>
-
-                {/* Footer */}
-                <View style={pdfStyles.footer}>
-                    <Text>Generated by Jobmate • Nepal's First Verified Job Platform</Text>
-                </View>
-            </Page>
-        </Document>
-    )
-}
-const ResumePreview = ({ data }) => {
-    const skills = data.skills ? data.skills.split(',').map(s => s.trim()).filter(Boolean) : []
-    const languages = data.languages ? data.languages.split(',').map(l => l.trim()).filter(Boolean) : []
-
-    return (
-        <div className='bg-white text-gray-900 w-full text-[11px] leading-relaxed font-sans'>
-            {/* Header */}
-            <div className='bg-green-700 text-white px-6 py-5'>
-                <h1 className='text-xl font-bold'>{data.fullName || 'Your Name'}</h1>
-                <div className='flex flex-wrap gap-x-4 gap-y-1 mt-2 text-green-100 text-[10px]'>
-                    {data.email && <span>✉ {data.email}</span>}
-                    {data.phone && <span>📱 {data.phone}</span>}
-                    {data.location && <span>📍 {data.location}</span>}
-                    {data.linkedin && <span>💼 {data.linkedin}</span>}
-                    {data.website && <span>🌐 {data.website}</span>}
                 </div>
-            </div>
 
-            <div className='px-6 py-4 space-y-4'>
-                {data.summary && (
-                    <div>
-                        <div className='text-[9px] font-bold text-green-700 uppercase tracking-widest border-b border-green-200 pb-1 mb-2'>Professional Summary</div>
-                        <p className='text-gray-600'>{data.summary}</p>
-                    </div>
-                )}
-                {data.experience && (
-                    <div>
-                        <div className='text-[9px] font-bold text-green-700 uppercase tracking-widest border-b border-green-200 pb-1 mb-2'>Work Experience</div>
-                        <p className='text-gray-600 whitespace-pre-line'>{data.experience}</p>
-                    </div>
-                )}
-                {data.education && (
-                    <div>
-                        <div className='text-[9px] font-bold text-green-700 uppercase tracking-widest border-b border-green-200 pb-1 mb-2'>Education</div>
-                        <p className='text-gray-600 whitespace-pre-line'>{data.education}</p>
-                    </div>
-                )}
-                {(skills.length > 0 || languages.length > 0) && (
-                    <div className='grid grid-cols-2 gap-4'>
-                        {skills.length > 0 && (
-                            <div>
-                                <div className='text-[9px] font-bold text-green-700 uppercase tracking-widest border-b border-green-200 pb-1 mb-2'>Skills</div>
-                                <div className='flex flex-wrap gap-1'>
-                                    {skills.map((s, i) => (
-                                        <span key={i} className='bg-green-50 border border-green-200 text-green-800 px-2 py-0.5 rounded-full text-[9px]'>{s}</span>
-                                    ))}
-                                </div>
+                {/* RIGHT — Live Preview */}
+                <div className='lg:sticky lg:top-6 lg:self-start'>
+                    <div className='bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm'>
+                        <div className='bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2'>
+                            <div className='w-2.5 h-2.5 rounded-full bg-red-400' />
+                            <div className='w-2.5 h-2.5 rounded-full bg-yellow-400' />
+                            <div className='w-2.5 h-2.5 rounded-full bg-green-400' />
+                            <span className='text-xs text-gray-400 ml-2'>Live Preview</span>
+                        </div>
+                        <div className='overflow-y-auto max-h-[80vh]'>
+                            <div id='resume-preview'>
+                                <ResumePreview data={formData} />
                             </div>
-                        )}
-                        {languages.length > 0 && (
-                            <div>
-                                <div className='text-[9px] font-bold text-green-700 uppercase tracking-widest border-b border-green-200 pb-1 mb-2'>Languages</div>
-                                <div className='flex flex-wrap gap-1'>
-                                    {languages.map((l, i) => (
-                                        <span key={i} className='bg-green-50 border border-green-200 text-green-800 px-2 py-0.5 rounded-full text-[9px]'>{l}</span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                        </div>
                     </div>
-                )}
-                {!data.fullName && !data.experience && !data.skills && (
-                    <div className='text-center py-10 text-gray-300'>
-                        <div className='text-4xl mb-2'>📄</div>
-                        <p className='text-xs'>Fill the form to see live preview</p>
-                    </div>
-                )}
-            </div>
+                </div>
 
-            <div className='text-center text-[8px] text-gray-300 py-2 border-t border-gray-100'>
-                Generated by Jobmate • Nepal's First Verified Job Platform
             </div>
         </div>
     )
-}
-const ResumeBuilder = () => {
-    const { generateResume, loading } = useJobseeker()
-    const [formData, setFormData] = useState(emptyForm)
-    const [pdfUrl, setPdfUrl] = useState(null)
-    const [error, setError] = useState('')
-
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value })
-    }
-
-    const handleGenerate = async () => {
-    setError('')
-    if (!formData.fullName || !formData.email) {
-        setError('Full name and email are required')
-        return
-    }
-    try {
-        const data = await generateResume(formData)
-        setFormData({ ...formData, summary: data.ai_summary })
-        setPdfUrl('ready')
-        console.log('Setting pdfUrl to ready')
-setPdfUrl('ready')
-        
-    } catch (err) {
-        setError('Failed to generate resume — try again')
-    }
-}
-   const handleDownload = async () => {
-    const blob = await pdf(<ResumePDF data={formData} />).toBlob()
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${formData.fullName || 'resume'}_resume.pdf`
-    a.click()
-    URL.revokeObjectURL(url)
-}
-    return (
-    <div className='min-h-screen bg-gray-50 dark:bg-gray-950'>
-        <Navbar />
-
-        {/* Header */}
-       <div className='bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-6 py-4'>
-    <div className='max-w-6xl mx-auto flex items-center justify-between'>
-        <div>
-            <h1 className='text-lg font-bold text-gray-900 dark:text-white'>🤖 AI Resume Builder</h1>
-            <p className='text-xs text-gray-500 dark:text-gray-400'>Fill details — live preview updates instantly</p>
-        </div>
-        {pdfUrl === 'ready' && (
-            <button
-                onClick={handleDownload}
-                className='bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors'>
-                ⬇️ Download PDF
-            </button>
-        )}
-    </div>
-</div>
-
-        <div className='max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-2 gap-6'>
-
-    {/* LEFT — Form */}
-    <div className='space-y-4'>
-
-        {error && (
-            <div className='bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl text-sm'>
-                {error}
-            </div>
-        )}
-
-        {/* Personal Info */}
-        <div className='bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5'>
-            <h3 className='text-sm font-semibold text-gray-800 dark:text-white mb-4'>👤 Personal Info</h3>
-            <div className='grid grid-cols-2 gap-3'>
-                {[
-                    { label: 'Full Name *', name: 'fullName', placeholder: 'Bipin Devkota' },
-                    { label: 'Email *', name: 'email', placeholder: 'your@email.com' },
-                    { label: 'Phone', name: 'phone', placeholder: '+977-98XXXXXXXX' },
-                    { label: 'Location', name: 'location', placeholder: 'Kathmandu, Nepal' },
-                    { label: 'LinkedIn', name: 'linkedin', placeholder: 'linkedin.com/in/yourname' },
-                    { label: 'Website', name: 'website', placeholder: 'yourwebsite.com' },
-                ].map((field) => (
-                    <div key={field.name}>
-                        <label className='block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1'>{field.label}</label>
-                        <input
-                            type='text'
-                            name={field.name}
-                            value={formData[field.name]}
-                            onChange={handleChange}
-                            placeholder={field.placeholder}
-                            className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white'
-                        />
-                    </div>
-                ))}
-            </div>
-        </div>
-
-        {/* Experience */}
-        <div className='bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5'>
-            <h3 className='text-sm font-semibold text-gray-800 dark:text-white mb-1'>💼 Work Experience</h3>
-            <p className='text-xs text-gray-400 mb-3'>Separate multiple jobs with a blank line</p>
-            <textarea
-                name='experience'
-                value={formData.experience}
-                onChange={handleChange}
-                rows={5}
-                placeholder={'Software Engineer — TechCorp\nJan 2023 - Present\n- Built React apps\n- Managed APIs'}
-                className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white resize-none'
-            />
-        </div>
-
-        {/* Education */}
-        <div className='bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5'>
-            <h3 className='text-sm font-semibold text-gray-800 dark:text-white mb-1'>🎓 Education</h3>
-            <p className='text-xs text-gray-400 mb-3'>Separate multiple entries with a blank line</p>
-            <textarea
-                name='education'
-                value={formData.education}
-                onChange={handleChange}
-                rows={4}
-                placeholder={'BSc Computer Science\nTribhuvan University\n2018 - 2022'}
-                className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white resize-none'
-            />
-        </div>
-
-        {/* Skills */}
-        <div className='bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5'>
-            <h3 className='text-sm font-semibold text-gray-800 dark:text-white mb-4'>⚡ Skills & Languages</h3>
-            <div className='space-y-3'>
-                <div>
-                    <label className='block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1'>Skills * (comma separated)</label>
-                    <input
-                        type='text'
-                        name='skills'
-                        value={formData.skills}
-                        onChange={handleChange}
-                        placeholder='React, Node.js, MongoDB, Git'
-                        className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white'
-                    />
-                </div>
-                <div>
-                    <label className='block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1'>Languages (comma separated)</label>
-                    <input
-                        type='text'
-                        name='languages'
-                        value={formData.languages}
-                        onChange={handleChange}
-                        placeholder='Nepali, English, Hindi'
-                        className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white'
-                    />
-                </div>
-                <div>
-                    <label className='block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1'>Summary (optional — AI will enhance)</label>
-                    <textarea
-                        name='summary'
-                        value={formData.summary}
-                        onChange={handleChange}
-                        rows={3}
-                        placeholder='Brief about yourself...'
-                        className='w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-800 dark:text-white resize-none'
-                    />
-                </div>
-            </div>
-        </div>
-
-        {/* Generate Button */}
-        <motion.button
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-            onClick={handleGenerate}
-            disabled={loading || !formData.fullName || !formData.email}
-            className='w-full bg-green-600 hover:bg-green-700 text-white py-3.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors'
-        >
-            {loading ? (
-                <span className='flex items-center justify-center gap-2'>
-                    <span className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin' />
-                    AI is generating your resume...
-                </span>
-            ) : '🤖 Generate AI Resume PDF'}
-        </motion.button>
-
-       {pdfUrl === 'ready' && (
-    <div className='bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 text-center'>
-        <p className='text-green-700 dark:text-green-400 text-sm font-medium mb-3'>
-            🎉 Resume ready!
-        </p>
-        <div className='flex gap-3 justify-center'>
-            <button
-                onClick={handleDownload}
-                className='bg-green-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-green-700'
-            >
-                ⬇️ Download PDF
-            </button>
-            <button
-                onClick={() => { setFormData(emptyForm); setPdfUrl(null) }}
-                className='border border-green-600 text-green-600 px-5 py-2 rounded-lg text-sm hover:bg-green-50'
-            >
-                Build Another
-            </button>
-        </div>
-    </div>
-)}
-    </div>
-
-    {/* RIGHT — Live Preview */}
-    <div className='lg:sticky lg:top-6 lg:self-start'>
-        <div className='bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm'>
-            <div className='bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2'>
-                <div className='w-2.5 h-2.5 rounded-full bg-red-400' />
-                <div className='w-2.5 h-2.5 rounded-full bg-yellow-400' />
-                <div className='w-2.5 h-2.5 rounded-full bg-green-400' />
-                <span className='text-xs text-gray-400 ml-2'>Live Preview</span>
-            </div>
-            <div className='overflow-y-auto max-h-[80vh]'>
-    <div id='resume-preview'>
-        <ResumePreview data={formData} />
-    </div>
-</div>
-        </div>
-    </div>
-
-</div>
-    </div>
-)
 }
 
 export default ResumeBuilder
