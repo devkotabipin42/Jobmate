@@ -152,6 +152,20 @@ const generateResume = async (formData) => {
         setLoading(false)
     }
 }
+const matchCV = async (jobId) => {
+    setLoading(true)
+    try {
+        const res = await axios.get(
+            `${API_URL}/api/applications/match/${jobId}`,
+            { withCredentials: true }
+        )
+        return res.data.match
+    } catch (err) {
+        throw err
+    } finally {
+        setLoading(false)
+    }
+}
     return {
         loading,
         error,
@@ -163,7 +177,8 @@ const generateResume = async (formData) => {
         toggleSaveJob,
         reportJob,
         uploadCV,
-        generateResume
+        generateResume,
+        matchCV,
     }
 }
 

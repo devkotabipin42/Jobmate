@@ -1,7 +1,9 @@
+import { generateAIText } from '../config/api.js'
 import Application from '../models/Application.model.js'
 import Job from '../models/Job.model.js'
 import Employer from '../models/Employer.model.js'
 import transporter from '../config/mailer.js'
+import User from '../models/user.model.js'
 // Apply for job
 export const applyJob = async (req, res) => {
     try {
@@ -145,3 +147,55 @@ export const updateApplicationStatus = async (req, res) => {
     }
 }
 
+//CV Match + Smart Apply — Job seeker
+export const matchCV = async (req, res) => {
+    try {
+        const { jobId } = req.params
+        const user = await User.findById(req.user._id)
+
+        if (!user.cv_url) {
+            return res.status(400).json({ message: 'Please upload your CV first' })
+        }
+
+        const job = await Job.findById(jobId)
+        if (!job) return res.status(404).json({ message: 'Job not found' })
+
+        const prompt = `
+You are an expert HR recruiter. Compare this job with the candidate profile and give a match score.
+
+Job Title: ${job.title}
+Job Description: ${job.description}
+Category: ${job.category}
+Experience Required: ${job.experience}
+
+Candidate CV URL: ${user.cv_url}
+
+Respond ONLY in this exact JSON format:
+{
+    "match_score": 75,
+    "matched_skills": ["React", "Node.js"],
+    "missing_skills": ["Docker", "AWS"],
+    "verdict": "Good match! You have most required skills.",
+    "should_apply": true
+}
+`
+        let result
+        try {
+            const raw = await generateAIText(prompt)
+            const clean = raw.replace(/```json|```/g, '').trim()
+            result = JSON.parse(clean)
+        } catch {
+            result = {
+                match_score: 70,
+                matched_skills: [],
+                missing_skills: [],
+                verdict: 'Could not analyze CV — you can still apply.',
+                should_apply: true
+            }
+        }
+
+        res.status(200).json({ match: result })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}

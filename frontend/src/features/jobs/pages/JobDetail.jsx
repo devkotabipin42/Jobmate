@@ -11,19 +11,19 @@ const JobDetail = () => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const [job, setJob] = useState(null);
-  const { applyJob } = useJobseeker();
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
   const [error, setError] = useState("");
-  const { toggleSaveJob } = useJobseeker();
+  const { toggleSaveJob,applyJob,  reportJob, matchCV } = useJobseeker();
   const [saved, setSaved] = useState(false);
   const [showReport, setShowReport] = useState(false)
 const [reportReason, setReportReason] = useState('fake_job')
 const [reportDesc, setReportDesc] = useState('')
 const [reporting, setReporting] = useState(false)
 const [reported, setReported] = useState(false)
-const { reportJob } = useJobseeker()
+const [matchResult, setMatchResult] = useState(null)
+const [matching, setMatching] = useState(false)
 
 const handleReport = async () => {
     setReporting(true)
@@ -82,6 +82,24 @@ const handleApply = async () => {
   }
 };
 
+const handleMatch = async () => {
+    if (!user) { navigate('/login'); return }
+    setMatching(true)
+    try {
+        const result = await matchCV(id)
+        setMatchResult(result)
+    } catch (err) {
+        setMatchResult({
+            match_score: 0,
+            matched_skills: [],
+            missing_skills: [],
+            verdict: 'Could not analyze — please try again.',
+            should_apply: true
+        })
+    } finally {
+        setMatching(false)
+    }
+}
 if (loading)
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -175,7 +193,87 @@ if (loading)
               {error}
             </div>
           )}
+          {/* CV Match Result */}
+{user?.role === 'jobseeker' && (
+    <div className='mb-4'>
+        {!matchResult ? (
+            <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleMatch}
+                disabled={matching}
+                className='w-full border-2 border-dashed border-green-300 dark:border-green-700 text-green-600 dark:text-green-400 py-3 rounded-xl text-sm font-medium hover:bg-green-50 dark:hover:bg-green-900 transition-colors'
+            >
+                {matching ? (
+                    <span className='flex items-center justify-center gap-2'>
+                        <span className='w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin' />
+                        Analyzing your CV...
+                    </span>
+                ) : '🎯 Check CV Match'}
+            </motion.button>
+        ) : (
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className='border border-gray-200 dark:border-gray-700 rounded-xl p-4'
+            >
+                {/* Score */}
+                <div className='flex items-center justify-between mb-3'>
+                    <h3 className='text-sm font-semibold text-gray-800 dark:text-white'>CV Match Score</h3>
+                    <span className={`text-lg font-bold ${
+                        matchResult.match_score >= 60 ? 'text-green-600' : 'text-amber-500'
+                    }`}>
+                        {matchResult.match_score}%
+                    </span>
+                </div>
 
+                {/* Progress bar */}
+                <div className='w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 mb-3'>
+                    <div
+                        className={`h-2 rounded-full transition-all ${
+                            matchResult.match_score >= 60 ? 'bg-green-500' : 'bg-amber-400'
+                        }`}
+                        style={{ width: `${matchResult.match_score}%` }}
+                    />
+                </div>
+
+                {/* Verdict */}
+                <p className='text-xs text-gray-600 dark:text-gray-300 mb-3'>{matchResult.verdict}</p>
+
+                {/* Matched Skills */}
+                {matchResult.matched_skills?.length > 0 && (
+                    <div className='mb-2'>
+                        <p className='text-xs font-medium text-green-600 mb-1'>✅ Matched Skills</p>
+                        <div className='flex flex-wrap gap-1'>
+                            {matchResult.matched_skills.map((s, i) => (
+                                <span key={i} className='text-xs bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-0.5 rounded-full'>{s}</span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Missing Skills */}
+                {matchResult.missing_skills?.length > 0 && (
+                    <div className='mb-3'>
+                        <p className='text-xs font-medium text-red-500 mb-1'>❌ Missing Skills</p>
+                        <div className='flex flex-wrap gap-1'>
+                            {matchResult.missing_skills.map((s, i) => (
+                                <span key={i} className='text-xs bg-red-50 dark:bg-red-900 text-red-600 dark:text-red-300 px-2 py-0.5 rounded-full'>{s}</span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Apply or suggestion */}
+                {!matchResult.should_apply && (
+                    <div className='bg-amber-50 dark:bg-amber-900 border border-amber-200 dark:border-amber-700 rounded-lg p-3 text-xs text-amber-700 dark:text-amber-300'>
+                        💡 Add missing skills to improve your chances before applying!
+                    </div>
+                )}
+            </motion.div>
+        )}
+    </div>
+)}
           {/* Badges */}
           <div className="flex gap-2 flex-wrap mb-6">
             <span className="text-xs bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300 px-3 py-1.5 rounded-full font-medium">
