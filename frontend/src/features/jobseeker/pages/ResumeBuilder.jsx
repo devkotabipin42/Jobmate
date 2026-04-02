@@ -2,11 +2,104 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Navbar from '../../../components/Navbar.jsx'
 import useJobseeker from '../hooks/useJobseeker.js'
-
+import { pdf, Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer'
 const emptyForm = {
     fullName: '', email: '', phone: '', location: '',
     linkedin: '', website: '', summary: '',
     experience: '', education: '', skills: '', languages: ''
+}
+const pdfStyles = StyleSheet.create({
+    page: { fontFamily: 'Helvetica', fontSize: 10, color: '#1a1a1a', backgroundColor: 'white' },
+    header: { backgroundColor: '#15803d', color: 'white', padding: '20 30' },
+    headerName: { fontSize: 20, fontWeight: 'bold', marginBottom: 6 },
+    headerContact: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, fontSize: 9, opacity: 0.9 },
+    body: { padding: '20 30' },
+    section: { marginBottom: 14 },
+    sectionTitle: { fontSize: 8, fontWeight: 'bold', color: '#15803d', textTransform: 'uppercase', letterSpacing: 1.5, borderBottomWidth: 1, borderBottomColor: '#bbf7d0', paddingBottom: 3, marginBottom: 8 },
+    text: { fontSize: 10, lineHeight: 1.6, color: '#374151' },
+    skillsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
+    skillTag: { backgroundColor: '#f0fdf4', border: '1 solid #86efac', color: '#166534', fontSize: 8, padding: '3 8', borderRadius: 10 },
+    twoCol: { flexDirection: 'row', gap: 20 },
+    col: { flex: 1 },
+    footer: { textAlign: 'center', fontSize: 8, color: '#9ca3af', borderTopWidth: 1, borderTopColor: '#e5e7eb', padding: '10 0', marginTop: 10 }
+})
+
+const ResumePDF = ({ data }) => {
+    const skills = data.skills ? data.skills.split(',').map(s => s.trim()).filter(Boolean) : []
+    const languages = data.languages ? data.languages.split(',').map(l => l.trim()).filter(Boolean) : []
+
+    return (
+        <Document>
+            <Page size='A4' style={pdfStyles.page}>
+                {/* Header */}
+                <View style={pdfStyles.header}>
+                    <Text style={pdfStyles.headerName}>{data.fullName || 'Your Name'}</Text>
+                    <View style={pdfStyles.headerContact}>
+                        {data.email && <Text>Email: {data.email}</Text>}
+                        {data.phone && <Text>Phone: {data.phone}</Text>}
+                        {data.location && <Text>Location: {data.location}</Text>}
+                        {data.linkedin && <Text>LinkedIn: {data.linkedin}</Text>}
+                        {data.website && <Text>Web: {data.website}</Text>}
+                    </View>
+                </View>
+
+                <View style={pdfStyles.body}>
+                    {/* Summary */}
+                    {data.summary && (
+                        <View style={pdfStyles.section}>
+                            <Text style={pdfStyles.sectionTitle}>Professional Summary</Text>
+                            <Text style={pdfStyles.text}>{data.summary}</Text>
+                        </View>
+                    )}
+
+                    {/* Experience */}
+                    {data.experience && (
+                        <View style={pdfStyles.section}>
+                            <Text style={pdfStyles.sectionTitle}>Work Experience</Text>
+                            <Text style={pdfStyles.text}>{data.experience}</Text>
+                        </View>
+                    )}
+
+                    {/* Education */}
+                    {data.education && (
+                        <View style={pdfStyles.section}>
+                            <Text style={pdfStyles.sectionTitle}>Education</Text>
+                            <Text style={pdfStyles.text}>{data.education}</Text>
+                        </View>
+                    )}
+
+                    {/* Skills + Languages */}
+                    <View style={pdfStyles.twoCol}>
+                        {skills.length > 0 && (
+                            <View style={pdfStyles.col}>
+                                <Text style={pdfStyles.sectionTitle}>Skills</Text>
+                                <View style={pdfStyles.skillsRow}>
+                                    {skills.map((s, i) => (
+                                        <Text key={i} style={pdfStyles.skillTag}>{s}</Text>
+                                    ))}
+                                </View>
+                            </View>
+                        )}
+                        {languages.length > 0 && (
+                            <View style={pdfStyles.col}>
+                                <Text style={pdfStyles.sectionTitle}>Languages</Text>
+                                <View style={pdfStyles.skillsRow}>
+                                    {languages.map((l, i) => (
+                                        <Text key={i} style={pdfStyles.skillTag}>{l}</Text>
+                                    ))}
+                                </View>
+                            </View>
+                        )}
+                    </View>
+                </View>
+
+                {/* Footer */}
+                <View style={pdfStyles.footer}>
+                    <Text>Generated by Jobmate • Nepal's First Verified Job Platform</Text>
+                </View>
+            </Page>
+        </Document>
+    )
 }
 const ResumePreview = ({ data }) => {
     const skills = data.skills ? data.skills.split(',').map(s => s.trim()).filter(Boolean) : []
@@ -94,38 +187,51 @@ const ResumeBuilder = () => {
     }
 
     const handleGenerate = async () => {
-        setError('')
-        if (!formData.fullName || !formData.email) {
-            setError('Full name and email are required')
-            return
-        }
-        try {
-            const data = await generateResume(formData)
-            setPdfUrl(data.pdf_url)
-        } catch (err) {
-            setError('Failed to generate resume — try again')
-        }
+    setError('')
+    if (!formData.fullName || !formData.email) {
+        setError('Full name and email are required')
+        return
     }
-
+    try {
+        const data = await generateResume(formData)
+        setFormData({ ...formData, summary: data.ai_summary })
+        setPdfUrl('ready')
+        console.log('Setting pdfUrl to ready')
+setPdfUrl('ready')
+        
+    } catch (err) {
+        setError('Failed to generate resume — try again')
+    }
+}
+   const handleDownload = async () => {
+    const blob = await pdf(<ResumePDF data={formData} />).toBlob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${formData.fullName || 'resume'}_resume.pdf`
+    a.click()
+    URL.revokeObjectURL(url)
+}
     return (
     <div className='min-h-screen bg-gray-50 dark:bg-gray-950'>
         <Navbar />
 
         {/* Header */}
-        <div className='bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-6 py-4'>
-            <div className='max-w-6xl mx-auto flex items-center justify-between'>
-                <div>
-                    <h1 className='text-lg font-bold text-gray-900 dark:text-white'>🤖 AI Resume Builder</h1>
-                    <p className='text-xs text-gray-500 dark:text-gray-400'>Fill details — live preview updates instantly</p>
-                </div>
-                {pdfUrl && (
-                    <a href={pdfUrl} target='_blank' rel='noreferrer'
-                        className='bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors'>
-                        ⬇️ Download PDF
-                    </a>
-                )}
-            </div>
+       <div className='bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-6 py-4'>
+    <div className='max-w-6xl mx-auto flex items-center justify-between'>
+        <div>
+            <h1 className='text-lg font-bold text-gray-900 dark:text-white'>🤖 AI Resume Builder</h1>
+            <p className='text-xs text-gray-500 dark:text-gray-400'>Fill details — live preview updates instantly</p>
         </div>
+        {pdfUrl === 'ready' && (
+            <button
+                onClick={handleDownload}
+                className='bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors'>
+                ⬇️ Download PDF
+            </button>
+        )}
+    </div>
+</div>
 
         <div className='max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-2 gap-6'>
 
@@ -249,21 +355,27 @@ const ResumeBuilder = () => {
             ) : '🤖 Generate AI Resume PDF'}
         </motion.button>
 
-        {pdfUrl && (
-            <div className='bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 text-center'>
-                <p className='text-green-700 dark:text-green-400 text-sm font-medium mb-3'>🎉 Resume ready!</p>
-                <div className='flex gap-3 justify-center'>
-                    <a href={pdfUrl} target='_blank' rel='noreferrer'
-                        className='bg-green-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-green-700'>
-                        ⬇️ Download PDF
-                    </a>
-                    <button onClick={() => { setFormData(emptyForm); setPdfUrl(null) }}
-                        className='border border-green-600 text-green-600 px-5 py-2 rounded-lg text-sm hover:bg-green-50'>
-                        Build Another
-                    </button>
-                </div>
-            </div>
-        )}
+       {pdfUrl === 'ready' && (
+    <div className='bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 text-center'>
+        <p className='text-green-700 dark:text-green-400 text-sm font-medium mb-3'>
+            🎉 Resume ready!
+        </p>
+        <div className='flex gap-3 justify-center'>
+            <button
+                onClick={handleDownload}
+                className='bg-green-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-green-700'
+            >
+                ⬇️ Download PDF
+            </button>
+            <button
+                onClick={() => { setFormData(emptyForm); setPdfUrl(null) }}
+                className='border border-green-600 text-green-600 px-5 py-2 rounded-lg text-sm hover:bg-green-50'
+            >
+                Build Another
+            </button>
+        </div>
+    </div>
+)}
     </div>
 
     {/* RIGHT — Live Preview */}
@@ -276,8 +388,10 @@ const ResumeBuilder = () => {
                 <span className='text-xs text-gray-400 ml-2'>Live Preview</span>
             </div>
             <div className='overflow-y-auto max-h-[80vh]'>
-                <ResumePreview data={formData} />
-            </div>
+    <div id='resume-preview'>
+        <ResumePreview data={formData} />
+    </div>
+</div>
         </div>
     </div>
 
