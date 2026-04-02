@@ -1,13 +1,7 @@
-import puppeteer from 'puppeteer'
-import ImageKit from 'imagekit'
 import 'dotenv/config'
 
 import { generateAIText } from '../config/api.js'
-const imagekit = new ImageKit({
-    publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
-    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
-    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
-})
+
 
 export const generateResume = async (req, res) => {
     try {

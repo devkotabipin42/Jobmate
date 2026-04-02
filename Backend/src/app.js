@@ -17,8 +17,8 @@ import statsRouter from './routes/stats.routes.js'
 import testimonialRouter from './routes/testimonial.routes.js'
 import crmRouter from './routes/crm.routes.js'
 import ticketRouter from './routes/ticket.routes.js'
-
 const app = express()
+app.set('trust proxy', 1)
 
 const corsOptions = {
     origin: [
