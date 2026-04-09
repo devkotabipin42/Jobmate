@@ -162,7 +162,7 @@ export const EmployerApplications = ({ applications, selectedJob, viewMode, setV
                                     </div>
                                     <div>
                                         <p className='text-sm font-semibold text-gray-800 dark:text-white'>{app.user?.name}</p>
-                                        <p className='text-xs text-gray-500 dark:text-white/35'>{app.user?.email}</p>
+                                        
                                     </div>
                                 </div>
                                 <span className={`text-xs px-3 py-1 rounded-full font-medium shrink-0 border ${statusColors[app.status] || statusColors.applied}`}>
