@@ -1,3 +1,4 @@
+import SEO from '../../../components/SEO.jsx'
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -103,6 +104,13 @@ const JobDetail = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#08111f] transition-colors duration-300">
+      <SEO
+        title={`${job.title} at ${job.employer?.company_name} — ${job.location}`}
+        description={`${job.title} vacancy at ${job.employer?.company_name} in ${job.location}. Salary Rs. ${job.salary_min?.toLocaleString()} - ${job.salary_max?.toLocaleString()}. Apply now on Jobmate Nepal.`}
+        keywords={`${job.title} job, ${job.location} jobs, ${job.category} jobs nepal`}
+        url={`/jobs/${job._id}`}
+        type="article"
+      />
       <div className="fixed inset-0 opacity-0 dark:opacity-100 pointer-events-none"
         style={{ backgroundImage: "linear-gradient(rgba(22,163,74,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(22,163,74,0.03) 1px, transparent 1px)", backgroundSize: "50px 50px" }} />
 

@@ -1,15 +1,100 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <link rel="icon" type="image/png" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+
+    <!-- ── PRIMARY SEO ── -->
+    <title>Jobmate — Nepal's #1 Verified Job Portal | Find Jobs in Nawalparasi, Lumbini</title>
+    <meta name="description" content="Jobmate is Nepal's first AI-powered verified job portal. Find genuine jobs in Nawalparasi, Parasi, Butwal, Lumbini Pradesh. Verified employers, transparent salaries, instant apply. No fake jobs." />
+    <meta name="keywords" content="jobs in nepal, nawalparasi jobs, parasi jobs, lumbini jobs, butwal jobs, verified jobs nepal, rojgar nepal, jagir nepal, job vacancy nepal 2026, factory jobs nepal, ngo jobs nepal, IT jobs nepal, part time jobs nepal, full time jobs nepal, sachikaam, jobmate nepal" />
+    <meta name="author" content="Jobmate Nepal" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="googlebot" content="index, follow" />
+    <link rel="canonical" href="https://jobmate-two.vercel.app" />
+
+    <!-- ── OPEN GRAPH (Facebook, WhatsApp, LinkedIn) ── -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Jobmate Nepal" />
+    <meta property="og:title" content="Jobmate — Nepal's Verified Job Portal | Nawalparasi, Lumbini" />
+    <meta property="og:description" content="Find verified jobs in Nawalparasi, Parasi, Butwal & across Nepal. Real salaries shown. AI-powered matching. No fake jobs — every employer is verified." />
+    <meta property="og:url" content="https://jobmate-two.vercel.app" />
+    <meta property="og:image" content="https://jobmate-two.vercel.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Jobmate — Nepal's Verified Job Portal" />
+    <meta property="og:locale" content="ne_NP" />
+    <meta property="og:locale:alternate" content="en_US" />
+
+    <!-- ── TWITTER / X ── -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Jobmate — Nepal's Verified Job Portal" />
+    <meta name="twitter:description" content="Find verified jobs in Nawalparasi, Lumbini, Butwal & across Nepal. Real salaries. No fake jobs." />
+    <meta name="twitter:image" content="https://jobmate-two.vercel.app/og-image.png" />
+
+    <!-- ── GEO TARGETING (Nepal) ── -->
+    <meta name="geo.region" content="NP" />
+    <meta name="geo.placename" content="Nepal" />
+    <meta name="geo.position" content="28.3949;84.1240" />
+    <meta name="ICBM" content="28.3949, 84.1240" />
+
+    <!-- ── STRUCTURED DATA (JSON-LD) ── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Jobmate Nepal",
+      "alternateName": "Jobmate",
+      "url": "https://jobmate-two.vercel.app",
+      "description": "Nepal's first AI-powered verified job portal connecting job seekers with verified employers in Nawalparasi, Lumbini Pradesh and across Nepal.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://jobmate-two.vercel.app/jobs?keyword={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Jobmate Nepal",
+      "url": "https://jobmate-two.vercel.app",
+      "logo": "https://jobmate-two.vercel.app/logo.png",
+      "description": "Nepal's first AI-powered verified job portal",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Nawalparasi",
+        "addressRegion": "Lumbini Pradesh",
+        "addressCountry": "NP"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "hello@jobmate.com.np",
+        "contactType": "customer service"
+      },
+      "sameAs": [
+        "https://facebook.com/jobmatenepal",
+        "https://linkedin.com/company/jobmatenepal"
+      ]
+    }
+    </script>
+
+    <!-- ── FAVICON ── -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- ── PERFORMANCE ── -->
+    <link rel="preconnect" href="https://jobmate-k640.onrender.com" />
+    <link rel="dns-prefetch" href="https://jobmate-k640.onrender.com" />
   </head>
   <body>
     <div id="root"></div>
-    <div id="modal-root" style="position: fixed; inset: 0; pointer-events: none; z-index: 99999;"></div> <!-- Modal ke lai alag root element -->
+    <div id="modal-root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

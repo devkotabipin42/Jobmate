@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /jobs
+Allow: /companies
+Allow: /jobs/*
+Allow: /companies/*
+
+Disallow: /admin
+Disallow: /employer/dashboard
+Disallow: /employer/post-job
+Disallow: /profile
+
+Sitemap: https://jobmate-two.vercel.app/sitemap.xml

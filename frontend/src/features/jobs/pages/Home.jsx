@@ -1,3 +1,4 @@
+import SEO from '../../../components/SEO.jsx'
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -92,9 +93,15 @@ const scrollStyle = `
     animation-play-state: paused;
   }
 `
+
   return (
     <div className='min-h-screen bg-white dark:bg-[#08111f] transition-colors duration-300 overflow-x-hidden w-full'>
-
+      <SEO
+    title="Jobs in Nawalparasi, Parasi, Butwal — Jobmate Nepal"
+    description="Find verified jobs in Nawalparasi, Parasi, Butwal & Lumbini Pradesh. Factory jobs, NGO jobs, IT jobs — real salaries, verified employers. Nepal's #1 local job portal."
+    keywords="nawalparasi jobs, parasi jobs, butwal jobs, lumbini pradesh jobs, factory jobs nawalparasi, ngo jobs lumbini, verified jobs nepal, rojgar nawalparasi 2026"
+    url="/"
+/>
       {/* ── HERO ─────────────────────────────────────────── */}
       <div className='relative overflow-hidden bg-white dark:bg-[#08111f] transition-colors duration-300'>
 

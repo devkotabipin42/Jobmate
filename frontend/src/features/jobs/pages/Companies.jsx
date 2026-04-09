@@ -1,3 +1,4 @@
+import SEO from '../../../components/SEO.jsx'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
@@ -47,7 +48,11 @@ const Companies = () => {
 
     return (
         <div className='min-h-screen bg-white dark:bg-[#08111f] transition-colors duration-300'>
-
+            <SEO
+    title="Top Companies Hiring in Nawalparasi & Lumbini Pradesh"
+    description="Discover verified companies hiring in Nawalparasi, Butwal, Lumbini. All employers verified by Jobmate Nepal."
+    url="/companies"
+/>
             {/* ── HERO ─────────────────────────────────────── */}
             <div className='relative overflow-hidden bg-white dark:bg-[#08111f]'>
                 <div className='absolute inset-0 opacity-20 dark:opacity-100'

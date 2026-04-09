@@ -1,3 +1,4 @@
+import SEO from '../../../components/SEO.jsx'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
@@ -55,6 +56,12 @@ const JobList = () => {
 
   return (
     <div className='min-h-screen bg-white dark:bg-[#08111f] transition-colors duration-300'>
+      <SEO
+    title="Job Vacancies in Nawalparasi, Butwal, Lumbini — Browse All Jobs"
+    description="Browse verified job vacancies in Nawalparasi, Parasi, Butwal & all of Nepal. Filter by location, salary, category. Apply instantly."
+    keywords="job vacancy nawalparasi 2026, butwal job vacancy, lumbini jobs, nepal job search"
+    url="/jobs"
+/>
 
       {/* ── TOP SEARCH HERO ─────────────────────────────── */}
       <div className='relative overflow-hidden bg-white dark:bg-[#08111f]'>
