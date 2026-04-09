@@ -2,12 +2,100 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@custom-variant dark (&:where(.dark, .dark *));
+/* ── GLOBAL SMOOTH ── */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
 
 * {
     max-width: 100%;
 }
 
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
 body {
     overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ── SMOOTH PAGE TRANSITIONS ── */
+#root {
+    min-height: 100vh;
+}
+
+/* ── SMOOTH FOCUS RINGS ── */
+:focus-visible {
+    outline: 2px solid #16a34a;
+    outline-offset: 2px;
+    border-radius: 8px;
+}
+
+/* ── SMOOTH SCROLLBAR ── */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.4);
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(156, 163, 175, 0.7);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* ── SMOOTH SELECTION ── */
+::selection {
+    background: rgba(22, 163, 74, 0.2);
+    color: inherit;
+}
+
+/* ── SMOOTH LINKS & BUTTONS ── */
+a, button {
+    transition: all 0.2s ease;
+}
+
+/* ── SMOOTH IMAGES ── */
+img {
+    display: block;
+    max-width: 100%;
+}
+
+/* ── PAGE FADE IN ── */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.page-enter {
+    animation: fadeIn 0.3s ease forwards;
+}
+
+/* ── SMOOTH INPUT ── */
+input, textarea, select {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* ── KANBAN SCROLL ── */
+.kanban-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(22, 163, 74, 0.3) transparent;
 }
