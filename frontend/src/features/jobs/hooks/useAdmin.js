@@ -264,6 +264,40 @@ const broadcastEmail = async (data) => {
         setLoading(false)
     }
 }
+// Featured Companies
+const getFeaturedCompaniesAdmin = async () => {
+    try {
+        const res = await axios.get(`${API_URL}/api/admin/featured-companies/all`, { withCredentials: true })
+        return res.data.companies
+    } catch (err) { console.log(err); return [] }
+}
+
+const addFeaturedCompany = async (formData) => {
+    try {
+        const res = await axios.post(`${API_URL}/api/admin/featured-companies`, formData, { withCredentials: true })
+        return res.data.company
+    } catch (err) { console.log(err) }
+}
+
+const deleteFeaturedCompanyAdmin = async (id) => {
+    try {
+        await axios.delete(`${API_URL}/api/admin/featured-companies/${id}`, { withCredentials: true })
+        return true
+    } catch (err) { console.log(err) }
+}
+const toggleFeaturedCompanyAdmin = async (id) => {
+    try {
+        const res = await axios.put(`${API_URL}/api/admin/featured-companies/${id}/toggle`, {}, { withCredentials: true })
+        return res.data.company
+    } catch (err) { console.log(err) }
+}
+const toggleEmployerPremium = async (id, plan, duration_days) => {
+    try {
+        await axios.put(`${API_URL}/api/admin/employers/${id}/premium`,
+            { plan, duration_days }, getAuthHeaders())
+        return true
+    } catch (err) { return false }
+}
     return {
         loading,
         error,
@@ -291,8 +325,12 @@ const broadcastEmail = async (data) => {
     getAllTickets,
     replyTicket,
     updateTicketStatus,
-    broadcastEmail
-
+    broadcastEmail,
+    getFeaturedCompaniesAdmin,
+    addFeaturedCompany,
+    deleteFeaturedCompanyAdmin,
+    toggleFeaturedCompanyAdmin,
+    toggleEmployerPremium
 }
 }
 export default useAdmin

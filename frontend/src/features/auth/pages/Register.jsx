@@ -2,202 +2,138 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import useAuth from '../hooks/useAuth.js'
+
 const Register = () => {
     const [role, setRole] = useState('jobseeker')
-    const [formData, setFormData] = useState({
-        name: '',
-        company_name: '',
-        email: '',
-        password: '',
-        phone: '',
-        location: ''
-    })
+    const [formData, setFormData] = useState({ name: '', company_name: '', email: '', password: '', phone: '', location: '' })
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
     const [success, setSuccess] = useState(false)
 
     const { register } = useAuth()
-    const navigate = useNavigate()
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value })
+    const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value })
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        setLoading(true)
+        setError('')
+        try {
+            const data = role === 'employer'
+                ? { company_name: formData.company_name, email: formData.email, password: formData.password, phone: formData.phone, location: formData.location }
+                : { name: formData.name, email: formData.email, password: formData.password, phone: formData.phone, location: formData.location }
+            await register(data, role)
+            setSuccess(true)
+        } catch (err) {
+            setError(err.response?.data?.message || 'Registration failed')
+        } finally {
+            setLoading(false)
+        }
     }
 
-   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-    try {
-        const data = role === 'employer'
-            ? { company_name: formData.company_name, email: formData.email, password: formData.password, phone: formData.phone, location: formData.location }
-            : { name: formData.name, email: formData.email, password: formData.password, phone: formData.phone, location: formData.location }
-
-        await register(data, role)
-        setSuccess(true) 
-    } catch (err) {
-        setError(err.response?.data?.message || 'Registration failed')
-    } finally {
-        setLoading(false)
-    }
-}
+    // Success screen
     if (success) return (
-    <div className='min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4'>
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className='bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-8 max-w-md w-full text-center'
-        >
-            <div className='w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4'>
-                <span className='text-3xl'>✓</span>
-            </div>
-            <h2 className='text-xl font-bold text-gray-800 dark:text-white mb-2'>
-                Check your email!
-            </h2>
-            <p className='text-sm text-gray-500 dark:text-gray-400 mb-2'>
-                We sent a verification link to
-            </p>
-            <p className='text-sm font-semibold text-green-600 mb-6'>
-                {formData.email}
-            </p>
-            <p className='text-xs text-gray-400 mb-6'>
-                Click the link in your email to verify your account. Link expires in 24 hours.
-            </p>
-            <Link
-                to='/login'
-                className='block w-full bg-green-600 text-white py-3 rounded-xl text-sm font-medium hover:bg-green-700 transition-colors'
-            >
-                Back to Login
-            </Link>
-        </motion.div>
-    </div>
-)
+        <div className='min-h-screen bg-white dark:bg-[#08111f] flex items-center justify-center px-4 transition-colors'>
+            <div className='absolute inset-0 opacity-10 dark:opacity-40 pointer-events-none'
+                style={{ backgroundImage: 'linear-gradient(rgba(22,163,74,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(22,163,74,0.06) 1px, transparent 1px)', backgroundSize: '50px 50px' }} />
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                className='relative z-10 bg-white dark:bg-white/3 border border-gray-200 dark:border-white/7 rounded-2xl p-10 max-w-md w-full text-center'>
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.2 }}
+                    className='w-16 h-16 bg-green-500/10 border border-green-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6'>
+                    <svg className='w-8 h-8 text-green-500' fill='none' stroke='currentColor' strokeWidth='2.5' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' d='M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'/>
+                    </svg>
+                </motion.div>
+                <h2 className='text-xl font-bold text-gray-800 dark:text-white mb-2'>Check your email!</h2>
+                <p className='text-sm text-gray-500 dark:text-white/40 mb-2'>We sent a verification link to</p>
+                <p className='text-sm font-semibold text-green-600 dark:text-green-400 mb-6'>{formData.email}</p>
+                <p className='text-xs text-gray-400 dark:text-white/25 mb-8'>Click the link in your email to verify your account. Link expires in 24 hours.</p>
+                <Link to='/login' className='block w-full bg-green-600 hover:bg-green-700 text-white py-3.5 rounded-xl text-sm font-semibold transition-colors'>
+                    Back to Login →
+                </Link>
+            </motion.div>
+        </div>
+    )
+
     return (
-        <div className='min-h-screen bg-gray-50 dark:bg-gray-900 flex transition-colors'>
+        <div className='min-h-screen bg-white dark:bg-[#08111f] flex transition-colors duration-300'>
 
-            {/* Left Side */}
-            <motion.div
-                initial={{ opacity: 0, x: -40 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                className='hidden lg:flex w-1/2 bg-green-600 flex-col items-center justify-center p-12 relative overflow-hidden'
-            >
-                <div className='absolute top-0 left-0 w-full h-full'>
-                    <motion.div
-                        animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.3, 0.1] }}
-                        transition={{ duration: 8, repeat: Infinity }}
-                        className='absolute -top-20 -left-20 w-80 h-80 bg-green-500 rounded-full'
-                    />
-                    <motion.div
-                        animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.2, 0.1] }}
-                        transition={{ duration: 6, repeat: Infinity, delay: 2 }}
-                        className='absolute -bottom-20 -right-20 w-96 h-96 bg-green-700 rounded-full'
-                    />
+            {/* ── LEFT SIDE ── */}
+            <motion.div initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}
+                className='hidden lg:flex w-1/2 flex-col items-center justify-center p-12 relative overflow-hidden bg-[#08111f]'>
+
+                {/* Grid */}
+                <div className='absolute inset-0'
+                    style={{ backgroundImage: 'linear-gradient(rgba(22,163,74,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(22,163,74,0.06) 1px, transparent 1px)', backgroundSize: '50px 50px' }} />
+
+                {/* Glows */}
+                <div className='absolute -top-20 -right-20 w-80 h-80 rounded-full pointer-events-none'
+                    style={{ background: 'radial-gradient(circle, rgba(22,163,74,0.2) 0%, transparent 65%)' }} />
+                <div className='absolute -bottom-20 -left-20 w-64 h-64 rounded-full pointer-events-none'
+                    style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 65%)' }} />
+
+               <div className='relative z-10 text-center max-w-sm'>
+    {/* Logo */}
+    <Link to='/' className='inline-flex items-center gap-2 mb-12'>
+        <motion.div animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 2, repeat: Infinity }}
+            className='w-2 h-2 bg-green-400 rounded-full' />
+        <span className='text-2xl font-extrabold text-white tracking-tight'>Jobmate</span>
+    </Link>
+
+    <motion.h2 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+        className='text-4xl font-extrabold text-white mb-4 leading-tight'>
+        Welcome back!
+    </motion.h2>
+
+    <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
+        className='text-white/50 text-sm mb-10'>
+        Nepal's first 100% verified job platform
+    </motion.p>
+
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
+        className='space-y-4 text-left'>
+        {['100% verified jobs — no fake listings', 'Salary always visible — no hidden info', 'AI-powered CV matching'].map((b, i) => (
+            <motion.div key={i} initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 + i * 0.1 }}
+                className='flex items-center gap-3'>
+                <div className='w-6 h-6 bg-green-500/20 border border-green-500/30 rounded-full flex items-center justify-center shrink-0'>
+                    <svg className='w-3 h-3 text-green-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={3} d='M5 13l4 4L19 7' />
+                    </svg>
                 </div>
-
-                <div className='relative z-10 text-center'>
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className='mb-8'
-                    >
-                        <svg viewBox='0 0 400 300' className='w-80 h-60 mx-auto'>
-                            <rect x='50' y='50' width='300' height='200' rx='20' fill='rgba(255,255,255,0.1)' />
-                            <rect x='80' y='70' width='240' height='150' rx='10' fill='rgba(255,255,255,0.15)' />
-                            <rect x='100' y='90' width='200' height='35' rx='8' fill='rgba(255,255,255,0.3)' />
-                            <rect x='115' y='100' width='80' height='8' rx='4' fill='white' />
-                            <rect x='115' y='112' width='50' height='6' rx='3' fill='rgba(255,255,255,0.6)' />
-                            <rect x='260' y='98' width='30' height='18' rx='4' fill='#22c55e' />
-                            <rect x='100' y='135' width='200' height='35' rx='8' fill='rgba(255,255,255,0.3)' />
-                            <rect x='115' y='145' width='70' height='8' rx='4' fill='white' />
-                            <rect x='115' y='157' width='45' height='6' rx='3' fill='rgba(255,255,255,0.6)' />
-                            <rect x='260' y='143' width='30' height='18' rx='4' fill='#22c55e' />
-                            <rect x='100' y='180' width='200' height='30' rx='8' fill='rgba(255,255,255,0.2)' />
-                            <rect x='115' y='190' width='60' height='8' rx='4' fill='rgba(255,255,255,0.7)' />
-                            <circle cx='320' cy='200' r='25' fill='rgba(255,255,255,0.2)' />
-                            <circle cx='320' cy='190' r='12' fill='rgba(255,255,255,0.5)' />
-                            <circle cx='90' cy='230' r='18' fill='#22c55e' />
-                            <path d='M82 230 L88 236 L100 222' stroke='white' strokeWidth='3' fill='none' strokeLinecap='round' />
-                            <rect x='140' y='220' width='100' height='24' rx='12' fill='rgba(255,255,255,0.2)' />
-                            <text x='190' y='236' textAnchor='middle' fill='white' fontSize='10' fontWeight='bold'>Rs. 50K - 80K</text>
-                        </svg>
-                    </motion.div>
-
-                    <motion.h2
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                        className='text-3xl font-semibold text-white mb-4'
-                    >
-                        Find your dream<br />job in Nepal
-                    </motion.h2>
-
-                    <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.5 }}
-                        className='text-green-100 mb-8 text-sm'
-                    >
-                        Nepal ko pehlo verified job platform
-                    </motion.p>
-
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.6 }}
-                        className='space-y-3 text-left'
-                    >
-                        {[
-                            '100% verified jobs — no fake listings',
-                            'Salary always visible — no hidden info',
-                            'Real-time application tracking',
-                        ].map((benefit, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.7 + i * 0.1 }}
-                                className='flex items-center gap-3'
-                            >
-                                <div className='w-5 h-5 bg-white rounded-full flex items-center justify-center shrink-0'>
-                                    <svg className='w-3 h-3 text-green-600' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={3} d='M5 13l4 4L19 7' />
-                                    </svg>
-                                </div>
-                                <span className='text-green-50 text-sm'>{benefit}</span>
-                            </motion.div>
-                        ))}
-                    </motion.div>
-                </div>
+                <span className='text-white/70 text-sm'>{b}</span>
+            </motion.div>
+        ))}
+    </motion.div>
+</div>
             </motion.div>
 
-            {/* Right Side — Form */}
-            <div className='w-full lg:w-1/2 flex items-center justify-center px-6 py-10'>
-                <motion.div
-                    initial={{ opacity: 0, x: 40 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className='w-full max-w-md'
-                >
-                    <Link to='/' className='block text-center text-2xl font-semibold text-green-600 mb-2'>
-                        Job<span className='text-gray-800 dark:text-white'>mate</span>
+            {/* ── RIGHT SIDE — Form ── */}
+            <div className='w-full lg:w-1/2 flex items-center justify-center px-6 py-10 bg-white dark:bg-[#08111f] relative'>
+                <div className='absolute inset-0 lg:left-0 opacity-10 dark:opacity-40 pointer-events-none'
+                    style={{ backgroundImage: 'linear-gradient(rgba(22,163,74,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(22,163,74,0.06) 1px, transparent 1px)', backgroundSize: '50px 50px' }} />
+
+                <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}
+                    className='w-full max-w-md relative z-10'>
+
+                    {/* Logo — mobile */}
+                    <Link to='/' className='lg:hidden flex items-center justify-center gap-2 mb-8'>
+                        <motion.div animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 2, repeat: Infinity }}
+                            className='w-2 h-2 bg-green-500 rounded-full' />
+                        <span className='text-2xl font-extrabold text-gray-900 dark:text-white'>Jobmate</span>
                     </Link>
-                    <p className='text-center text-sm text-gray-500 dark:text-gray-400 mb-8'>
-                        Create your account — it's free!
-                    </p>
+
+                    <h1 className='text-2xl font-bold text-gray-900 dark:text-white mb-1'>Create account</h1>
+                    <p className='text-sm text-gray-500 dark:text-white/40 mb-8'>It's free — join 15,000+ job seekers</p>
 
                     {/* Role Toggle */}
-                    <div className='flex bg-gray-100 dark:bg-gray-700 rounded-xl p-1 mb-6'>
+                    <div className='flex bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/8 rounded-2xl p-1 mb-6'>
                         {['jobseeker', 'employer'].map((r) => (
-                            <button
-                                key={r}
-                                onClick={() => setRole(r)}
-                                className={`flex-1 py-2 text-sm rounded-lg transition-all duration-200 ${
+                            <button key={r} onClick={() => setRole(r)}
+                                className={`flex-1 py-2.5 text-sm rounded-xl transition-all font-medium ${
                                     role === r
-                                        ? 'bg-white dark:bg-gray-600 text-green-600 font-medium shadow-sm'
-                                        : 'text-gray-500 dark:text-gray-400'
-                                }`}
-                            >
+                                        ? 'bg-white dark:bg-white/10 text-green-600 dark:text-green-400 shadow-sm'
+                                        : 'text-gray-500 dark:text-white/35'
+                                }`}>
                                 {r === 'jobseeker' ? 'Job Seeker' : 'Employer'}
                             </button>
                         ))}
@@ -206,12 +142,8 @@ const Register = () => {
                     {/* Error */}
                     <AnimatePresence>
                         {error && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className='bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 text-red-600 dark:text-red-300 text-sm px-4 py-3 rounded-lg mb-4'
-                            >
+                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                                className='bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm px-4 py-3 rounded-xl mb-4'>
                                 {error}
                             </motion.div>
                         )}
@@ -219,110 +151,80 @@ const Register = () => {
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} className='space-y-4'>
+
+                        {/* Name */}
                         <div>
-                            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                            <label className='block text-xs font-semibold text-gray-500 dark:text-white/40 uppercase tracking-widest mb-2'>
                                 {role === 'employer' ? 'Company Name' : 'Full Name'}
                             </label>
-                            <input
-                                type='text'
-                                name={role === 'employer' ? 'company_name' : 'name'}
+                            <input type='text' name={role === 'employer' ? 'company_name' : 'name'}
                                 value={role === 'employer' ? formData.company_name : formData.name}
                                 onChange={handleChange}
-                                placeholder={role === 'employer' ? 'TechSoft Nepal' : 'Bipin Devkota'}
+                                placeholder={role === 'employer' ? 'TechSoft Nepal Pvt. Ltd.' : 'Bipin Devkota'}
                                 required
-                                className='w-full border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 transition-all'
-                            />
+                                className='w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/8 rounded-xl px-4 py-3 text-sm outline-none focus:border-green-500 dark:focus:border-green-500/50 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-white/20 transition-colors' />
                         </div>
 
+                        {/* Email */}
                         <div>
-                            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                                Email
-                            </label>
-                            <input
-                                type='email'
-                                name='email'
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder='your@email.com'
-                                required
-                                className='w-full border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 transition-all'
-                            />
+                            <label className='block text-xs font-semibold text-gray-500 dark:text-white/40 uppercase tracking-widest mb-2'>Email address</label>
+                            <input type='email' name='email' value={formData.email} onChange={handleChange}
+                                placeholder='your@email.com' required
+                                className='w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/8 rounded-xl px-4 py-3 text-sm outline-none focus:border-green-500 dark:focus:border-green-500/50 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-white/20 transition-colors' />
                         </div>
 
+                        {/* Password */}
                         <div>
-                            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                                Password
-                            </label>
-                            <input
-                                type='password'
-                                name='password'
-                                value={formData.password}
-                                onChange={handleChange}
-                                placeholder='••••••••'
-                                required
-                                className='w-full border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 transition-all'
-                            />
+                            <label className='block text-xs font-semibold text-gray-500 dark:text-white/40 uppercase tracking-widest mb-2'>Password</label>
+                            <input type='password' name='password' value={formData.password} onChange={handleChange}
+                                placeholder='Min. 6 characters' required
+                                className='w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/8 rounded-xl px-4 py-3 text-sm outline-none focus:border-green-500 dark:focus:border-green-500/50 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-white/20 transition-colors' />
                         </div>
 
-                        <div className='flex flex-col sm:flex-row gap-3'>
-                            <div className='flex-1'>
-                                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                                    Phone
-                                </label>
-                                <input
-                                    type='text'
-                                    name='phone'
-                                    value={formData.phone}
-                                    onChange={handleChange}
+                        {/* Phone + Location */}
+                        <div className='grid grid-cols-2 gap-3'>
+                            <div>
+                                <label className='block text-xs font-semibold text-gray-500 dark:text-white/40 uppercase tracking-widest mb-2'>Phone</label>
+                                <input type='text' name='phone' value={formData.phone} onChange={handleChange}
                                     placeholder='98XXXXXXXX'
-                                    className='w-full border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 transition-all'
-                                />
+                                    className='w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/8 rounded-xl px-4 py-3 text-sm outline-none focus:border-green-500 dark:focus:border-green-500/50 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-white/20 transition-colors' />
                             </div>
-                            <div className='flex-1'>
-                                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-                                    Location
-                                </label>
-                                <select
-                                    name='location'
-                                    value={formData.location}
-                                    onChange={handleChange}
-                                    className='w-full border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white transition-all'
-                                >
-                                    <option value=''>Select</option>
-                                    <option>Kathmandu</option>
-                                    <option>Lalitpur</option>
-                                    <option>Pokhara</option>
-                                    <option>Chitwan</option>
-                                    <option>Other</option>
+                            <div>
+                                <label className='block text-xs font-semibold text-gray-500 dark:text-white/40 uppercase tracking-widest mb-2'>Location</label>
+                                <select name='location' value={formData.location} onChange={handleChange}
+                                    className='w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/8 rounded-xl px-4 py-3 text-sm outline-none focus:border-green-500 dark:focus:border-green-500/50 text-gray-800 dark:text-white transition-colors cursor-pointer'>
+                                    <option value='' className='dark:bg-[#0c1a2e]'>Select</option>
+                                    {['Kathmandu', 'Lalitpur', 'Bhaktapur', 'Pokhara', 'Chitwan', 'Butwal', 'Other'].map(l => (
+                                        <option key={l} className='dark:bg-[#0c1a2e]'>{l}</option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
 
-                        <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            type='submit'
-                            disabled={loading}
-                            className='w-full bg-green-600 text-white py-3 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors'
-                        >
+                        {/* Submit */}
+                        <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} type='submit' disabled={loading}
+                            className='w-full bg-green-600 hover:bg-green-700 text-white py-3.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2 mt-2'>
                             {loading ? (
-                                <span className='flex items-center justify-center gap-2'>
-                                    <motion.span
-                                        animate={{ rotate: 360 }}
-                                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                                        className='w-4 h-4 border-2 border-white border-t-transparent rounded-full inline-block'
-                                    />
+                                <>
+                                    <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                        className='w-4 h-4 border-2 border-white border-t-transparent rounded-full' />
                                     Creating account...
-                                </span>
-                            ) : 'Create account'}
+                                </>
+                            ) : `Create ${role === 'employer' ? 'Employer' : ''} Account →`}
                         </motion.button>
                     </form>
 
-                    <p className='text-center text-sm text-gray-500 dark:text-gray-400 mt-6'>
+                    {/* Terms */}
+                    <p className='text-xs text-gray-400 dark:text-white/20 text-center mt-4'>
+                        By registering, you agree to our{' '}
+                        <Link to='/terms' className='text-green-600 dark:text-green-400 hover:underline'>Terms</Link>
+                        {' & '}
+                        <Link to='/privacy' className='text-green-600 dark:text-green-400 hover:underline'>Privacy Policy</Link>
+                    </p>
+
+                    <p className='text-center text-sm text-gray-500 dark:text-white/35 mt-6'>
                         Already have an account?{' '}
-                        <Link to='/login' className='text-green-600 hover:underline font-medium'>
-                            Login here
-                        </Link>
+                        <Link to='/login' className='text-green-600 dark:text-green-400 hover:underline font-semibold'>Sign in →</Link>
                     </p>
                 </motion.div>
             </div>

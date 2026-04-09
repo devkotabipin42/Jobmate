@@ -17,6 +17,7 @@ import statsRouter from './routes/stats.routes.js'
 import testimonialRouter from './routes/testimonial.routes.js'
 import crmRouter from './routes/crm.routes.js'
 import ticketRouter from './routes/ticket.routes.js'
+import featuredCompanyRouter from './routes/Featuredcompany.routes.js'
 const app = express()
 app.set('trust proxy', 1)
 
@@ -66,5 +67,5 @@ app.use('/api/stats', statsRouter)
 app.use('/api/testimonials', testimonialRouter)
 app.use('/api/crm', crmRouter)
 app.use('/api/tickets', ticketRouter)
-
+app.use('/api/admin/featured-companies', featuredCompanyRouter)
 export default app

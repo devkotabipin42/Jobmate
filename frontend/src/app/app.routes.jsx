@@ -15,7 +15,7 @@ import Register from "../features/auth/pages/Register.jsx";
 import VerifyEmail from '../features/auth/pages/VerifyEmail.jsx'
 
 // Employer
-import EmployerDashboard from "../features/employer/pages/EmployerDashboard.jsx";
+import EmployerDashboard from "../features/employer/pages/EmployerDashboard/EmployerDashboard.jsx";
 import PostJob from "../features/employer/pages/PostJob.jsx";
 import ManageJobs from "../features/employer/pages/ManageJobs.jsx";
 import EditJob from "../features/employer/pages/EditJob.jsx";
@@ -32,7 +32,7 @@ import Protected from "../components/Protected.jsx";
 import Companies from "../features/jobs/pages/Companies.jsx";
 import CareerTips from "../features/jobs/pages/CareerTips.jsx";
 //Admin
-import AdminPanel from "../features/jobs/pages/AdminPanel.jsx";
+import AdminPanel from "../features/jobs/pages/AdminPanel/AdminPanel.jsx";
 
 //Error Page
 import NotFound from "../features/jobs/pages/NotFound.jsx";
