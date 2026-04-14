@@ -298,6 +298,41 @@ const toggleEmployerPremium = async (id, plan, duration_days) => {
         return true
     } catch (err) { return false }
 }
+const getPendingDocuments = async () => {
+    setLoading(true)
+    try {
+        const res = await axios.get(`${API_URL}/api/admin/documents/pending`, getAuthHeaders())
+        return res.data.users
+    } catch (err) {
+        return []
+    } finally {
+        setLoading(false)
+    }
+}
+ 
+const verifyDocument = async (id, action, reject_reason) => {
+    try {
+        await axios.put(`${API_URL}/api/admin/documents/${id}/verify`,
+            { action, reject_reason }, getAuthHeaders())
+        return true
+    } catch (err) {
+        return false
+    }
+}
+const getAllDocuments = async () => {
+    try {
+        const res = await axios.get(`${API_URL}/api/admin/documents/all`, getAuthHeaders())
+        return res.data.users
+    } catch (err) { return [] }
+}
+
+const resetDocument = async (id) => {
+    try {
+        await axios.put(`${API_URL}/api/admin/documents/${id}/reset`, {}, getAuthHeaders())
+        return true
+    } catch (err) { return false }
+}
+// return mein add karo: getAllDocuments, resetDocument
     return {
         loading,
         error,
@@ -330,7 +365,12 @@ const toggleEmployerPremium = async (id, plan, duration_days) => {
     addFeaturedCompany,
     deleteFeaturedCompanyAdmin,
     toggleFeaturedCompanyAdmin,
-    toggleEmployerPremium
+    toggleEmployerPremium,
+    getPendingDocuments,
+    verifyDocument,
+    getAllDocuments,
+     resetDocument
+
 }
 }
 export default useAdmin

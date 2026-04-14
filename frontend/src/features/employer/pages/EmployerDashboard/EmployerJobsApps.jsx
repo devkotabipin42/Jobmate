@@ -27,6 +27,13 @@ const kanbanColumns = {
     rejected: { title: 'Rejected', dot: 'bg-red-500', bg: 'bg-red-500/5 border-red-500/15' },
 }
 
+// ── VERIFIED BADGE ────────────────────────────────────────
+const VerifiedBadge = () => (
+    <span className='inline-flex items-center gap-1 bg-amber-50 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0'>
+        ⭐ Verified
+    </span>
+)
+
 // ── EMPLOYER JOBS ─────────────────────────────────────────
 export const EmployerJobs = ({ myJobs, loading, handleViewApplications, handleDeleteJob, deleting }) => (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className='min-w-0'>
@@ -157,12 +164,33 @@ export const EmployerApplications = ({ applications, selectedJob, viewMode, setV
                             className='bg-white dark:bg-white/3 border border-gray-200 dark:border-white/7 rounded-2xl p-5'>
                             <div className='flex items-start justify-between gap-3 mb-3'>
                                 <div className='flex items-center gap-3'>
-                                    <div className='w-10 h-10 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-500 font-semibold shrink-0'>
+                                    {/* Avatar with verified ring */}
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold shrink-0 ${
+                                        app.user?.is_verified_jobseeker
+                                            ? 'bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-400 dark:border-amber-500/50 text-amber-600 dark:text-amber-400'
+                                            : 'bg-green-500/10 border border-green-500/20 text-green-500'
+                                    }`}>
                                         {app.user?.name?.charAt(0)}
                                     </div>
                                     <div>
-                                        <p className='text-sm font-semibold text-gray-800 dark:text-white'>{app.user?.name}</p>
-                                        
+                                        <div className='flex items-center gap-1.5 flex-wrap'>
+                                            <p className='text-sm font-semibold text-gray-800 dark:text-white'>{app.user?.name}</p>
+                                            {app.user?.is_verified_jobseeker && <VerifiedBadge />}
+                                        </div>
+                                        <p className='text-xs text-gray-500 dark:text-white/35'>{app.user?.location || 'No location'}</p>
+                                        {/* Skills preview */}
+                                        {app.user?.skills?.length > 0 && (
+                                            <div className='flex gap-1 flex-wrap mt-1'>
+                                                {app.user.skills.slice(0, 3).map((skill, j) => (
+                                                    <span key={j} className='text-[10px] bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-white/40 px-2 py-0.5 rounded-full'>
+                                                        {skill}
+                                                    </span>
+                                                ))}
+                                                {app.user.skills.length > 3 && (
+                                                    <span className='text-[10px] text-gray-400 dark:text-white/25'>+{app.user.skills.length - 3}</span>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <span className={`text-xs px-3 py-1 rounded-full font-medium shrink-0 border ${statusColors[app.status] || statusColors.applied}`}>
@@ -182,10 +210,6 @@ export const EmployerApplications = ({ applications, selectedJob, viewMode, setV
                                         className='text-xs text-green-600 dark:text-green-400 hover:underline flex items-center gap-1'>
                                         <svg className='w-3 h-3' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/><circle cx='12' cy='12' r='3'/></svg>
                                         View CV
-                                    </a>
-                                    <a href={app.cv_url} download className='text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1'>
-                                        <svg className='w-3 h-3' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/><polyline points='7 10 12 15 17 10'/><line x1='12' y1='15' x2='12' y2='3'/></svg>
-                                        Download CV
                                     </a>
                                 </div>
                             )}
@@ -226,16 +250,39 @@ export const EmployerApplications = ({ applications, selectedJob, viewMode, setV
                                                     <Draggable key={app._id} draggableId={app._id} index={i}>
                                                         {(provided, snapshot) => (
                                                             <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
-                                                                className={`bg-white dark:bg-white/5 rounded-xl p-3 mb-2 border border-gray-100 dark:border-white/7 transition-shadow ${snapshot.isDragging ? 'shadow-lg rotate-1' : ''}`}>
+                                                                className={`bg-white dark:bg-white/5 rounded-xl p-3 mb-2 border transition-shadow ${
+                                                                    app.user?.is_verified_jobseeker
+                                                                        ? 'border-amber-200 dark:border-amber-500/20'
+                                                                        : 'border-gray-100 dark:border-white/7'
+                                                                } ${snapshot.isDragging ? 'shadow-lg rotate-1' : ''}`}>
                                                                 <div className='flex items-center gap-2 mb-2'>
-                                                                    <div className='w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 font-semibold text-xs shrink-0'>
+                                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-xs shrink-0 ${
+                                                                        app.user?.is_verified_jobseeker
+                                                                            ? 'bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-400 dark:border-amber-500/50 text-amber-600 dark:text-amber-400'
+                                                                            : 'bg-green-500/10 text-green-500'
+                                                                    }`}>
                                                                         {app.user?.name?.charAt(0)}
                                                                     </div>
-                                                                    <div className='min-w-0'>
-                                                                        <p className='text-xs font-semibold text-gray-800 dark:text-white truncate'>{app.user?.name}</p>
+                                                                    <div className='min-w-0 flex-1'>
+                                                                        <div className='flex items-center gap-1 flex-wrap'>
+                                                                            <p className='text-xs font-semibold text-gray-800 dark:text-white truncate'>{app.user?.name}</p>
+                                                                            {app.user?.is_verified_jobseeker && (
+                                                                                <span className='text-[9px] text-amber-600 dark:text-amber-400'>⭐</span>
+                                                                            )}
+                                                                        </div>
                                                                         <p className='text-xs text-gray-400 dark:text-white/25 truncate'>{app.user?.location || 'No location'}</p>
                                                                     </div>
                                                                 </div>
+                                                                {/* Skills in kanban */}
+                                                                {app.user?.skills?.length > 0 && (
+                                                                    <div className='flex gap-1 flex-wrap mb-2'>
+                                                                        {app.user.skills.slice(0, 2).map((skill, j) => (
+                                                                            <span key={j} className='text-[9px] bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-white/30 px-1.5 py-0.5 rounded-full'>
+                                                                                {skill}
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
                                                                 {app.cv_url && (
                                                                     <a href={app.cv_url} target='_blank' rel='noreferrer' className='text-xs text-green-600 dark:text-green-400 hover:underline'>View CV</a>
                                                                 )}

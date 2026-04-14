@@ -8,6 +8,7 @@ import { AdminPendingJobs, AdminAllJobs } from './AdminJobs.jsx'
 import { AdminEmployers, AdminUsers } from './AdminEmployersUsers.jsx'
 import { AdminReports, AdminTestimonials, AdminBroadcast, AdminFeaturedCompanies } from './AdminOthers.jsx'
 import AdminTickets from './AdminTickets.jsx'
+import AdminDocuments from './AdminDocuments.jsx'
 
 const COLORS = ['#22c55e', '#f59e0b', '#8b5cf6', '#3b82f6', '#ef4444']
 
@@ -23,6 +24,7 @@ const sidebarItems = [
     { id: 'tickets', label: 'Tickets', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M20 12V22H4V12'/><path d='M22 7H2v5h20V7z'/><path d='M12 22V7'/><path d='M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z'/><path d='M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z'/></svg> },
     { id: 'broadcast', label: 'Broadcast', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.14 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.05 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 10a16 16 0 0 0 6 6z'/></svg> },
     { id: 'featured-companies', label: 'Featured Companies', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/><polyline points='9 22 9 12 15 12 15 22'/></svg> },
+    { id: 'documents', label: 'Verify Documents', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'/></svg> },
 ]
 
 const AdminPanel = () => {
@@ -33,7 +35,8 @@ const AdminPanel = () => {
         resolveReport, dismissReport, getAllTestimonials, approveTestimonial,
         rejectTestimonial, deleteTestimonialAdmin, getAllTickets, replyTicket,
         updateTicketStatus, broadcastEmail, toggleFeaturedJob,
-    toggleEmployerPremium 
+        toggleEmployerPremium,
+        getPendingDocuments, verifyDocument, resetDocument, getAllDocuments
     } = useAdmin()
 
     const [activeTab, setActiveTab] = useState('dashboard')
@@ -55,6 +58,7 @@ const AdminPanel = () => {
     const [featuredUploading, setFeaturedUploading] = useState(false)
     const [featuredForm, setFeaturedForm] = useState({ name: '', location: 'Nepal', industry: '', website: '', description: '', logo: null })
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+    const [pendingDocuments, setPendingDocuments] = useState([])
 
     useEffect(() => {
         loadStats()
@@ -95,6 +99,7 @@ const AdminPanel = () => {
         if (tab === 'testimonials') getAllTestimonials().then(data => setTestimonials(data || []))
         if (tab === 'tickets') getAllTickets().then(data => setTickets(data || []))
         if (tab === 'featured-companies') loadFeaturedCompanies()
+        if (tab === 'documents') getPendingDocuments().then(data => setPendingDocuments(data || []))
     }
 
     const loadFeaturedCompanies = async () => {
@@ -195,6 +200,11 @@ const AdminPanel = () => {
                                 {item.id === 'pending' && stats?.pendingJobs > 0 && (
                                     <span className='ml-auto text-xs bg-amber-500 text-white w-5 h-5 rounded-full flex items-center justify-center font-bold'>
                                         {stats.pendingJobs}
+                                    </span>
+                                )}
+                                {item.id === 'documents' && pendingDocuments.length > 0 && (
+                                    <span className='ml-auto text-xs bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center font-bold'>
+                                        {pendingDocuments.length}
                                     </span>
                                 )}
                             </button>
@@ -391,6 +401,15 @@ const AdminPanel = () => {
                                 onToggle={handleToggleFeaturedCompany}
                                 form={featuredForm} setForm={setFeaturedForm}
                                 uploading={featuredUploading} />
+                        )}
+                        {activeTab === 'documents' && (
+                            <AdminDocuments key='documents'
+                                documents={pendingDocuments}
+                                setDocuments={setPendingDocuments}
+                                verifyDocument={verifyDocument}
+                                resetDocument={resetDocument}
+                                getAllDocuments={getAllDocuments}
+                                loading={loading} />
                         )}
                     </AnimatePresence>
                 </main>

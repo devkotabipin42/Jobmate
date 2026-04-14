@@ -84,38 +84,38 @@ const Login = () => {
                     style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 65%)' }} />
 
                 <div className='relative z-10 text-center max-w-sm'>
-    {/* Logo */}
-    <Link to='/' className='inline-flex items-center gap-2 mb-12'>
-        <motion.div animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 2, repeat: Infinity }}
-            className='w-2 h-2 bg-green-400 rounded-full' />
-        <span className='text-2xl font-extrabold text-white tracking-tight'>Jobmate</span>
-    </Link>
+                    {/* Logo */}
+                    <Link to='/' className='inline-flex items-center gap-2 mb-12'>
+                        <motion.div animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 2, repeat: Infinity }}
+                            className='w-2 h-2 bg-green-400 rounded-full' />
+                        <span className='text-2xl font-extrabold text-white tracking-tight'>Jobmate</span>
+                    </Link>
 
-    <motion.h2 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-        className='text-4xl font-extrabold text-white mb-4 leading-tight'>
-        Welcome back!
-    </motion.h2>
+                    <motion.h2 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+                        className='text-4xl font-extrabold text-white mb-4 leading-tight'>
+                        Welcome back!
+                    </motion.h2>
 
-    <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
-        className='text-white/50 text-sm mb-10'>
-        Nepal's first 100% verified job platform
-    </motion.p>
+                    <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
+                        className='text-white/50 text-sm mb-10'>
+                        Nepal's first 100% verified job platform
+                    </motion.p>
 
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-        className='space-y-4 text-left'>
-        {['100% verified jobs — no fake listings', 'Salary always visible — no hidden info', 'AI-powered CV matching'].map((b, i) => (
-            <motion.div key={i} initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 + i * 0.1 }}
-                className='flex items-center gap-3'>
-                <div className='w-6 h-6 bg-green-500/20 border border-green-500/30 rounded-full flex items-center justify-center shrink-0'>
-                    <svg className='w-3 h-3 text-green-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={3} d='M5 13l4 4L19 7' />
-                    </svg>
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
+                        className='space-y-4 text-left'>
+                        {['100% verified jobs — no fake listings', 'Salary always visible — no hidden info', 'AI-powered CV matching'].map((b, i) => (
+                            <motion.div key={i} initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 + i * 0.1 }}
+                                className='flex items-center gap-3'>
+                                <div className='w-6 h-6 bg-green-500/20 border border-green-500/30 rounded-full flex items-center justify-center shrink-0'>
+                                    <svg className='w-3 h-3 text-green-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={3} d='M5 13l4 4L19 7' />
+                                    </svg>
+                                </div>
+                                <span className='text-white/70 text-sm'>{b}</span>
+                            </motion.div>
+                        ))}
+                    </motion.div>
                 </div>
-                <span className='text-white/70 text-sm'>{b}</span>
-            </motion.div>
-        ))}
-    </motion.div>
-</div>
             </motion.div>
 
             {/* ── RIGHT SIDE — Form ── */}
@@ -179,17 +179,28 @@ const Login = () => {
                     {/* Password Login */}
                     {loginMethod === 'password' && (
                         <form onSubmit={handleSubmit} className='space-y-4'>
-                            {[
-                                { label: 'Email address', name: 'email', type: 'email', placeholder: 'your@email.com' },
-                                { label: 'Password', name: 'password', type: 'password', placeholder: '••••••••' }
-                            ].map((field, i) => (
-                                <motion.div key={field.name} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.1 }}>
-                                    <label className='block text-xs font-semibold text-gray-500 dark:text-white/40 uppercase tracking-widest mb-2'>{field.label}</label>
-                                    <input type={field.type} name={field.name} value={formData[field.name]} onChange={handleChange}
-                                        placeholder={field.placeholder} required
-                                        className='w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/8 rounded-xl px-4 py-3 text-sm outline-none focus:border-green-500 dark:focus:border-green-500/50 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-white/20 transition-colors' />
-                                </motion.div>
-                            ))}
+                            {/* Email field */}
+                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                                <label className='block text-xs font-semibold text-gray-500 dark:text-white/40 uppercase tracking-widest mb-2'>Email address</label>
+                                <input type='email' name='email' value={formData.email} onChange={handleChange}
+                                    placeholder='your@email.com' required
+                                    className='w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/8 rounded-xl px-4 py-3 text-sm outline-none focus:border-green-500 dark:focus:border-green-500/50 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-white/20 transition-colors' />
+                            </motion.div>
+
+                            {/* Password field */}
+                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                                <div className='flex items-center justify-between mb-2'>
+                                    <label className='block text-xs font-semibold text-gray-500 dark:text-white/40 uppercase tracking-widest'>Password</label>
+                                    {/* ── FORGOT PASSWORD LINK ── */}
+                                    <Link to='/forgot-password'
+                                        className='text-xs text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:underline transition-colors'>
+                                        Forgot password?
+                                    </Link>
+                                </div>
+                                <input type='password' name='password' value={formData.password} onChange={handleChange}
+                                    placeholder='••••••••' required
+                                    className='w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/8 rounded-xl px-4 py-3 text-sm outline-none focus:border-green-500 dark:focus:border-green-500/50 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-white/20 transition-colors' />
+                            </motion.div>
 
                             <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} type='submit' disabled={loading}
                                 className='w-full bg-green-600 hover:bg-green-700 text-white py-3.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2'>
