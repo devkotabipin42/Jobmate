@@ -113,7 +113,7 @@ export const getJobApplications = async (req, res) => {
         }
 
         const applications = await Application.find({ job: req.params.id })
-            .populate('user', 'name location cv_url')
+            .populate('user', 'name location cv_url is_verified_jobseeker skills')
             .sort({ createdAt: -1 })
 
         res.status(200).json({

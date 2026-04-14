@@ -14,7 +14,12 @@ import {
      getAnalytics,
      toggleFeaturedJob,
      broadcastEmail,
-     toggleEmployerPremium 
+     toggleEmployerPremium ,
+     getPendingDocuments,
+      verifyDocument ,
+      resetDocument,
+      getAllDocuments
+      
 } from '../controllers/admin.controller.js'
 import {  authMiddleware,adminMiddleware } from '../middleware/auth.middleware.js'
 
@@ -39,5 +44,8 @@ adminRouter.get('/analytics', getAnalytics)
 adminRouter.put('/jobs/:id/feature', authMiddleware, adminMiddleware, toggleFeaturedJob)
 adminRouter.post('/broadcast', authMiddleware, adminMiddleware, broadcastEmail)
 adminRouter.put('/employers/:id/premium', toggleEmployerPremium)
-
+adminRouter.get('/documents/pending', getPendingDocuments)
+adminRouter.put('/documents/:id/verify', verifyDocument)
+adminRouter.put('/documents/:id/reset', resetDocument)
+adminRouter.get('/documents/all', getAllDocuments)
 export default adminRouter

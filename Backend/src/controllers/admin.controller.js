@@ -770,3 +770,174 @@ try {
         res.status(500).json({ message: err.message })
     }
 }
+
+
+// Get all pending document verifications
+export const getPendingDocuments = async (req, res) => {
+    try {
+        const users = await User.find({ document_status: 'pending' })
+            .select('name email phone location document_type document_status citizenship_number citizenship_url license_number license_url citizenship_submitted_at license_submitted_at skills education experience bio cv_url createdAt')
+            .sort({ createdAt: -1 })
+
+        res.status(200).json({ users })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+// Verify or reject document
+export const verifyDocument = async (req, res) => {
+    try {
+        const { action, reject_reason } = req.body
+        // action: 'verify' or 'reject'
+
+        if (!['verify', 'reject'].includes(action)) {
+            return res.status(400).json({ message: 'Invalid action' })
+        }
+
+        const user = await User.findById(req.params.id)
+        if (!user) return res.status(404).json({ message: 'User not found' })
+
+        if (action === 'verify') {
+            user.document_status = 'verified'
+            user.document_verified_at = new Date()
+            user.is_verified_jobseeker = true
+            user.profile_complete = true
+
+            // Send congratulations email
+            try {
+                await transporter.sendMail({
+                    from: `"Jobmate" <${process.env.MAIL_USER}>`,
+                    to: user.email,
+                    subject: '🎉 Your Jobmate Account is Now Verified!',
+                    html: `
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+        <tr><td style="background:#16a34a;padding:28px 40px;text-align:center;">
+          <h1 style="color:#fff;margin:0;font-size:24px;font-weight:700;">Jobmate</h1>
+        </td></tr>
+        <tr><td style="padding:36px 40px;text-align:center;">
+          <div style="width:64px;height:64px;background:#f0fdf4;border:2px solid #bbf7d0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;">
+            <span style="font-size:28px;">⭐</span>
+          </div>
+          <h2 style="color:#111827;font-size:22px;margin:0 0 8px;">Congratulations, ${user.name}!</h2>
+          <p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 24px;">
+            Your identity has been verified. You now have the <strong style="color:#d97706;">Golden Verified Badge</strong> on your profile!
+          </p>
+          <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:16px;margin-bottom:24px;">
+            <p style="margin:0;font-size:14px;color:#92400e;">
+              ⭐ <strong>Verified Jobseeker</strong> — Employers trust verified profiles 3x more!
+            </p>
+          </div>
+          <a href="${process.env.FRONTEND_URL}/profile"
+            style="display:inline-block;background:#16a34a;color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:8px;font-size:15px;font-weight:600;">
+            View Your Profile →
+          </a>
+        </td></tr>
+        <tr><td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:20px 40px;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#9ca3af;">© ${new Date().getFullYear()} Jobmate Nepal</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
+                    `
+                })
+            } catch (emailErr) {
+                console.log('Verify email error:', emailErr.message)
+            }
+
+        } else {
+            // Rejected
+            user.document_status = 'rejected'
+            user.document_reject_reason = reject_reason || 'Document could not be verified'
+            user.is_verified_jobseeker = false
+
+            // Send rejection email
+            try {
+                await transporter.sendMail({
+                    from: `"Jobmate" <${process.env.MAIL_USER}>`,
+                    to: user.email,
+                    subject: 'Document Verification Update — Jobmate',
+                    html: `
+<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;">
+  <div style="background:#dc2626;padding:24px;text-align:center;border-radius:12px 12px 0 0;">
+    <h1 style="color:#fff;margin:0;">Jobmate</h1>
+  </div>
+  <div style="background:#f9fafb;padding:30px;border-radius:0 0 12px 12px;">
+    <h2 style="color:#111827;">Document Verification Update</h2>
+    <p style="color:#6b7280;">Hi ${user.name}, unfortunately we could not verify your document.</p>
+    <p style="color:#6b7280;"><strong>Reason:</strong> ${reject_reason || 'Document could not be verified'}</p>
+    <p style="color:#6b7280;">Please re-submit a clear photo of your document. Contact us if you need help.</p>
+    <p style="color:#6b7280;">📧 hello@jobmate.com.np</p>
+  </div>
+</div>
+                    `
+                })
+            } catch (emailErr) {
+                console.log('Reject email error:', emailErr.message)
+            }
+        }
+
+        await user.save()
+
+        res.status(200).json({
+            message: action === 'verify' ? 'User verified successfully!' : 'Document rejected',
+            user
+        })
+
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+
+
+
+export const getAllDocuments = async (req, res) => {
+    try {
+        const users = await User.find({
+            document_status: { $in: ['verified', 'rejected', 'pending'] }
+        })
+        .select('name email phone location document_type document_status citizenship_number citizenship_url license_number license_url document_verified_at is_verified_jobseeker skills education experience bio cv_url createdAt')
+        .sort({ createdAt: -1 })
+        res.status(200).json({ users })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const resetDocument = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id)
+        if (!user) return res.status(404).json({ message: 'User not found' })
+
+        user.document_status = 'none'
+        user.document_type = 'none'
+        user.citizenship_number = undefined
+        user.citizenship_url = ''
+        user.license_number = undefined
+        user.license_url = ''
+        user.is_verified_jobseeker = false
+        user.document_verified_at = undefined
+        user.document_reject_reason = ''
+        await user.save()
+
+        try {
+            await transporter.sendMail({
+                from: `"Jobmate" <${process.env.MAIL_USER}>`,
+                to: user.email,
+                subject: 'Document Reset — Jobmate',
+                html: `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;"><div style="background:#f59e0b;padding:24px;text-align:center;border-radius:12px 12px 0 0;"><h1 style="color:#fff;margin:0;">Jobmate</h1></div><div style="background:#f9fafb;padding:30px;border-radius:0 0 12px 12px;"><h2 style="color:#111827;">Document Reset</h2><p style="color:#6b7280;">Hi ${user.name}, your document has been reset. You can now upload a new document from your profile.</p><div style="text-align:center;margin-top:20px;"><a href="${process.env.FRONTEND_URL}/profile" style="background:#16a34a;color:#fff;padding:12px 30px;border-radius:8px;text-decoration:none;font-weight:600;">Go to Profile →</a></div></div></div>`
+            })
+        } catch (e) {}
+
+        res.status(200).json({ message: 'Document reset successfully' })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}

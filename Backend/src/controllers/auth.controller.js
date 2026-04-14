@@ -183,7 +183,21 @@ export const login = async (req, res) => {
         cv_url: account.cv_url || undefined,
         location: account.location || undefined,
         phone: account.phone || undefined,
-         avatar_url: account.avatar_url || '',
+        avatar_url: account.avatar_url || '',
+        // ── NEW FIELDS ──
+        bio: account.bio || '',
+        skills: account.skills || [],
+        education: account.education || [],
+        experience: account.experience || [],
+        preferred_location: account.preferred_location || '',
+        preferred_category: account.preferred_category || '',
+        expected_salary: account.expected_salary || 0,
+        document_status: account.document_status || 'none',
+        document_type: account.document_type || 'none',
+        is_verified_jobseeker: account.is_verified_jobseeker || false,
+        profile_complete: account.profile_complete || false,
+        is_email_verified: account.is_email_verified || false,
+        createdAt: account.createdAt,
     }
 })
     } catch (error) {
@@ -218,25 +232,53 @@ export const logout = async (req, res) => {
 // Get Me
 export const getMe = async (req, res) => {
     try {
-        res.status(200).json({ user: req.user })
+        const user = await User.findById(req.user._id).select('-password')
+        res.status(200).json({ user })
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
 }
 
+// ──  updateProfile  ──────────────────
+
 export const updateProfile = async (req, res) => {
     try {
-        const { name, phone, location } = req.body
+        const {
+            name, phone, location, bio,
+            skills, preferred_location, preferred_category, expected_salary,
+            education, experience
+        } = req.body
 
-        const user = await User.findByIdAndUpdate(
-            req.user._id,
-            { name, phone, location },
-            { new: true }
-        ).select('-password')
+        const user = await User.findById(req.user._id)
+        if (!user) return res.status(404).json({ message: 'User not found' })
+
+        // Update basic fields
+        if (name) user.name = name
+        if (phone) user.phone = phone
+        if (location) user.location = location
+        if (bio !== undefined) user.bio = bio
+        if (skills !== undefined) user.skills = skills
+        if (preferred_location !== undefined) user.preferred_location = preferred_location
+        if (preferred_category !== undefined) user.preferred_category = preferred_category
+        if (expected_salary !== undefined) user.expected_salary = expected_salary
+        if (education !== undefined) user.education = education
+        if (experience !== undefined) user.experience = experience
+
+        // Auto check profile completeness
+        user.profile_complete = user.checkProfileComplete()
+
+        // Golden badge — profile complete + email verified
+        if (user.profile_complete && user.is_email_verified) {
+            user.is_verified_jobseeker = true
+        }
+
+        await user.save()
+
+        const updatedUser = await User.findById(req.user._id).select('-password')
 
         res.status(200).json({
             message: 'Profile updated',
-            user
+            user: updatedUser
         })
     } catch (error) {
         res.status(500).json({ message: error.message })
@@ -567,3 +609,127 @@ export const uploadAvatar = async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email, role } = req.body
+        if (!email) return res.status(400).json({ message: 'Email is required' })
+        const Model = role === 'employer' ? Employer : User
+        const account = await Model.findOne({ email })
+        if (!account) {
+            return res.status(200).json({ message: 'If this email exists, a reset link has been sent.' })
+        }
+        const resetToken = crypto.randomBytes(32).toString('hex')
+        const resetExpires = Date.now() + 60 * 60 * 1000
+        account.reset_password_token = resetToken
+        account.reset_password_expires = resetExpires
+        await account.save()
+        const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&role=${role || 'jobseeker'}`
+        try {
+            await transporter.sendMail({
+                from: `"Jobmate" <${process.env.MAIL_USER}>`,
+                to: email,
+                subject: 'Reset Your Jobmate Password',
+                html: `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;"><div style="background:#16a34a;padding:24px;text-align:center;border-radius:12px 12px 0 0;"><h1 style="color:#fff;margin:0;">Jobmate</h1></div><div style="background:#f9fafb;padding:30px;border-radius:0 0 12px 12px;"><h2 style="color:#111827;">Reset Your Password</h2><p style="color:#6b7280;">Click the button below to reset your password. Link expires in 1 hour.</p><div style="text-align:center;margin:24px 0;"><a href="${resetUrl}" style="background:#16a34a;color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;">Reset Password →</a></div><p style="color:#9ca3af;font-size:12px;">If you did not request this, ignore this email.</p></div></div>`
+            })
+        } catch (emailErr) {
+            return res.status(500).json({ message: 'Failed to send reset email' })
+        }
+        res.status(200).json({ message: 'Password reset link sent to your email!' })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const resetPassword = async (req, res) => {
+    try {
+        const { token, password, role } = req.body
+        if (!token || !password) return res.status(400).json({ message: 'Token and password required' })
+        if (password.length < 6) return res.status(400).json({ message: 'Password must be at least 6 characters' })
+        const Model = role === 'employer' ? Employer : User
+        const account = await Model.findOne({
+            reset_password_token: token,
+            reset_password_expires: { $gt: Date.now() }
+        })
+        if (!account) return res.status(400).json({ message: 'Invalid or expired reset link' })
+        const salt = await bcrypt.genSalt(10)
+        account.password = await bcrypt.hash(password, salt)
+        account.reset_password_token = undefined
+        account.reset_password_expires = undefined
+        await account.save()
+        res.status(200).json({ message: 'Password reset successful! You can now login.' })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+
+
+// Upload document — citizenship or license
+export const uploadDocument = async (req, res) => {
+    try {
+        const { document_type, document_number } = req.body
+
+        if (!document_type || !['citizenship', 'license'].includes(document_type)) {
+            return res.status(400).json({ message: 'Invalid document type' })
+        }
+
+        if (!document_number || document_number.trim().length < 3) {
+            return res.status(400).json({ message: 'Document number is required' })
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ message: 'Document image is required' })
+        }
+
+        const user = await User.findById(req.user._id)
+
+        // One-time only — cannot resubmit
+        if (user.document_status === 'pending' || user.document_status === 'verified') {
+            return res.status(400).json({ message: 'Document already submitted. Contact support to change.' })
+        }
+
+        // Check unique document number
+        const numberField = document_type === 'citizenship' ? 'citizenship_number' : 'license_number'
+        const existing = await User.findOne({ [numberField]: document_number.trim() })
+        if (existing && existing._id.toString() !== user._id.toString()) {
+            return res.status(400).json({ message: 'This document number is already registered with another account.' })
+        }
+
+        // Upload to ImageKit
+        const result = await imagekit.upload({
+            file: req.file.buffer,
+            fileName: `doc_${document_type}_${req.user._id}_${Date.now()}`,
+            folder: '/jobmate/documents',
+            useUniqueFileName: true
+        })
+
+        // Save to user
+        if (document_type === 'citizenship') {
+            user.citizenship_number = document_number.trim()
+            user.citizenship_url = result.url
+            user.citizenship_submitted_at = new Date()
+        } else {
+            user.license_number = document_number.trim()
+            user.license_url = result.url
+            user.license_submitted_at = new Date()
+        }
+
+        user.document_type = document_type
+        user.document_status = 'pending'
+
+        await user.save()
+
+        res.status(200).json({
+            message: 'Document submitted successfully! Admin will verify within 24 hours.',
+            document_status: 'pending'
+        })
+
+    } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({ message: 'This document number is already registered with another account.' })
+        }
+        res.status(500).json({ message: error.message })
+    }
+}
+
+

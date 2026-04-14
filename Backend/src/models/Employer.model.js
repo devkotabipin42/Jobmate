@@ -45,6 +45,8 @@ const employerSchema = new mongoose.Schema({
         enum: ['free', 'basic', 'standard', 'premium'],
         default: 'free'
     },
+    reset_password_token: { type: String },
+    reset_password_expires: { type: Date },
     plan_activated_at: { type: Date },
     plan_expires_at: { type: Date },
     plan_duration_days: { type: Number, default: 30 },

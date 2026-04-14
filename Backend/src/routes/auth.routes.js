@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { uploadCV } from '../config/cloudinary.js'
+import { uploadCV, uploadDocument as uploadDocMiddleware } from '../config/cloudinary.js'
 import { uploadCV as uploadCVController } from '../controllers/auth.controller.js'
 import { uploadAvatar as uploadAvatarMiddleware } from '../config/cloudinary.js'
 import { uploadAvatar as uploadAvatarController } from '../controllers/auth.controller.js'
@@ -17,7 +17,11 @@ import {
      verifyOTP,
      updateJobAlerts,
      verifyEmail,
-     uploadAvatar
+     uploadAvatar,
+     forgotPassword,
+      resetPassword ,
+      uploadDocument as uploadDocController,
+     
     
 } from '../controllers/auth.controller.js'
 import { authMiddleware } from '../middleware/auth.middleware.js'
@@ -39,4 +43,8 @@ authRouter.post('/verify-otp', verifyOTP)
 authRouter.put('/job-alerts', authMiddleware, updateJobAlerts)
 authRouter.get('/verify-email', verifyEmail)
 authRouter.post('/upload-avatar', authMiddleware, uploadAvatarMiddleware.single('avatar'), uploadAvatarController)
+authRouter.post('/forgot-password', forgotPassword)
+authRouter.post('/reset-password', resetPassword)
+authRouter.post('/upload-document', authMiddleware, uploadDocMiddleware.single('document'), uploadDocController)
+
 export default authRouter

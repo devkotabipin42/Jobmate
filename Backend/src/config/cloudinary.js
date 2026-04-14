@@ -43,4 +43,16 @@ export const uploadAvatar = multer({
         allowed.includes(file.mimetype) ? cb(null, true) : cb(new Error('Only images allowed!'), false)
     }
 })
+
+export const uploadDocument = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const allowed = [
+            'image/jpeg', 'image/png', 'image/jpg', 'image/webp',
+            'application/pdf'
+        ]
+        allowed.includes(file.mimetype) ? cb(null, true) : cb(new Error('Only JPG, PNG, PDF allowed!'), false)
+    }
+})
 export { imagekit }
