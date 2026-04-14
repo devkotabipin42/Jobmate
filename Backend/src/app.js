@@ -37,7 +37,7 @@ const limiter = rateLimit({
     max: 100,
     message: { message: 'Too many requests — try again after 15 minutes' }
 })
-
+app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }))
 app.use(cors(corsOptions))
 app.options(/.*/, cors(corsOptions))
 app.use(helmet({

@@ -84,6 +84,11 @@ const userSchema = new mongoose.Schema({
 
 }, { timestamps: true })
 
+// Performance indexes
+userSchema.index({ document_status: 1 })
+userSchema.index({ is_verified_jobseeker: 1 })
+userSchema.index({ location: 1 })
+userSchema.index({ skills: 1 })
 userSchema.methods.checkProfileComplete = function () {
     const hasBasic = !!(this.name && this.phone && this.location && this.bio?.length > 10)
     const hasSkills = this.skills?.length > 0

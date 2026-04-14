@@ -80,4 +80,6 @@ const jobSchema = new mongoose.Schema({
 }, { timestamps: true })
 jobSchema.index({ title: 'text', description: 'text' })
 jobSchema.index({ location: 1, category: 1, is_active: 1 })
+jobSchema.index({ deadline: 1, is_active: 1 })
+jobSchema.index({ is_featured: -1, createdAt: -1 })
 export default mongoose.model('Job', jobSchema)
