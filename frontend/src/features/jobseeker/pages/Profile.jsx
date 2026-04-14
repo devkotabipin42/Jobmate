@@ -812,8 +812,8 @@ const Profile = () => {
                             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
                                 className='space-y-4'>
                                 {[
-                                    { label: 'Categories', key: 'categories', options: ['IT/Tech', 'Finance/Banking', 'NGO/INGO', 'Healthcare', 'Education', 'Marketing'] },
-                                    { label: 'Locations', key: 'locations', options: ['Kathmandu', 'Pokhara', 'Chitwan', 'Butwal', 'Nawalparasi', 'Remote'] },
+                                    { label: 'Categories', key: 'categories', options: ['IT/Tech', 'Finance/Banking', 'NGO/INGO', 'Healthcare', 'Education', 'Marketing','Factory', 'Hotel'] },
+                                    { label: 'Locations', key: 'locations', options: ['Bhairahawa', 'Parasi', 'Bhumai', 'Butwal','Bardaghat','Limbini','Gopiginj','Kapilvastu','Nawalparasi','Remote'] },
                                     { label: 'Job Types', key: 'job_types', options: ['full-time', 'part-time', 'remote', 'internship', 'contract'] },
                                 ].map(({ label, key, options }) => (
                                     <div key={key}>

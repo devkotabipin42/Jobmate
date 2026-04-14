@@ -92,6 +92,8 @@ const scrollStyle = `
   .auto-scroll:hover {
     animation-play-state: paused;
   }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 `
 
   return (
@@ -176,19 +178,33 @@ const scrollStyle = `
               </div>
               {/* Mobile search */}
               <div className='sm:hidden space-y-2'>
-                <div className='flex items-center gap-2 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5'>
-                  <svg className='w-4 h-4 text-gray-400 shrink-0' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><circle cx='11' cy='11' r='8'/><path d='m21 21-4.35-4.35'/></svg>
-                  <input value={searchKeyword} onChange={e => setSearchKeyword(e.target.value)} placeholder='Job title, skills...'
-                    className='flex-1 bg-transparent outline-none text-sm text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-white/30' />
-                </div>
-                <div className='flex gap-2'>
-                  <select value={searchLocation} onChange={e => setSearchLocation(e.target.value)}
-                    className='flex-1 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm text-gray-500 dark:text-white/45 outline-none'>
-                    <option value=''>All Nepal</option>
-                    <option>Kathmandu</option><option>Pokhara</option><option>Chitwan</option><option>Remote</option>
-                  </select>
-                  <button onClick={handleSearch} className='flex-1 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold transition-colors'>Search</button>
-                </div>
+                {/* Search input */}
+<div className='flex items-center gap-2 bg-white dark:bg-white/5 border-2 border-gray-200 dark:border-white/10 rounded-2xl px-4 py-5 shadow-md'>
+    <svg className='w-6 h-6 text-gray-400 shrink-0' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><circle cx='11' cy='11' r='8'/><path d='m21 21-4.35-4.35'/></svg>
+    <input value={searchKeyword} onChange={e => setSearchKeyword(e.target.value)}
+        onKeyDown={e => e.key === 'Enter' && handleSearch()}
+        placeholder='Job title, skills or company...'
+        className='flex-1 bg-transparent outline-none text-2xl  text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-white/30 font-medium' />
+</div>
+
+<div className='flex gap-3'>
+    <select value={searchLocation} onChange={e => setSearchLocation(e.target.value)}
+        className='flex-1 bg-white dark:bg-white/5 border-2 border-gray-200 dark:border-white/10 rounded-2xl px-4 py-5 text-base font-medium text-gray-600 dark:text-white/60 outline-none'>
+        <option value=''>📍 All Nepal</option>
+        <option>Kathmandu</option>
+        <option>Pokhara</option>
+        <option>Chitwan</option>
+        <option>Nawalparasi</option>
+        <option>Parasi</option>
+        <option>Butwal</option>
+        <option>Remote</option>
+    </select>
+    <button onClick={handleSearch}
+        className='flex-1 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-2xl text-lg font-bold transition-colors py-5 flex items-center justify-center gap-2 shadow-md'>
+        <svg className='w-5 h-5' fill='none' stroke='currentColor' strokeWidth='2.5' viewBox='0 0 24 24'><circle cx='11' cy='11' r='8'/><path d='m21 21-4.35-4.35'/></svg>
+        Search
+    </button>
+</div>
               </div>
             </motion.div>
 
@@ -222,7 +238,7 @@ const scrollStyle = `
          
           {/* RIGHT — Real Job cards */}
 {/* RIGHT — Smooth auto scrolling featured jobs */}
-<div className='hidden lg:block relative'>
+<div className='hidden lg:flex flex-col relative'>
   <style>{scrollStyle}</style>
 
   {/* Top fade */}
@@ -230,7 +246,7 @@ const scrollStyle = `
   {/* Bottom fade */}
   <div className='absolute bottom-14 left-0 right-0 h-12 z-10 pointer-events-none bg-gradient-to-t from-white dark:from-[#08111f] to-transparent' />
 
-  <div className='overflow-hidden' style={{ height: '340px' }}>
+  <div className='overflow-hidden no-scrollbar' style={{ height: '380px' }}>
     <div className='auto-scroll flex flex-col gap-2.5'>
       {[...displayJobs, ...displayJobs].map((job, i) => (
         <div key={`${job._id}-${i}`}
@@ -279,7 +295,7 @@ const scrollStyle = `
 
         {/* Stats bar */}
         <div className='relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 mt-10 pb-0'>
-          <div className='grid grid-cols-2 md:grid-cols-4 border border-gray-200 dark:border-white/6 rounded-2xl overflow-hidden bg-gray-50 dark:bg-white/1'>
+          <div className='grid grid-cols-3 border border-gray-200 dark:border-white/6 rounded-2xl overflow-hidden bg-gray-50 dark:bg-white/1'>
             {[
               { val: stats.totalJobs || '0', suffix: '+', label: 'Active Jobs' },
               { val: stats.totalCompanies || '0', suffix: '+', label: 'Verified Companies' },
@@ -315,8 +331,7 @@ const scrollStyle = `
                 <Link to={`/jobs?category=${cat.key}`}
                   className={`bg-white dark:bg-white/3 border border-gray-200 dark:border-white/7 ${cat.border} rounded-2xl p-5 text-center block transition-all duration-200`}>
                   <div className={`w-12 h-12 ${cat.iconBg} rounded-xl flex items-center justify-center mx-auto mb-3`}>{cat.icon}</div>
-                  <div className='text-sm font-semibold text-gray-800 dark:text-white mb-1'>{cat.name}</div>
-                  <div className={`text-xs font-medium ${cat.countColor}`}>{cat.count} jobs</div>
+                  <div className='text-sm font-semibold text-gray-800 dark:text-white'>{cat.name}</div>
                 </Link>
               </motion.div>
             ))}
