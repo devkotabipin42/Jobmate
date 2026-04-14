@@ -1,4 +1,6 @@
 import Employer from '../models/Employer.model.js'
+import User from '../models/user.model.js'
+
 export const getAllEmployers = async (req, res) => {
     try {
         const employers = await Employer.find()
@@ -64,6 +66,16 @@ export const updateCompanyProfile = async (req, res) => {
             message: 'Company profile updated',
             employer
         })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+export const getJobseekerProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id)
+            .select('name avatar_url location bio skills education experience cv_url is_verified_jobseeker profile_complete document_status createdAt preferred_location preferred_category expected_salary')
+        if (!user) return res.status(404).json({ message: 'User not found' })
+        res.status(200).json({ user })
     } catch (error) {
         res.status(500).json({ message: error.message })
     }

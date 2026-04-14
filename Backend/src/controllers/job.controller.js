@@ -124,9 +124,11 @@ export const getAllJobs = async (req, res) => {
             if (salary_max) query.salary_max = { $lte: Number(salary_max) }
         }
 
-        const jobs = await Job.find(query)
-            .populate('employer', 'company_name logo_url location is_verified')
-            .sort({ is_featured: -1, createdAt: -1 })
+        query.deadline = { $gte: new Date() }
+query.is_active = true
+const jobs = await Job.find(query)
+    .populate('employer', 'company_name logo_url location is_verified')
+    .sort({ is_featured: -1, createdAt: -1 })
 
         const responseData = {
             message: 'Jobs fetched successfully',

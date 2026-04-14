@@ -18,9 +18,11 @@ import {
      getPendingDocuments,
       verifyDocument ,
       resetDocument,
-      getAllDocuments
+      getAllDocuments,
+    
       
 } from '../controllers/admin.controller.js'
+import { getContactRequests, reviewContactRequest } from '../controllers/Contact.controller.js'
 import {  authMiddleware,adminMiddleware } from '../middleware/auth.middleware.js'
 
 const adminRouter = Router()
@@ -48,4 +50,6 @@ adminRouter.get('/documents/pending', getPendingDocuments)
 adminRouter.put('/documents/:id/verify', verifyDocument)
 adminRouter.put('/documents/:id/reset', resetDocument)
 adminRouter.get('/documents/all', getAllDocuments)
+adminRouter.get('/contact-requests', getContactRequests)
+adminRouter.put('/contact-requests/:id/review', reviewContactRequest)
 export default adminRouter

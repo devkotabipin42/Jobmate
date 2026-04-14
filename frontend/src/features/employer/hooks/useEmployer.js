@@ -204,6 +204,54 @@ const updateCompanyProfile = async (formData) => {
     }
 }
 
+
+
+
+const getJobseekerProfile = async (userId) => {
+    try {
+        const token = localStorage.getItem('token')
+        const res = await axios.get(`${API_URL}/api/employer/jobseeker/${userId}`, {
+            withCredentials: true,
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
+        return res.data.user
+    } catch (err) {
+        return null
+    }
+}
+
+const requestContact = async (jobseekerId, message) => {
+    try {
+        const token = localStorage.getItem('token')
+        const res = await axios.post(`${API_URL}/api/contact/request`, {
+            jobseeker_id: jobseekerId,
+            message
+        }, {
+            withCredentials: true,
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
+        return res.data
+    } catch (err) {
+        throw err
+    }
+}
+
+const getContactStatus = async (jobseekerId) => {
+    try {
+        const token = localStorage.getItem('token')
+        const res = await axios.get(`${API_URL}/api/contact/status/${jobseekerId}`, {
+            withCredentials: true,
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
+        return res.data
+    } catch (err) {
+        return { status: 'none' }
+    }
+}
+
+
+// getJobseekerProfile, requestContact, getContactStatus
+
     return {
         loading,
         error,
@@ -221,7 +269,10 @@ const updateCompanyProfile = async (formData) => {
         addCRMNote,
         setCRMFollowUp,
         deleteCRMCandidate,
-        updateCompanyProfile
+        updateCompanyProfile,
+        getJobseekerProfile,
+        requestContact, 
+        getContactStatus
     }
 }
 

@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
+import JobseekerProfileModal from './JobseekerProfileModal.jsx'
 
 const LoadingSpinner = () => (
     <div className='flex items-center justify-center py-20'>
@@ -119,6 +121,7 @@ export const EmployerJobs = ({ myJobs, loading, handleViewApplications, handleDe
 
 // ── EMPLOYER APPLICATIONS ─────────────────────────────────
 export const EmployerApplications = ({ applications, selectedJob, viewMode, setViewMode, handleStatusUpdate, handleDragEnd, handleTabChange }) => {
+    const [profileModal, setProfileModal] = useState(null)
     if (!selectedJob) return (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             <div className='text-center py-20 bg-white dark:bg-white/3 border border-gray-200 dark:border-white/7 rounded-2xl'>
@@ -135,6 +138,7 @@ export const EmployerApplications = ({ applications, selectedJob, viewMode, setV
     )
 
     return (
+        <>
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             {/* Header */}
             <div className='flex items-center justify-between mb-6'>
@@ -191,6 +195,12 @@ export const EmployerApplications = ({ applications, selectedJob, viewMode, setV
                                                 )}
                                             </div>
                                         )}
+                                        {/* View Profile button */}
+                                        <button onClick={() => setProfileModal({ id: app.user?._id, name: app.user?.name })}
+                                            className='text-xs text-green-600 dark:text-green-400 hover:underline mt-1 flex items-center gap-1'>
+                                            <svg className='w-3 h-3' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg>
+                                            View Full Profile
+                                        </button>
                                     </div>
                                 </div>
                                 <span className={`text-xs px-3 py-1 rounded-full font-medium shrink-0 border ${statusColors[app.status] || statusColors.applied}`}>
@@ -302,5 +312,15 @@ export const EmployerApplications = ({ applications, selectedJob, viewMode, setV
                 </DragDropContext>
             )}
         </motion.div>
+
+        {/* Jobseeker Profile Modal */}
+        {profileModal && (
+            <JobseekerProfileModal
+                userId={profileModal.id}
+                userName={profileModal.name}
+                onClose={() => setProfileModal(null)}
+            />
+        )}
+        </>
     )
 }

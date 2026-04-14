@@ -332,7 +332,22 @@ const resetDocument = async (id) => {
         return true
     } catch (err) { return false }
 }
-// return mein add karo: getAllDocuments, resetDocument
+const getContactRequests = async () => {
+    try {
+        const res = await axios.get(`${API_URL}/api/admin/contact-requests`, getAuthHeaders())
+        return res.data.requests
+    } catch (err) { return [] }
+}
+const reviewContactRequest = async (id, action, note) => {
+    try {
+        await axios.put(`${API_URL}/api/admin/contact-requests/${id}/review`, 
+            { action, admin_note: note }, getAuthHeaders())
+        return true
+    } catch (err) { return false }
+}
+
+
+
     return {
         loading,
         error,
@@ -369,7 +384,9 @@ const resetDocument = async (id) => {
     getPendingDocuments,
     verifyDocument,
     getAllDocuments,
-     resetDocument
+     resetDocument,
+        getContactRequests,
+        reviewContactRequest
 
 }
 }
