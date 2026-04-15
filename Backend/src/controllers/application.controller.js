@@ -86,7 +86,14 @@ console.log('User CV:', req.user.cv_url)
 export const getMyApplications = async (req, res) => {
     try {
         const applications = await Application.find({ user: req.user._id })
-            .populate('job', 'title location salary_min salary_max company category type')
+            .populate({
+    path: 'job',
+    select: 'title location salary_min salary_max category type',
+    populate: {
+        path: 'employer',
+        select: 'company_name logo_url'
+    }
+})
             .sort({ createdAt: -1 })
 
         res.status(200).json({

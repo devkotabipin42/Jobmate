@@ -61,7 +61,7 @@ const MyApplications = () => {
                         <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
                             className='py-4 px-3 text-center border-r last:border-r-0 border-gray-200 dark:border-white/6'>
                             <p className={`text-2xl font-extrabold ${stat.color}`}>{stat.value}</p>
-                            <p className='text-xs text-gray-400 dark:text-white/30 mt-0.5'>{stat.label}</p>
+                            <p className='text-sm text-gray-400 dark:text-white/30 mt-0.5'>{stat.label}</p>
                         </motion.div>
                     ))}
                 </div>
@@ -156,7 +156,7 @@ const MyApplications = () => {
                                                                             isCurrent ? 'bg-green-500 ring-2 ring-green-500/30' :
                                                                             isDone ? 'bg-green-400' : 'bg-gray-200 dark:bg-white/10'
                                                                         }`} />
-                                                                        <span className={`text-[9px] mt-1 whitespace-nowrap ${
+                                                                        <span className={`text-[10px] mt-1 whitespace-nowrap ${
                                                                             isCurrent ? 'text-green-500 font-semibold' :
                                                                             isDone ? 'text-green-400' : 'text-gray-300 dark:text-white/20'
                                                                         }`}>{s}</span>
