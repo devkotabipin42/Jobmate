@@ -941,3 +941,40 @@ export const resetDocument = async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
+
+export const adminCreateJob = async (req, res) => {
+    try {
+        const {
+            employer_id,
+            title, description,
+            salary_min, salary_max,
+            location, category,
+            type, experience, deadline,
+            cv_required, is_featured
+        } = req.body
+ 
+        if (!employer_id) return res.status(400).json({ message: 'Employer is required' })
+        if (!title) return res.status(400).json({ message: 'Title is required' })
+ 
+        const job = await Job.create({
+            title, description,
+            salary_min: Number(salary_min),
+            salary_max: Number(salary_max),
+            location, category, type,
+           experience: experience || 'fresh',
+            deadline,
+            cv_required: cv_required || false,
+            is_featured: is_featured || false,
+            employer: employer_id,
+            is_verified: true,   
+            is_active: true      
+        })
+ 
+        const populated = await Job.findById(job._id)
+            .populate('employer', 'company_name logo_url')
+ 
+        res.status(201).json({ message: 'Job posted successfully!', job: populated })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}

@@ -4,6 +4,7 @@ import Job from '../models/Job.model.js'
 import Employer from '../models/Employer.model.js'
 import transporter from '../config/mailer.js'
 import User from '../models/user.model.js'
+import CRM from '../models/CRM.model.js'
 // Apply for job
 export const applyJob = async (req, res) => {
     try {
@@ -137,17 +138,57 @@ export const getJobApplications = async (req, res) => {
 export const updateApplicationStatus = async (req, res) => {
     try {
         const { status } = req.body
-
-        const application = await Application.findByIdAndUpdate(
-            req.params.id,
-            { status },
-            { new: true }
-        )
-
+ 
+        const application = await Application.findById(req.params.id)
+            .populate('user', 'name email phone location skills')
+            .populate('job', 'title employer')
+ 
         if (!application) {
             return res.status(404).json({ message: 'Application not found' })
         }
+ 
+        application.status = status
+        await application.save()
+ 
+        // ── AUTO CRM ADD WHEN HIRED ──────────────────────────
+       if (['shortlisted', 'interview', 'hired', 'rejected'].includes(status)) {
+    const crmStatusMap = {
+        shortlisted: 'interested',
+        interview: 'interview',
+        hired: 'hired',
+        rejected: 'rejected'
+    }
 
+    const existing = await CRM.findOne({
+        employer: application.job.employer,
+        'candidate.email': application.user.email
+    })
+
+    if (existing) {
+        // Update existing CRM record status
+        existing.status = crmStatusMap[status]
+        await existing.save()
+    } else {
+        // Create new CRM record
+        await CRM.create({
+            employer: application.job.employer,
+            candidate: {
+                name: application.user.name,
+                email: application.user.email,
+                phone: application.user.phone || '',
+                location: application.user.location || '',
+                skills: application.user.skills?.join(', ') || ''
+            },
+            status: crmStatusMap[status],
+            source: 'jobmate',
+            job: application.job._id,
+            notes: [{
+                text: `Status updated to ${status} for ${application.job.title} on ${new Date().toLocaleDateString()}`
+            }]
+        })
+    }
+}
+ 
         res.status(200).json({
             message: 'Status updated',
             application
@@ -156,6 +197,7 @@ export const updateApplicationStatus = async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
+ 
 
 //CV Match + Smart Apply — Job seeker
 export const matchCV = async (req, res) => {

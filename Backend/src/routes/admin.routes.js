@@ -19,6 +19,7 @@ import {
       verifyDocument ,
       resetDocument,
       getAllDocuments,
+      adminCreateJob
     
       
 } from '../controllers/admin.controller.js'
@@ -52,4 +53,5 @@ adminRouter.put('/documents/:id/reset', resetDocument)
 adminRouter.get('/documents/all', getAllDocuments)
 adminRouter.get('/contact-requests', getContactRequests)
 adminRouter.put('/contact-requests/:id/review', reviewContactRequest)
+adminRouter.post('/post-job', adminCreateJob)
 export default adminRouter
