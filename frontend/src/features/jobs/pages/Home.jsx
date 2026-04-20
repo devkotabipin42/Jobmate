@@ -1,6 +1,7 @@
 import SEO from '../../../components/SEO.jsx'
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useSelector } from 'react-redux'
 import { motion } from "framer-motion";
 import Navbar from "../../../components/Navbar.jsx";
 import Footer from '../../../components/Footer.jsx'
@@ -54,13 +55,17 @@ const Home = () => {
   const navigate = useNavigate();
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchLocation, setSearchLocation] = useState('');
-  const { latestJobs, loadLatestJobs, stats, loadStats, testimonials, loadTestimonials } = useJobs()
-
+  const { latestJobs, loadLatestJobs, stats, loadStats, testimonials, loadTestimonials ,getRecommendedJobs} = useJobs()
+  const { user } = useSelector(state => state.auth)
+  const [recommendedJobs, setRecommendedJobs] = useState([])
   useEffect(() => {
     loadLatestJobs()
     loadStats()
     loadTestimonials()
-  }, [])
+    if (user && user.role === 'jobseeker') {
+        getRecommendedJobs().then(data => setRecommendedJobs(data || []))
+    }
+  }, [user])
 
   useEffect(() => {
     textReveal(titleRef.current, 0.2);
@@ -300,7 +305,7 @@ const scrollStyle = `
               { val: stats.totalJobs || '0', suffix: '+', label: 'Active Jobs' },
               { val: stats.totalCompanies || '0', suffix: '+', label: 'Verified Companies' },
               { val: stats.totalJobSeekers || '0', suffix: '+', label: 'Job Seekers' },
-              { val: '94', suffix: '%', label: 'AI Match Accuracy' },
+              // { val: '94', suffix: '%', label: 'AI Match Accuracy' },
             ].map((s, i) => (
               <div key={i} className='stat-item py-5 px-4 text-center border-r border-b md:border-b-0 last:border-r-0 border-gray-200 dark:border-white/6 hover:bg-green-50 dark:hover:bg-green-500/5 transition-colors'>
                 <div className='text-2xl md:text-3xl font-extrabold text-gray-800 dark:text-white mb-1'>
@@ -343,7 +348,65 @@ const scrollStyle = `
           </div>
         </div>
       </div>
+        {/* ── RECOMMENDED JOBS ── */}
+{user && user.role === 'jobseeker' && recommendedJobs.length > 0 && (
+    <div className='py-16 px-4 sm:px-6 bg-white dark:bg-[#08111f]'>
+        <div className='max-w-6xl mx-auto'>
+            <div className='flex items-end justify-between gap-4 mb-8'>
+                <div>
+                    <SectionBadge text='Matched for You' />
+                    <h2 className='text-2xl md:text-3xl font-bold text-gray-800 dark:text-white'>
+                        Recommended Jobs ✨
+                    </h2>
+                    <p className='text-sm text-gray-500 dark:text-white/40 mt-1'>
+                        Based on your location, skills and preferences
+                    </p>
+                </div>
+                <Link to='/jobs' className='text-sm text-green-600 dark:text-green-400 font-medium shrink-0'>
+                    View all →
+                </Link>
+            </div>
 
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                {recommendedJobs.slice(0, 6).map((job, i) => (
+                    <motion.div key={job._id}
+                        initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }} transition={{ delay: i * 0.08 }}
+                        whileHover={{ y: -4 }}
+                        className='bg-white dark:bg-white/3 border border-gray-200 dark:border-white/7 hover:border-green-400 dark:hover:border-green-500/40 rounded-2xl p-5 transition-all group'>
+                        <div className='flex items-start gap-3 mb-4'>
+                            <div className='w-11 h-11 rounded-xl shrink-0 overflow-hidden bg-green-50 dark:bg-green-500/10 flex items-center justify-center text-green-700 dark:text-green-400 font-bold text-base border border-gray-100 dark:border-white/5'>
+                                {job.employer?.logo_url
+                                    ? <img src={job.employer.logo_url} alt={job.employer.company_name} className='w-full h-full object-cover' />
+                                    : job.employer?.company_name?.charAt(0) || 'C'}
+                            </div>
+                            <div className='flex-1 min-w-0'>
+                                <h3 className='text-sm font-semibold text-gray-800 dark:text-white truncate group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors'>
+                                    {job.title}
+                                </h3>
+                                <p className='text-xs text-gray-500 dark:text-white/35 truncate'>{job.employer?.company_name} · {job.location}</p>
+                            </div>
+                        </div>
+                        <div className='flex gap-2 flex-wrap mb-4'>
+                            <span className='text-xs bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-500/20 px-2.5 py-1 rounded-full font-medium'>
+                                ✓ Verified
+                            </span>
+                            <span className='text-xs bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-white/60 border border-gray-200 dark:border-white/8 px-2.5 py-1 rounded-full'>
+                                Rs. {job.salary_min?.toLocaleString()} – {job.salary_max?.toLocaleString()}
+                            </span>
+                        </div>
+                        <div className='flex items-center justify-between pt-3 border-t border-gray-100 dark:border-white/5'>
+                            <span className='text-xs text-gray-400 dark:text-white/30 capitalize'>{job.type}</span>
+                            <Link to={`/jobs/${job._id}`} className='text-xs bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-lg transition-colors font-medium'>
+                                Apply →
+                            </Link>
+                        </div>
+                    </motion.div>
+                ))}
+            </div>
+        </div>
+    </div>
+)}    
       {/* ── LATEST JOBS ─────────────────────────────────── */}
       <div className='py-16 px-4 sm:px-6 bg-white dark:bg-[#08111f]'>
         <div className='max-w-6xl mx-auto'>

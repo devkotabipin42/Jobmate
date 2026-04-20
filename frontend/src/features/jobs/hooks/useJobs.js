@@ -98,6 +98,18 @@ const loadTestimonials = async () => {
         console.log(err)
     }
 }
+const getRecommendedJobs = async () => {
+    try {
+        const token = localStorage.getItem('token')
+        const res = await axios.get(`${API_URL}/api/jobs/recommended/for-you`, {
+            withCredentials: true,
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
+        return res.data.jobs
+    } catch (err) {
+        return []
+    }
+}
 
     return {
         jobs,
@@ -113,7 +125,8 @@ const loadTestimonials = async () => {
         stats,
         loadStats,
         testimonials,
-        loadTestimonials
+        loadTestimonials,
+        getRecommendedJobs
     }
 }
 
