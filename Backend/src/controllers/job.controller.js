@@ -230,15 +230,60 @@ export const deleteJob = async (req, res) => {
 }
 
 // Get Employer Jobs
-export const getEmployerJobs = async (req, res) => {
+export const getRecommendedJobs = async (req, res) => {
     try {
-        const jobs = await Job.find({ employer: req.user._id })
-            .sort({ createdAt: -1 })
-
+        const user = req.user
+ 
+        // Build match query based on user profile
+        const query = {
+            is_active: true,
+            is_verified: true,
+            deadline: { $gte: new Date() }
+        }
+ 
+        const orConditions = []
+ 
+        // Match by preferred location or actual location
+        if (user.preferred_location || user.location) {
+            orConditions.push({ location: user.preferred_location || user.location })
+            orConditions.push({ location: 'Remote' })
+        }
+ 
+        // Match by preferred category
+        if (user.preferred_category) {
+            orConditions.push({ category: user.preferred_category })
+        }
+ 
+        // Match by skills
+        if (user.skills && user.skills.length > 0) {
+            orConditions.push({
+                $or: user.skills.map(skill => ({
+                    $or: [
+                        { title: { $regex: skill, $options: 'i' } },
+                        { description: { $regex: skill, $options: 'i' } }
+                    ]
+                }))
+            })
+        }
+ 
+        if (orConditions.length > 0) {
+            query.$or = orConditions
+        }
+ 
+        const jobs = await Job.find(query)
+            .populate('employer', 'company_name logo_url location is_verified')
+            .sort({ is_featured: -1, createdAt: -1 })
+            .limit(10)
+ 
         res.status(200).json({
-            message: 'Employer jobs fetched',
+            message: 'Recommended jobs fetched',
             count: jobs.length,
-            jobs
+            jobs,
+            based_on: {
+                location: user.preferred_location || user.location,
+                category: user.preferred_category,
+                skills: user.skills
+            }
         })
     } catch (error) {
         res.status(500).json({ message: error.message })
