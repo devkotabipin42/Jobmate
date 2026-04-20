@@ -226,14 +226,7 @@ const scrollStyle = `
 
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}
               className='flex items-center gap-3 mt-5 justify-center lg:justify-start'>
-              <div className='flex items-center'>
-                {['#16a34a', '#0891b2', '#7c3aed', '#ea580c', '#be185d'].map((bg, i) => (
-                  <div key={i} style={{ background: bg, marginLeft: i === 0 ? 0 : -6 }}
-                    className='w-7 h-7 rounded-full border-2 border-white dark:border-[#08111f] flex items-center justify-center text-xs font-bold text-white'>
-                    {['B', 'S', 'R', 'A', 'M'][i]}
-                  </div>
-                ))}
-              </div>
+              
               <p className='text-xs text-gray-500 dark:text-white/35'>
                 <strong className='text-gray-700 dark:text-white/65'>{stats.totalJobSeekers || '0'}+</strong> job seekers joined
               </p>
@@ -305,7 +298,7 @@ const scrollStyle = `
               { val: stats.totalJobs || '0', suffix: '+', label: 'Active Jobs' },
               { val: stats.totalCompanies || '0', suffix: '+', label: 'Verified Companies' },
               { val: stats.totalJobSeekers || '0', suffix: '+', label: 'Job Seekers' },
-              // { val: '94', suffix: '%', label: 'AI Match Accuracy' },
+             
             ].map((s, i) => (
               <div key={i} className='stat-item py-5 px-4 text-center border-r border-b md:border-b-0 last:border-r-0 border-gray-200 dark:border-white/6 hover:bg-green-50 dark:hover:bg-green-500/5 transition-colors'>
                 <div className='text-2xl md:text-3xl font-extrabold text-gray-800 dark:text-white mb-1'>
