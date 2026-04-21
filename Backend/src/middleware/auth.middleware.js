@@ -47,3 +47,29 @@ export const adminMiddleware = async (req, res, next) => {
     }
     next()
 }
+// ── NEW: Ops access — founder (admin) + data_entry staff ────────────
+export const opsMiddleware = async (req, res, next) => {
+    const role = req.user?.role
+    if (role !== 'admin' && role !== 'data_entry') {
+        return res.status(403).json({ message: 'Ops access required' })
+    }
+    next()
+}
+
+// ── NEW: Field agent only ───────────────────────────────────────────
+export const agentMiddleware = async (req, res, next) => {
+    if (req.user?.role !== 'field_agent') {
+        return res.status(403).json({ message: 'Field agent access required' })
+    }
+    next()
+}
+
+// ── NEW: Ops team (any ops role including agent) ────────────────────
+export const opsTeamMiddleware = async (req, res, next) => {
+    const role = req.user?.role
+    const allowed = ['admin', 'data_entry', 'field_agent']
+    if (!allowed.includes(role)) {
+        return res.status(403).json({ message: 'Ops team access required' })
+    }
+    next()
+}

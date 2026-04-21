@@ -298,7 +298,7 @@ const scrollStyle = `
               { val: stats.totalJobs || '0', suffix: '+', label: 'Active Jobs' },
               { val: stats.totalCompanies || '0', suffix: '+', label: 'Verified Companies' },
               { val: stats.totalJobSeekers || '0', suffix: '+', label: 'Job Seekers' },
-             
+              // { val: '94', suffix: '%', label: 'AI Match Accuracy' },
             ].map((s, i) => (
               <div key={i} className='stat-item py-5 px-4 text-center border-r border-b md:border-b-0 last:border-r-0 border-gray-200 dark:border-white/6 hover:bg-green-50 dark:hover:bg-green-500/5 transition-colors'>
                 <div className='text-2xl md:text-3xl font-extrabold text-gray-800 dark:text-white mb-1'>
