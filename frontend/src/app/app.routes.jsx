@@ -35,7 +35,10 @@ import Companies from "../features/jobs/pages/Companies.jsx";
 import CareerTips from "../features/jobs/pages/CareerTips.jsx";
 //Admin
 import AdminPanel from "../features/jobs/pages/AdminPanel/AdminPanel.jsx";
-
+import OpsDashboard from '../features/ops/pages/OpsDashboard/OpsDashboard.jsx'
+import OpsTeam from '../features/ops/pages/OpsTeam/OpsTeam.jsx'
+import OpsTasks from '../features/ops/pages/OpsTasks/OpsTasks.jsx'
+import OpsDataEntry from '../features/ops/pages/OpsDataEntry/OpsDataEntry.jsx'
 //Error Page
 import NotFound from "../features/jobs/pages/NotFound.jsx";
 
@@ -138,6 +141,17 @@ const AppRoutes = () => {
           </Protected>
         }
       />
+      <Route
+    path="/ops"
+    element={
+        <Protected role="admin">
+            <OpsDashboard />
+        </Protected>
+    }
+/>
+<Route path="/ops/team" element={<Protected role="admin"><OpsTeam /></Protected>} />
+<Route path="/ops/tasks" element={<Protected role="admin"><OpsTasks /></Protected>} />
+<Route path="/ops/data-entry" element={<Protected role="admin"><OpsDataEntry /></Protected>} />
       <Route
         path="/resume-builder"
         element={
