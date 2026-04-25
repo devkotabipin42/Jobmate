@@ -41,7 +41,12 @@ import OpsTasks from '../features/ops/pages/OpsTasks/OpsTasks.jsx'
 import OpsDataEntry from '../features/ops/pages/OpsDataEntry/OpsDataEntry.jsx'
 //Error Page
 import NotFound from "../features/jobs/pages/NotFound.jsx";
-
+//ops
+import OpsSalary from '../features/ops/pages/OpsSalary/OpsSalary.jsx'
+import AgentHome from '../features/ops/pages/AgentApp/AgentHome.jsx'
+import AgentCheckIn from '../features/ops/pages/AgentApp/AgentCheckIn.jsx'
+import AgentDataForm from '../features/ops/pages/AgentApp/AgentDataForm.jsx'
+import AgentEarnings from '../features/ops/pages/AgentApp/AgentEarnings.jsx'
 // mistralai
 import ResumeScorer from "../features/jobseeker/pages/ResumeScorer.jsx";
 import ResumeBuilder from "../features/jobseeker/pages/ResumeBuilder.jsx";
@@ -73,6 +78,12 @@ const AppRoutes = () => {
           </Protected>
         }
       />
+      <Route path="/ops/salary" element={<Protected role="admin"><OpsSalary /></Protected>} />
+
+<Route path="/agent" element={<Protected role="field_agent"><AgentHome /></Protected>} />
+<Route path="/agent/checkin/:taskId" element={<Protected role="field_agent"><AgentCheckIn /></Protected>} />
+<Route path="/agent/form/:taskId" element={<Protected role="field_agent"><AgentDataForm /></Protected>} />
+<Route path="/agent/earnings" element={<Protected role="field_agent"><AgentEarnings /></Protected>} />
       <Route path="*" element={<NotFound />} />
       {/* Job Seeker Routes — Protected */}
       <Route

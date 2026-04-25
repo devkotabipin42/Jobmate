@@ -6,17 +6,28 @@ const useOps = () => {
     const [error, setError] = useState('')
 
     const withLoader = async (fn) => {
-        setLoading(true)
-        setError('')
-        try {
-            return await fn()
-        } catch (err) {
-            setError(err.response?.data?.message || 'Request failed')
-            throw err
-        } finally {
-            setLoading(false)
+    setLoading(true)
+    setError('')
+    try {
+        return await fn()
+    } catch (err) {
+        const data = err.response?.data
+        let msg = 'Request failed'
+        
+        if (data?.errors && Array.isArray(data.errors)) {
+            msg = data.errors.map(e => `${e.field}: ${e.message}`).join(', ')
+        } else if (data?.message) {
+            msg = data.message
+        } else if (data?.error) {
+            msg = data.error
         }
+        
+        setError(msg)
+        throw err
+    } finally {
+        setLoading(false)
     }
+}
 
     // ── Team ──────────────────────────────────────────────────────
     const fetchTeam = () => withLoader(async () => {
@@ -111,6 +122,14 @@ const useOps = () => {
         const data = await opsApi.getAgentPerformance()
         return data.performance
     })
+    const createNewAgent = (payload) => withLoader(async () => {
+    const data = await opsApi.createAgent(payload)
+    return data
+})
+const fetchMyVisits = (params) => withLoader(async () => {
+    const data = await opsApi.getMyVisits(params)
+    return data.visits
+})
 
     return {
         loading,
@@ -125,6 +144,7 @@ const useOps = () => {
         fetchAllTasks,
         fetchMyTasks,
         changeTaskStatus,
+        fetchMyVisits,
 
         submitFieldVisit,
         fetchPendingReviews,
@@ -137,7 +157,9 @@ const useOps = () => {
 
         fetchStats,
         fetchActivity,
-        fetchPerformance
+        fetchPerformance,
+        createNewAgent,
+        withLoader
     }
 }
 

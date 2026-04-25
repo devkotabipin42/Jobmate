@@ -108,3 +108,11 @@ export const getAgentPerformance = async () => {
     const res = await api.get('/api/ops/performance')
     return res.data
 }
+export const createAgent = async (data) => {
+    const res = await api.post('/api/ops/agents', data)
+    return res.data
+}
+export const getMyVisits = async (params = {}) => {
+    const res = await api.get('/api/ops/my-visits', { params })
+    return res.data
+}

@@ -30,8 +30,11 @@ export const createTeamMember = async (req, res) => {
         const user = await User.findById(user_id)
         if (!user) return res.status(404).json({ message: 'User not found' })
 
-        user.role = ops_role
-        await user.save()
+        // Don't overwrite admin/employer roles
+        if (user.role !== 'admin' && user.role !== 'employer') {
+            user.role = ops_role
+            await user.save()
+        }
 
         const member = await TeamMember.create({
             user: user_id,
@@ -87,9 +90,25 @@ export const deactivateTeamMember = async (req, res) => {
 
 export const createTask = async (req, res) => {
     try {
-        const founderMember = await TeamMember.findOne({ user: req.user._id })
+        // Find or auto-create founder TeamMember
+        let founderMember = await TeamMember.findOne({ user: req.user._id })
+        
         if (!founderMember) {
-            return res.status(400).json({ message: 'Founder team member record not found' })
+            // Auto-create founder record for admin
+            founderMember = await TeamMember.create({
+                user: req.user._id,
+                full_name: req.user.name || 'Founder',
+                phone: req.user.phone || '0000000000',
+                ops_role: 'founder',
+                is_active: true,
+                salary_config: {
+                    base_type: 'monthly',
+                    base_amount: 0,
+                    visit_incentive: 0,
+                    conversion_bonus: 0,
+                    retention_bonus: 0
+                }
+            })
         }
 
         const task = await FieldTask.create({
@@ -142,6 +161,26 @@ export const getMyTasks = async (req, res) => {
             .sort({ scheduled_date: 1 })
 
         res.json({ tasks })
+    } catch (err) {
+        res.status(500).json({ message: err.message })
+    }
+}
+
+export const getMyVisits = async (req, res) => {
+    try {
+        const member = await TeamMember.findOne({ user: req.user._id })
+        if (!member) return res.status(404).json({ message: 'Member not found' })
+
+        const { status } = req.query
+        const filter = { agent: member._id }
+        if (status) filter.review_status = status
+
+        const visits = await FieldVisit.find(filter)
+            .populate('task', 'target_business')
+            .sort({ createdAt: -1 })
+            .limit(50)
+
+        res.json({ visits })
     } catch (err) {
         res.status(500).json({ message: err.message })
     }
@@ -254,11 +293,23 @@ export const submitVisit = async (req, res) => {
         }
 
         if (task) {
-            task.status = 'completed'
-            task.completed_at = new Date()
-            task.visit_id = visit._id
-            await task.save()
+    // If task had no GPS, save the agent's check-in as the business location
+    const hasGps = task.target_business?.location?.coordinates &&
+                   (task.target_business.location.coordinates[0] !== 0 ||
+                    task.target_business.location.coordinates[1] !== 0)
+
+    if (!hasGps && visitData.check_in?.location?.coordinates) {
+        task.target_business.location = {
+            type: 'Point',
+            coordinates: visitData.check_in.location.coordinates
         }
+    }
+
+    task.status = 'completed'
+    task.completed_at = new Date()
+    task.visit_id = visit._id
+    await task.save()
+}
 
         res.status(201).json({ visit })
     } catch (err) {
@@ -517,6 +568,53 @@ export const getAgentPerformance = async (req, res) => {
         )
 
         res.json({ performance: performance.sort((a, b) => b.visits_count - a.visits_count) })
+    } catch (err) {
+        res.status(500).json({ message: err.message })
+    }
+}
+// ═══ Create user + team member in one shot ═════════════════════
+export const createAgent = async (req, res) => {
+    try {
+        const bcrypt = (await import('bcryptjs')).default
+        const {
+            name, email, password, full_name, phone, whatsapp, ops_role,
+            assigned_areas, salary_config, bank_details
+        } = req.body
+
+        // Check if user exists
+        let user = await User.findOne({ email })
+        if (user) {
+            return res.status(400).json({ message: 'User with this email already exists' })
+        }
+
+        // Create user
+        const hashedPassword = await bcrypt.hash(password, 10)
+        user = await User.create({
+            name,
+            email,
+            password: hashedPassword,
+            phone,
+            role: ops_role,
+            is_verified: true
+        })
+
+        // Create team member
+        const member = await TeamMember.create({
+            user: user._id,
+            full_name,
+            phone,
+            whatsapp,
+            ops_role,
+            assigned_areas: assigned_areas || [],
+            salary_config: salary_config || {},
+            bank_details: bank_details || {}
+        })
+
+        res.status(201).json({ 
+            member,
+            user: { _id: user._id, name: user.name, email: user.email, role: user.role },
+            credentials: { email, temp_password: password }
+        })
     } catch (err) {
         res.status(500).json({ message: err.message })
     }

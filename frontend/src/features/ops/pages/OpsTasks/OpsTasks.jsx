@@ -124,14 +124,24 @@ const OpsTasks = () => {
                                     <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>Area</label>
                                     <input value={form.area} onChange={e => setForm({ ...form, area: e.target.value })} placeholder='Bhardghat' className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-sm' />
                                 </div>
-                                <div>
-                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>Longitude</label>
-                                    <input type='number' step='any' value={form.longitude} onChange={e => setForm({ ...form, longitude: e.target.value })} placeholder='83.6' className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-sm' />
-                                </div>
-                                <div>
-                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>Latitude</label>
-                                    <input type='number' step='any' value={form.latitude} onChange={e => setForm({ ...form, latitude: e.target.value })} placeholder='27.6' className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-sm' />
-                                </div>
+                                <div className='md:col-span-2'>
+    <details className='border border-gray-200 dark:border-gray-700 rounded-lg p-3'>
+        <summary className='cursor-pointer text-xs text-gray-600 dark:text-gray-400 font-medium'>
+            GPS coordinates (optional — skip if unknown)
+        </summary>
+        <div className='grid grid-cols-2 gap-3 mt-3'>
+            <div>
+                <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>Longitude</label>
+                <input type='number' step='any' value={form.longitude} onChange={e => setForm({ ...form, longitude: e.target.value })} placeholder='Leave blank' className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-sm' />
+            </div>
+            <div>
+                <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>Latitude</label>
+                <input type='number' step='any' value={form.latitude} onChange={e => setForm({ ...form, latitude: e.target.value })} placeholder='Leave blank' className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-sm' />
+            </div>
+        </div>
+        <p className='text-xs text-gray-500 dark:text-gray-400 mt-2'>If left blank, agent's check-in location will be used as the business location.</p>
+    </details>
+</div>
                                 <div>
                                     <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>Owner Name</label>
                                     <input value={form.owner_name} onChange={e => setForm({ ...form, owner_name: e.target.value })} className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-sm' />
