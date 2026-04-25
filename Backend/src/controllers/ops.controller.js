@@ -3,8 +3,7 @@ import FieldTask from '../models/FieldTask.model.js'
 import FieldVisit from '../models/FieldVisit.model.js'
 import SalaryRecord from '../models/SalaryRecord.model.js'
 import User from '../models/user.model.js'
-import CRM from '../models/CRM.model.js'
-
+import mongoose from 'mongoose'
 // ═══════════════════════════════════════════════════════════════════
 // TEAM MANAGEMENT
 // ═══════════════════════════════════════════════════════════════════
@@ -348,42 +347,71 @@ export const reviewVisit = async (req, res) => {
         const { action, updated_data, review_notes } = req.body
         const reviewer = await TeamMember.findOne({ user: req.user._id })
 
+        if (!reviewer) {
+            return res.status(403).json({ error: 'REVIEWER_NOT_FOUND' })
+        }
+
         const visit = await FieldVisit.findById(req.params.id)
-        if (!visit) return res.status(404).json({ message: 'Visit not found' })
-
-        if (updated_data) {
-            Object.assign(visit, updated_data)
+        if (!visit) {
+            return res.status(404).json({ error: 'VISIT_NOT_FOUND' })
         }
 
-        visit.reviewed_by = reviewer?._id
-        visit.reviewed_at = new Date()
-        visit.review_notes = review_notes || ''
+        // Idempotency
+        if (['approved', 'rejected'].includes(visit.review_status)) {
+            return res.status(409).json({
+                error: 'ALREADY_REVIEWED',
+                review_status: visit.review_status,
+                reviewed_at: visit.reviewed_at
+            })
+        }
 
-        if (action === 'approve') {
-            visit.review_status = 'approved'
-            if (['very_interested', 'interested'].includes(visit.pitch_outcome?.reaction)) {
-                const crmLead = await CRM.create({
-                    candidate: {
-                        name: visit.business_info?.owner_name,
-                        phone: visit.business_info?.owner_phone,
-                        location: visit.business_info?.address
-                    },
-                    status: visit.pitch_outcome?.next_action === 'demo_scheduled' ? 'follow_up' : 'interested',
-                    notes: [{
-                        text: `Field visit by ${reviewer?.full_name || 'agent'}. ${visit.pitch_outcome?.agent_notes || ''}`
-                    }],
-                    source: 'direct'
-                })
-                visit.crm_lead_id = crmLead._id
+        // Apply admin edits
+        if (updated_data && typeof updated_data === 'object') {
+            const allowedKeys = ['business_info', 'hiring_needs', 'pitch_outcome']
+            for (const key of allowedKeys) {
+                if (updated_data[key]) {
+                    visit[key] = { ...visit[key]?.toObject?.() || {}, ...updated_data[key] }
+                }
             }
-        } else if (action === 'reject') {
-            visit.review_status = 'rejected'
         }
+
+        visit.reviewed_by = reviewer._id
+        visit.reviewed_at = new Date()
+        visit.review_notes = (review_notes || '').trim()
+        visit.review_status = action === 'reject' ? 'rejected' : 'approved'
 
         await visit.save()
-        res.json({ visit })
+
+        // Determine if this counts as a conversion
+        const positiveReactions = ['very_interested', 'interested']
+        const isConversion = action === 'approve' &&
+                            positiveReactions.includes(visit.pitch_outcome?.reaction) &&
+                            visit.business_info?.owner_phone
+
+        // Post-commit side effects (non-blocking)
+        setImmediate(() => {
+            console.log(`[ops] Visit ${visit._id} ${visit.review_status} by ${reviewer.full_name}${isConversion ? ' [+conversion]' : ''}`)
+            // TODO: SMS/WhatsApp to owner
+            // TODO: Push notification to agent
+        })
+
+        return res.json({
+            visit,
+            action: visit.review_status,
+            is_conversion: !!isConversion,
+            message: action === 'reject'
+                ? 'Visit rejected. Agent will see review notes.'
+                : isConversion
+                    ? 'Visit approved as conversion. Agent earns bonus.'
+                    : 'Visit approved (no conversion bonus — neutral/negative outcome).'
+        })
+
     } catch (err) {
-        res.status(500).json({ message: err.message })
+        console.error('[ops] reviewVisit failed:', err)
+        return res.status(500).json({
+            error: 'REVIEW_FAILED',
+            message: process.env.NODE_ENV === 'production' ? 'Internal error' : err.message
+        })
     }
 }
 
@@ -396,7 +424,7 @@ export const calculateMonthlySalary = async (req, res) => {
         const { agent_id, month, year } = req.body
 
         const agent = await TeamMember.findById(agent_id)
-        if (!agent) return res.status(404).json({ message: 'Agent not found' })
+        if (!agent) return res.status(404).json({ error: 'AGENT_NOT_FOUND' })
 
         const start = new Date(year, month - 1, 1)
         const end = new Date(year, month, 0, 23, 59, 59)
@@ -407,10 +435,16 @@ export const calculateMonthlySalary = async (req, res) => {
             createdAt: { $gte: start, $lte: end }
         })
 
-        const conversions = visits.filter(v => v.converted_employer_id || v.crm_lead_id).length
+        const positiveReactions = ['very_interested', 'interested']
+        const conversions = visits.filter(v =>
+            positiveReactions.includes(v.pitch_outcome?.reaction) &&
+            v.business_info?.owner_phone
+        ).length
 
-        const cfg = agent.salary_config
-        const base_amount = cfg.base_type === 'monthly' ? cfg.base_amount : cfg.base_amount * 30
+        const cfg = agent.salary_config || {}
+        const base_amount = cfg.base_type === 'monthly'
+            ? (cfg.base_amount || 0)
+            : (cfg.base_amount || 0) * 30
         const visit_incentive_total = visits.length * (cfg.visit_incentive || 0)
         const conversion_bonus_total = conversions * (cfg.conversion_bonus || 0)
 
@@ -433,7 +467,8 @@ export const calculateMonthlySalary = async (req, res) => {
 
         res.json({ salary: record })
     } catch (err) {
-        res.status(500).json({ message: err.message })
+        console.error('[ops] calculateSalary failed:', err)
+        res.status(500).json({ error: 'CALCULATION_FAILED', message: err.message })
     }
 }
 
@@ -450,6 +485,24 @@ export const getSalaryRecords = async (req, res) => {
         res.json({ records })
     } catch (err) {
         res.status(500).json({ message: err.message })
+    }
+}
+
+export const getMySalaryRecords = async (req, res) => {
+    try {
+        const member = await TeamMember.findOne({ user: req.user._id })
+        if (!member) return res.status(404).json({ error: 'MEMBER_NOT_FOUND' })
+
+        const { year } = req.query
+        const filter = { agent: member._id }
+        if (year) filter.year = parseInt(year)
+
+        const records = await SalaryRecord.find(filter)
+            .sort({ year: -1, month: -1 })
+
+        res.json({ records })
+    } catch (err) {
+        res.status(500).json({ error: 'FETCH_FAILED', message: err.message })
     }
 }
 
@@ -617,5 +670,33 @@ export const createAgent = async (req, res) => {
         })
     } catch (err) {
         res.status(500).json({ message: err.message })
+    }
+}
+export const getApprovedLeads = async (req, res) => {
+    try {
+        const { reaction, next_action, search } = req.query
+        const filter = { review_status: 'approved' }
+
+        if (reaction) filter['pitch_outcome.reaction'] = reaction
+        if (next_action) filter['pitch_outcome.next_action'] = next_action
+
+        if (search) {
+            filter.$or = [
+                { 'business_info.name': new RegExp(search, 'i') },
+                { 'business_info.owner_name': new RegExp(search, 'i') },
+                { 'business_info.owner_phone': new RegExp(search, 'i') }
+            ]
+        }
+
+        const leads = await FieldVisit.find(filter)
+            .populate('agent', 'full_name profile_photo')
+            .populate('task', 'target_business')
+            .sort({ reviewed_at: -1 })
+            .limit(200)
+
+        res.json({ leads })
+    } catch (err) {
+        console.error('[ops] getApprovedLeads failed:', err)
+        res.status(500).json({ error: 'FETCH_FAILED', message: err.message })
     }
 }

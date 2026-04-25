@@ -19,7 +19,9 @@ import {
     markSalaryPaid,
     getOpsStats,
     getRecentActivity,
-    getAgentPerformance
+    getAgentPerformance,
+    getMySalaryRecords,
+    getApprovedLeads,
 } from '../controllers/ops.controller.js'
 
 import {
@@ -65,11 +67,13 @@ opsRouter.get('/salary', opsMiddleware, getSalaryRecords)
 opsRouter.get('/stats', opsMiddleware, getOpsStats)
 opsRouter.get('/activity', opsMiddleware, getRecentActivity)
 opsRouter.get('/performance', opsMiddleware, getAgentPerformance)
+opsRouter.get('/leads', opsMiddleware, getApprovedLeads)
 
 // ═══ FIELD AGENT ════════════════════════════════════════════════════
 opsRouter.get('/my-tasks', agentMiddleware, getMyTasks)
 opsRouter.get('/my-visits', agentMiddleware, getMyVisits)
 opsRouter.put('/tasks/:id/status', opsTeamMiddleware, updateTaskStatus)
 opsRouter.post('/visits', agentMiddleware, validate(submitVisitSchema), submitVisit)
+opsRouter.get('/my-salary', agentMiddleware, getMySalaryRecords)
 
 export default opsRouter

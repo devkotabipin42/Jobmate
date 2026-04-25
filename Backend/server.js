@@ -1,6 +1,5 @@
 import { config } from 'dotenv'
 config()
-
 console.log("API Key Check:", process.env.GOOGLE_API_KEY ? "Found" : "Not Found")
 
 import app from './src/app.js'

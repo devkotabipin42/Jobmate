@@ -39,6 +39,7 @@ import OpsDashboard from '../features/ops/pages/OpsDashboard/OpsDashboard.jsx'
 import OpsTeam from '../features/ops/pages/OpsTeam/OpsTeam.jsx'
 import OpsTasks from '../features/ops/pages/OpsTasks/OpsTasks.jsx'
 import OpsDataEntry from '../features/ops/pages/OpsDataEntry/OpsDataEntry.jsx'
+import OpsLeads from '../features/ops/pages/OpsLeads/OpsLeads.jsx'
 //Error Page
 import NotFound from "../features/jobs/pages/NotFound.jsx";
 //ops
@@ -84,6 +85,7 @@ const AppRoutes = () => {
 <Route path="/agent/checkin/:taskId" element={<Protected role="field_agent"><AgentCheckIn /></Protected>} />
 <Route path="/agent/form/:taskId" element={<Protected role="field_agent"><AgentDataForm /></Protected>} />
 <Route path="/agent/earnings" element={<Protected role="field_agent"><AgentEarnings /></Protected>} />
+<Route path="/ops/leads" element={<Protected role="admin"><OpsLeads /></Protected>} />
       <Route path="*" element={<NotFound />} />
       {/* Job Seeker Routes — Protected */}
       <Route

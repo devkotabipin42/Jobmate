@@ -82,6 +82,9 @@ const OpsDashboard = () => {
                         <Link to='/ops/tasks' className='px-4 py-2 text-sm border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition'>
                             + New Task
                         </Link>
+                        <Link to='/ops/leads' className='px-4 py-2 text-sm border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition'>
+    Leads
+</Link>
                         <Link to='/ops/data-entry' className='px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition'>
                             Review Queue ({pendingCount})
                         </Link>

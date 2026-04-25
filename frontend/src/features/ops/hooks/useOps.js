@@ -90,6 +90,10 @@ const useOps = () => {
         const data = await opsApi.reviewVisit(id, payload)
         return data.visit
     })
+    const fetchApprovedLeads = (params) => withLoader(async () => {
+    const data = await opsApi.getApprovedLeads(params)
+    return data.leads
+})
 
     // ── Salary ────────────────────────────────────────────────────
     const runSalaryCalculation = (payload) => withLoader(async () => {
@@ -106,6 +110,10 @@ const useOps = () => {
         const data = await opsApi.markSalaryPaid(id, payload)
         return data.record
     })
+    const fetchMySalary = (params) => withLoader(async () => {
+    const data = await opsApi.getMySalaryRecords(params)
+    return data.records
+})
 
     // ── Dashboard ─────────────────────────────────────────────────
     const fetchStats = () => withLoader(async () => {
@@ -131,6 +139,7 @@ const fetchMyVisits = (params) => withLoader(async () => {
     return data.visits
 })
 
+
     return {
         loading,
         error,
@@ -150,16 +159,18 @@ const fetchMyVisits = (params) => withLoader(async () => {
         fetchPendingReviews,
         fetchVisitDetail,
         reviewVisitSubmission,
+        fetchApprovedLeads,
 
         runSalaryCalculation,
         fetchSalaryRecords,
         markPaid,
+        fetchMySalary,
 
         fetchStats,
         fetchActivity,
         fetchPerformance,
         createNewAgent,
-        withLoader
+        withLoader,
     }
 }
 

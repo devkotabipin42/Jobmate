@@ -6,7 +6,7 @@
   "npmrc": "legacy-peer-deps=true",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx nodemon server.js"
+    "dev": "npx nodemon --exec \"node --import ./src/instrument.js\" server.js"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +17,8 @@
     "@langchain/core": "^1.1.36",
     "@langchain/google-genai": "^2.1.26",
     "@mistralai/mistralai": "^2.1.2",
+    "@sentry/node": "^10.50.0",
+    "@sentry/profiling-node": "^10.50.0",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.9.0",
     "compression": "^1.8.1",

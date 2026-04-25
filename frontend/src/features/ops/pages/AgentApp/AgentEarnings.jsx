@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import useOps from '../../hooks/useOps.js'
 
 const AgentEarnings = () => {
-    const { loading, fetchSalaryRecords, fetchMyTasks } = useOps()
+    const { loading, fetchMySalary, fetchMyTasks } = useOps()
     const [records, setRecords] = useState([])
     const [tasks, setTasks] = useState([])
 
@@ -11,7 +11,7 @@ const AgentEarnings = () => {
 
     const load = async () => {
         try {
-            const [r, t] = await Promise.all([fetchSalaryRecords(), fetchMyTasks()])
+            const [r, t] = await Promise.all([fetchMySalary(), fetchMyTasks()])
             setRecords(r || [])
             setTasks(t || [])
         } catch (err) { console.error(err) }

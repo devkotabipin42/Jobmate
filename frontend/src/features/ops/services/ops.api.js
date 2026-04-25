@@ -116,3 +116,11 @@ export const getMyVisits = async (params = {}) => {
     const res = await api.get('/api/ops/my-visits', { params })
     return res.data
 }
+export const getMySalaryRecords = async (params = {}) => {
+    const res = await api.get('/api/ops/my-salary', { params })
+    return res.data
+}
+export const getApprovedLeads = async (params = {}) => {
+    const res = await api.get('/api/ops/leads', { params })
+    return res.data
+}

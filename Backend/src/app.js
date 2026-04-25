@@ -1,4 +1,5 @@
 import express from 'express'
+import * as Sentry from '@sentry/node'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import morgan from 'morgan'
@@ -58,4 +59,6 @@ app.use('/api/admin/featured-companies', featuredCompanyRouter)
 app.use('/api/contact', contactRouter)
 app.use('/api/ops', opsRouter)
 
+// Sentry error handler — MUST be after all routes
+Sentry.setupExpressErrorHandler(app)
 export default app
