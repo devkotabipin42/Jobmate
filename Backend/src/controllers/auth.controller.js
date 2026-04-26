@@ -135,24 +135,24 @@ export const registerEmployer = async (req, res) => {
 // Login
 export const login = async (req, res) => {
     try {
-        const { email, password, role } = req.body
+    const { email, password, role } = req.body
 
-        let account = null
+    let account = null
 
-        if (role === 'employer') {
-            account = await Employer.findOne({ email })
-        } else {
-            account = await User.findOne({ email })
-        }
+    if (role === 'employer') {
+        account = await Employer.findOne({ email }).select('+password')
+    } else {
+        account = await User.findOne({ email }).select('+password')
+    }
 
-        if (!account) {
-            return res.status(404).json({ message: 'Account not found' })
-        }
+    if (!account) {
+        return res.status(404).json({ message: 'Account not found' })
+    }
 
-        const isMatch = await account.comparePassword(password)
-        if (!isMatch) {
-            return res.status(400).json({ message: 'Invalid password' })
-        }
+    const isMatch = await account.comparePassword(password)
+    if (!isMatch) {
+        return res.status(400).json({ message: 'Invalid password' })
+    }
         if (account.is_banned) {
         return res.status(403).json({ message: 'Your account has been banned. Contact support at hello@jobmate.com.np' })
         }       
@@ -647,9 +647,9 @@ export const resetPassword = async (req, res) => {
         if (password.length < 6) return res.status(400).json({ message: 'Password must be at least 6 characters' })
         const Model = role === 'employer' ? Employer : User
         const account = await Model.findOne({
-            reset_password_token: token,
-            reset_password_expires: { $gt: Date.now() }
-        })
+    reset_password_token: token,
+    reset_password_expires: { $gt: Date.now() }
+}).select('+password')
         if (!account) return res.status(400).json({ message: 'Invalid or expired reset link' })
         const salt = await bcrypt.genSalt(10)
         account.password = await bcrypt.hash(password, salt)

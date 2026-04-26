@@ -4,6 +4,7 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import morgan from 'morgan'
 import helmet from 'helmet'
+import { apiLimiter, authLimiter, publicLimiter } from './middleware/rateLimit.middleware.js'
 import compression from 'compression'
 import authRouter from './routes/auth.routes.js'
 import jobRouter from './routes/job.routes.js'
@@ -30,16 +31,29 @@ const corsOptions = {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }
+// Trust Render's proxy (required for accurate IP detection)
+app.set('trust proxy', 1)
 
+// CORS first
 app.use(cors(corsOptions))
 app.options(/.*/, cors(corsOptions))
-app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }))
+
+// Security headers
 app.use(helmet({ crossOriginResourcePolicy: false, crossOriginOpenerPolicy: false, contentSecurityPolicy: false }))
 app.use(compression())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 app.use(morgan('dev'))
+
+// Rate limiting — MUST be before routes
+app.use('/api/auth', authLimiter)
+app.use('/api/jobs', publicLimiter)
+app.use('/api', apiLimiter)
+
+// Routes
+app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }))
+
 
 app.get('/', (req, res) => res.json({ message: 'Jobmate API running!' }))
 
@@ -61,4 +75,17 @@ app.use('/api/ops', opsRouter)
 
 // Sentry error handler — MUST be after all routes
 Sentry.setupExpressErrorHandler(app)
+
+import { errorHandler, notFoundHandler } from './middleware/error.middleware.js'
+
+// ... after all routes
+
+// 404 for unknown routes
+app.use(notFoundHandler)
+
+// Sentry handler (already there)
+Sentry.setupExpressErrorHandler(app)
+
+// Global error handler — MUST be last
+app.use(errorHandler)
 export default app
