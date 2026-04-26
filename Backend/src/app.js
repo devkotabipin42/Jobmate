@@ -1,8 +1,9 @@
 import express from 'express'
 import * as Sentry from '@sentry/node'
+import { requestLogger } from './middleware/requestLogger.middleware.js'
+import logger from './config/logger.js'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
-import morgan from 'morgan'
 import helmet from 'helmet'
 import { apiLimiter, authLimiter, publicLimiter } from './middleware/rateLimit.middleware.js'
 import compression from 'compression'
@@ -44,7 +45,7 @@ app.use(compression())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
-app.use(morgan('dev'))
+app.use(requestLogger)
 
 // Rate limiting — MUST be before routes
 app.use('/api/auth', authLimiter)
