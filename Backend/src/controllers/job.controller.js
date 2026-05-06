@@ -4,6 +4,50 @@ import transporter from '../config/mailer.js'
 import redis, { isRedisConnected } from '../config/redis.js'
 
 
+
+const suspiciousJobPatterns = [
+    /registration fee/i,
+    /security deposit/i,
+    /refundable/i,
+    /send\s+\d+/i,
+    /telegram/i,
+    /whatsapp/i,
+    /no interview/i,
+    /earn\s+.*daily/i,
+    /work permit/i,
+    /agent immediately/i,
+    /captcha/i,
+    /subscribe to channels/i,
+    /like videos/i,
+    /daily payment/i,
+    /first task/i
+]
+
+const isSuspiciousJob = ({ title = '', description = '' }) => {
+    const text = `${title} ${description}`
+    return suspiciousJobPatterns.some(pattern => pattern.test(text))
+}
+
+const validateJobDeadline = (deadline) => {
+    const deadlineDate = new Date(deadline)
+
+    if (Number.isNaN(deadlineDate.getTime())) {
+        return 'Invalid deadline date'
+    }
+
+    if (deadlineDate <= new Date()) {
+        return 'Deadline must be a future date'
+    }
+
+    const maxDeadline = new Date()
+    maxDeadline.setFullYear(maxDeadline.getFullYear() + 2)
+
+    if (deadlineDate > maxDeadline) {
+        return 'Deadline cannot be more than 2 years in the future'
+    }
+
+    return null
+}
 const escapeRegex = (value = '') => {
     return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
@@ -109,74 +153,91 @@ export const createJob = async (req, res) => {
 export const getAllJobs = async (req, res) => {
     try {
         const {
-            keyword, location,
-            category, type,
-            experience, salary_min,
-            salary_max, featured
+            keyword,
+            location,
+            category,
+            type,
+            experience,
+            salary_min,
+            salary_max,
+            featured
         } = req.query
 
-        // Check cache first
         const cacheKey = `jobs:${JSON.stringify(req.query)}`
-        try {
-            const cached = await redis.get(cacheKey)
-            if (cached) return res.status(200).json(JSON.parse(cached))
-        } catch (e) {}
 
-        let query = { is_active: true, is_verified: true }
-
-        if (keyword) {
-    const safeKeyword = escapeRegex(keyword)
-    query.$or = [
-        { title: { $regex: safeKeyword, $options: 'i' } },
-        { description: { $regex: safeKeyword, $options: 'i' } }
-    ]
-}
-
-if (location) {
-    query.location = { $regex: escapeRegex(location), $options: 'i' }
-}
-
-        if (location) query.location = { $regex: location, $options: 'i' }
-        if (category) query.category = category
-        if (type) query.type = type
-        if (experience) query.experience = experience
-        if (featured) query.is_featured = true
-
-        if (salary_min || salary_max) {
-            query.salary_min = {}
-            if (salary_min) query.salary_min.$gte = Number(salary_min)
-            if (salary_max) query.salary_max = { $lte: Number(salary_max) }
+        if (isRedisConnected) {
+            try {
+                const cached = await redis.get(cacheKey)
+                if (cached) {
+                    return res.status(200).json(JSON.parse(cached))
+                }
+            } catch (e) {
+                console.error('Failed to read jobs cache:', e.message)
+            }
         }
 
-        query.deadline = { $gte: new Date() }
-query.is_active = true
-const jobs = await Job.find(query)
-    .populate('employer', 'company_name logo_url location is_verified')
-    .sort({ is_featured: -1, createdAt: -1 })
+        const query = {
+            is_active: true,
+            is_verified: true,
+            deadline: { $gte: new Date() }
+        }
+
+        if (keyword) {
+            const safeKeyword = escapeRegex(keyword)
+
+            query.$or = [
+                { title: { $regex: safeKeyword, $options: 'i' } },
+                { description: { $regex: safeKeyword, $options: 'i' } }
+            ]
+        }
+
+        if (location) {
+            query.location = { $regex: escapeRegex(location), $options: 'i' }
+        }
+
+        if (category) {
+            query.category = category
+        }
+
+        if (type) {
+            query.type = type
+        }
+
+        if (experience) {
+            query.experience = experience
+        }
+
+        if (featured) {
+            query.is_featured = true
+        }
+
+        if (salary_min) {
+            query.salary_min = { $gte: Number(salary_min) }
+        }
+
+        if (salary_max) {
+            query.salary_max = { $lte: Number(salary_max) }
+        }
+
+        const jobs = await Job.find(query)
+            .populate('employer', 'company_name logo_url location is_verified')
+            .sort({ is_featured: -1, createdAt: -1 })
+
+        const safeJobs = jobs.filter(job => job.employer)
 
         const responseData = {
             message: 'Jobs fetched successfully',
-            count: jobs.length,
-            jobs
+            count: safeJobs.length,
+            jobs: safeJobs
         }
-        if (isRedisConnected) {
-    try {
-        const cached = await redis.get(cacheKey)
-        console.log('getAllJobs called')
-        if (cached) return res.status(200).json(JSON.parse(cached))
-    } catch (e) {}
-}
 
-if (isRedisConnected) {
-    try {
-        const keys = await redis.keys('jobs:*')
-        if (keys.length > 0) await redis.del(keys)
-    } catch (e) {}
-}
-        // Save to cache — 5 minutes
-        try {
-            await redis.setEx(cacheKey, 300, JSON.stringify(responseData))
-        } catch (e) {}
+        if (isRedisConnected) {
+            try {
+                await redis.setEx(cacheKey, 300, JSON.stringify(responseData))
+            } catch (e) {
+                console.error('Failed to write jobs cache:', e.message)
+            }
+        }
 
         res.status(200).json(responseData)
     } catch (error) {
