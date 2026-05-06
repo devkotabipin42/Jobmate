@@ -14,13 +14,16 @@ const suspiciousJobPatterns = [
     /whatsapp/i,
     /no interview/i,
     /earn\s+.*daily/i,
+    /daily payment/i,
     /work permit/i,
     /agent immediately/i,
     /captcha/i,
     /subscribe to channels/i,
     /like videos/i,
-    /daily payment/i,
-    /first task/i
+    /first task/i,
+    /software setup/i,
+    /processing fee/i,
+    /deposit required/i
 ]
 
 const isSuspiciousJob = ({ title = '', description = '' }) => {
@@ -44,6 +47,25 @@ const validateJobDeadline = (deadline) => {
 
     if (deadlineDate > maxDeadline) {
         return 'Deadline cannot be more than 2 years in the future'
+    }
+
+    return null
+}
+
+const validateJobSalary = (salaryMin, salaryMax) => {
+    const min = Number(salaryMin)
+    const max = Number(salaryMax)
+
+    if (Number.isNaN(min) || Number.isNaN(max)) {
+        return 'Salary must be a valid number'
+    }
+
+    if (min < 0 || max < 0) {
+        return 'Salary cannot be negative'
+    }
+
+    if (min > max) {
+        return 'Minimum salary cannot be greater than maximum salary'
     }
 
     return null
@@ -74,7 +96,23 @@ export const createJob = async (req, res) => {
             type, experience, deadline,
             cv_required 
         } = req.body
+        if (isSuspiciousJob({ title, description })) {
+    return res.status(400).json({
+        message: 'This job looks suspicious and requires manual review before posting.'
+    })
+}
 
+const deadlineError = validateJobDeadline(deadline)
+
+if (deadlineError) {
+    return res.status(400).json({ message: deadlineError })
+}
+
+const salaryError = validateJobSalary(salary_min, salary_max)
+
+if (salaryError) {
+    return res.status(400).json({ message: salaryError })
+}
         const job = await Job.create({
             title, description,
             salary_min, salary_max,
@@ -273,7 +311,35 @@ export const updateJob = async (req, res) => {
         if (job.employer.toString() !== req.user._id.toString()) {
             return res.status(403).json({ message: 'Not authorized' })
         }
+        const existingJob = await Job.findById(req.params.id)
 
+if (!existingJob) {
+    return res.status(404).json({ message: 'Job not found' })
+}
+
+const nextTitle = req.body.title ?? existingJob.title
+const nextDescription = req.body.description ?? existingJob.description
+const nextDeadline = req.body.deadline ?? existingJob.deadline
+const nextSalaryMin = req.body.salary_min ?? existingJob.salary_min
+const nextSalaryMax = req.body.salary_max ?? existingJob.salary_max
+
+if (isSuspiciousJob({ title: nextTitle, description: nextDescription })) {
+    return res.status(400).json({
+        message: 'This job looks suspicious and requires manual review before updating.'
+    })
+}
+
+const deadlineError = validateJobDeadline(nextDeadline)
+
+if (deadlineError) {
+    return res.status(400).json({ message: deadlineError })
+}
+
+const salaryError = validateJobSalary(nextSalaryMin, nextSalaryMax)
+
+if (salaryError) {
+    return res.status(400).json({ message: salaryError })
+}
         const updatedJob = await Job.findByIdAndUpdate(
             req.params.id,
             req.body,
