@@ -28,6 +28,7 @@ app.set('trust proxy', 1)
 
 const allowedOrigins = [
     'http://localhost:5173',
+    'http://localhost:5174',
     'https://jobmate-two.vercel.app',
     'https://jobmate-bot.vercel.app',
     ...(process.env.FRONTEND_URLS ? process.env.FRONTEND_URLS.split(',').map(url => url.trim()) : [])

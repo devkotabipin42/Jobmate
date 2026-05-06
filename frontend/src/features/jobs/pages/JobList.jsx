@@ -7,12 +7,14 @@ import { setFilters } from '../job.slice.js'
 import Navbar from '../../../components/Navbar.jsx'
 import Footer from '../../../components/Footer.jsx'
 import useJobs from '../hooks/useJobs.js'
+import { lumbiniLocationOptions, jobCategoryOptions ,jobTypeOptions,
+  experienceOptions} from '../../../constants/jobOptions'
 
 const filterConfig = [
-  { label: 'Location', key: 'location', options: [{ label: 'All Locations', value: '' }, { label: 'Kathmandu', value: 'Kathmandu' }, { label: 'Pokhara', value: 'Pokhara' }, { label: 'Lalitpur', value: 'Lalitpur' }, { label: 'Chitwan', value: 'Chitwan' }, { label: 'Remote', value: 'Remote' }] },
-  { label: 'Category', key: 'category', options: [{ label: 'All Categories', value: '' }, { label: 'IT/Tech', value: 'IT/Tech' }, { label: 'Finance/Banking', value: 'Finance/Banking' }, { label: 'NGO/INGO', value: 'NGO/INGO' }, { label: 'Healthcare', value: 'Healthcare' }, { label: 'Education', value: 'Education' }, { label: 'Marketing', value: 'Marketing' }, { label: 'Hospitality', value: 'Hospitality' }] },
-  { label: 'Job Type', key: 'type', options: [{ label: 'All Types', value: '' }, { label: 'Full Time', value: 'full-time' }, { label: 'Part Time', value: 'part-time' }, { label: 'Remote', value: 'remote' }, { label: 'Internship', value: 'internship' }, { label: 'Contract', value: 'contract' }] },
-  { label: 'Experience', key: 'experience', options: [{ label: 'All Levels', value: '' }, { label: 'Fresh Graduate', value: 'fresh' }, { label: '1-2 Years', value: '1-2 years' }, { label: '3-5 Years', value: '3-5 years' }, { label: '5+ Years', value: '5+ years' }] },
+  { label: 'Location', key: 'location', options: lumbiniLocationOptions },
+{ label: 'Category', key: 'category', options: jobCategoryOptions },
+  { label: 'Job Type', key: 'type', options: jobTypeOptions },
+  { label: 'Experience', key: 'experience', options: experienceOptions },
 ]
 
 const FilterContent = ({ filters, handleFilter, onClose }) => (
