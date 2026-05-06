@@ -47,6 +47,13 @@ export const adminMiddleware = async (req, res, next) => {
     }
     next()
 }
+
+export const employerMiddleware = async (req, res, next) => {
+    if (req.user?.role !== 'employer') {
+        return res.status(403).json({ message: 'Employer access required' })
+    }
+    next()
+}
 // ── NEW: Ops access — founder (admin) + data_entry staff ────────────
 export const opsMiddleware = async (req, res, next) => {
     const role = req.user?.role

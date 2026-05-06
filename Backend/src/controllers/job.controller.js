@@ -2,6 +2,24 @@ import Job from '../models/Job.model.js'
 import User from '../models/user.model.js'
 import transporter from '../config/mailer.js'
 import redis, { isRedisConnected } from '../config/redis.js'
+
+
+const escapeRegex = (value = '') => {
+    return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+const clearJobsCache = async () => {
+    try {
+        if (!isRedisConnected) return
+
+        const keys = await redis.keys('jobs:*')
+        if (keys.length > 0) {
+            await redis.del(keys)
+        }
+    } catch (error) {
+        console.error('Failed to clear jobs cache:', error.message)
+    }
+}
 // Create Job — Employer only
 export const createJob = async (req, res) => {
     try {
@@ -77,6 +95,7 @@ export const createJob = async (req, res) => {
     const keys = await redis.keys('jobs:*')
     if (keys.length > 0) await redis.del(keys)
 } catch (e) {}
+        await clearJobsCache()
         res.status(201).json({
             message: 'Job created successfully',
             job
@@ -106,11 +125,16 @@ export const getAllJobs = async (req, res) => {
         let query = { is_active: true, is_verified: true }
 
         if (keyword) {
-            query.$or = [
-                { title: { $regex: keyword, $options: 'i' } },
-                { description: { $regex: keyword, $options: 'i' } }
-            ]
-        }
+    const safeKeyword = escapeRegex(keyword)
+    query.$or = [
+        { title: { $regex: safeKeyword, $options: 'i' } },
+        { description: { $regex: safeKeyword, $options: 'i' } }
+    ]
+}
+
+if (location) {
+    query.location = { $regex: escapeRegex(location), $options: 'i' }
+}
 
         if (location) query.location = { $regex: location, $options: 'i' }
         if (category) query.category = category
@@ -142,11 +166,7 @@ const jobs = await Job.find(query)
         if (cached) return res.status(200).json(JSON.parse(cached))
     } catch (e) {}
 }
-if (isRedisConnected) {
-    try {
-        await redis.setEx(cacheKey, 300, JSON.stringify(responseData))
-    } catch (e) {}
-}
+
 if (isRedisConnected) {
     try {
         const keys = await redis.keys('jobs:*')
@@ -198,7 +218,7 @@ export const updateJob = async (req, res) => {
             req.body,
             { new: true }
         )
-
+        await clearJobsCache()
         res.status(200).json({
             message: 'Job updated successfully',
             job: updatedJob
@@ -222,7 +242,7 @@ export const deleteJob = async (req, res) => {
         }
 
         await Job.findByIdAndDelete(req.params.id)
-
+        await clearJobsCache()
         res.status(200).json({ message: 'Job deleted successfully' })
     } catch (error) {
         res.status(500).json({ message: error.message })

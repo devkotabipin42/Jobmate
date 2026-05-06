@@ -202,6 +202,22 @@ export const getAllEmployers = async (req, res) => {
 export const updateUserRole = async (req, res) => {
     try {
         const { role } = req.body
+
+        const allowedRoles = ['jobseeker', 'admin', 'data_entry', 'field_agent']
+
+        if (!allowedRoles.includes(role)) {
+            return res.status(400).json({
+                message: 'Invalid role',
+                allowedRoles
+            })
+        }
+
+        if (req.user?._id?.toString() === req.params.id && role !== 'admin') {
+            return res.status(400).json({
+                message: 'You cannot remove your own admin role'
+            })
+        }
+
         const user = await User.findByIdAndUpdate(
             req.params.id,
             { role },

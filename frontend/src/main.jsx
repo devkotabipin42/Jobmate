@@ -8,9 +8,7 @@ import './index.css'
 import App from './app/App.jsx'
 
 if (import.meta.env.PROD) {
-    console.log = () => {}
-    console.error = () => {}
-    console.warn = () => {}
+  console.log = () => {}
 }
 
 createRoot(document.getElementById('root')).render(

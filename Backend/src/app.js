@@ -26,10 +26,23 @@ import opsRouter from './routes/ops.routes.js'
 const app = express()
 app.set('trust proxy', 1)
 
+const allowedOrigins = [
+    'http://localhost:5173',
+    'https://jobmate-two.vercel.app',
+    'https://jobmate-bot.vercel.app',
+    ...(process.env.FRONTEND_URLS ? process.env.FRONTEND_URLS.split(',').map(url => url.trim()) : [])
+]
+
 const corsOptions = {
-    origin: ['http://localhost:5173', 'https://jobmate-two.vercel.app'],
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true)
+        }
+
+        return callback(new Error(`CORS blocked for origin: ${origin}`))
+    },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }
 // Trust Render's proxy (required for accurate IP detection)
@@ -75,7 +88,6 @@ app.use('/api/contact', contactRouter)
 app.use('/api/ops', opsRouter)
 
 // Sentry error handler — MUST be after all routes
-Sentry.setupExpressErrorHandler(app)
 
 import { errorHandler, notFoundHandler } from './middleware/error.middleware.js'
 
