@@ -13,6 +13,7 @@ import AdminContactRequests from './AdminContactRequests.jsx'
 import AdminPostJob from './AdminPostJob.jsx'
 import AdminSafety from './AdminSafety.jsx'
 import AdminPlacements from './AdminPlacements.jsx'
+import AdminFollowUps from './AdminFollowUps.jsx'
 const COLORS = ['#22c55e', '#f59e0b', '#8b5cf6', '#3b82f6', '#ef4444']
 
 const sidebarItems = [
@@ -32,6 +33,7 @@ const sidebarItems = [
     { id: 'post-job', label: 'Post Job', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.14 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.05 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 10a16 16 0 0 0 6 6z'/></svg>  },
     { id: 'safety', label: 'Safety', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M12 2l7 4v6c0 5-3 9-7 10-4-1-7-5-7-10V6l7-4z'/><path d='M9 12l2 2 4-4'/></svg> },
     { id: 'placements', label: 'Placements', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M9 11l3 3L22 4'/><path d='M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'/></svg> },
+    { id: 'followups', label: 'Follow-ups', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/><path d='M8 9h8'/><path d='M8 13h5'/></svg> },
 ]
 
 const AdminPanel = () => {
@@ -44,7 +46,9 @@ const AdminPanel = () => {
         updateTicketStatus, broadcastEmail, toggleFeaturedJob,
         toggleEmployerPremium,
         getPendingDocuments, verifyDocument, resetDocument, getAllDocuments,
-        getContactRequests, reviewContactRequest,getJobSafetyReport,getPlacements
+        getContactRequests, reviewContactRequest,getJobSafetyReport,getPlacements,getFollowUps,
+createOpsTask,
+getOpsTeamMembers
     } = useAdmin()
 
     const [activeTab, setActiveTab] = useState('dashboard')
@@ -70,6 +74,8 @@ const AdminPanel = () => {
     const [contactRequests, setContactRequests] = useState([])
     const [placementsData, setPlacementsData] = useState(null)
     const [jobSafetyReport, setJobSafetyReport] = useState(null)
+    const [followUpsData, setFollowUpsData] = useState(null)
+    const [opsTeamMembers, setOpsTeamMembers] = useState([])
 
     useEffect(() => {
         loadStats()
@@ -89,7 +95,15 @@ const AdminPanel = () => {
     const loadReports = async () => { const data = await getAllReports(); setReports(data) }
     const loadPlacements = async () => {
     const data = await getPlacements()
-    setPlacementsData(data)
+    setPlacementsData(data)}
+    const loadFollowUps = async () => {
+    const [followUps, members] = await Promise.all([
+        getFollowUps(),
+        getOpsTeamMembers()
+    ])
+
+    setFollowUpsData(followUps)
+    setOpsTeamMembers(members || [])
 }
     const loadJobSafetyReport = async () => {
     const data = await getJobSafetyReport()
@@ -115,6 +129,14 @@ const AdminPanel = () => {
     const handleRoleChange = async (id, role) => { await updateUserRole(id, role); setUsers(prev => prev.map(u => u._id === id ? { ...u, role } : u)) }
     const handleResolveReport = async (id) => { await resolveReport(id); setReports(prev => prev.map(r => r._id === id ? { ...r, status: 'resolved' } : r)) }
     const handleDismissReport = async (id) => { await dismissReport(id); setReports(prev => prev.map(r => r._id === id ? { ...r, status: 'dismissed' } : r)) }
+    const handleCreateOpsTask = async (taskData) => {
+    const task = await createOpsTask(taskData)
+
+    if (task) {
+        alert('Ops task created successfully.')
+        await loadFollowUps()
+    }
+}
 
     const handleTabChange = (tab) => {
         setActiveTab(tab)
@@ -133,6 +155,8 @@ const AdminPanel = () => {
         if (tab === 'contact-requests') getContactRequests().then(data => setContactRequests(data || []))
         if (tab === 'safety') loadJobSafetyReport()
         if (tab === 'placements') loadPlacements()
+        if (tab === 'followups') loadFollowUps()
+        if (tab === 'followups') loadFollowUps()
     }
 
     const loadFeaturedCompanies = async () => {
@@ -288,11 +312,17 @@ const AdminPanel = () => {
                             <AdminAllJobs key='all-jobs' allJobs={allJobs} loading={loading}
                                 handleDeleteJob={handleDeleteJob} toggleFeaturedJob={toggleFeaturedJob} setAllJobs={setAllJobs} />
                         )}
-                        {activeTab === 'placements' && (
-    <AdminPlacements
-        data={placementsData}
+                        {activeTab === 'placements' && (<AdminPlacements
+                        data={placementsData}
+                        loading={loading}
+                         onRefresh={loadPlacements}/>)}
+                         {activeTab === 'followups' && (
+    <AdminFollowUps
+        data={followUpsData}
+        teamMembers={opsTeamMembers}
         loading={loading}
-        onRefresh={loadPlacements}
+        onRefresh={loadFollowUps}
+        onCreateTask={handleCreateOpsTask}
     />
 )}
                         {activeTab === 'safety' && (

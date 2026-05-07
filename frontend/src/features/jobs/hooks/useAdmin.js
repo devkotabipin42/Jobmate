@@ -370,6 +370,37 @@ const getPlacements = async () => {
         setLoading(false)
     }
 }
+const getFollowUps = async () => {
+    setLoading(true)
+    try {
+        const res = await axios.get(`${API_URL}/api/admin/followups`, getAuthHeaders())
+        return res.data
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed to fetch follow-ups')
+        return null
+    } finally {
+        setLoading(false)
+    }
+}
+
+const createOpsTask = async (taskData) => {
+    try {
+        const res = await axios.post(`${API_URL}/api/ops/tasks`, taskData, getAuthHeaders())
+        return res.data.task
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed to create ops task')
+        return null
+    }
+}
+
+const getOpsTeamMembers = async () => {
+    try {
+        const res = await axios.get(`${API_URL}/api/ops/team`, getAuthHeaders())
+        return res.data.members || []
+    } catch (err) {
+        return []
+    }
+}
 
 
 
@@ -414,6 +445,9 @@ const getPlacements = async () => {
         reviewContactRequest,
         getJobSafetyReport,
         getPlacements,
+        getFollowUps,
+createOpsTask,
+getOpsTeamMembers,
 
 }
 }

@@ -1128,7 +1128,13 @@ export const getPlacements = async (req, res) => {
             .sort({ updatedAt: -1 })
 
         const placements = applications
-            .filter(app => app.user && app.job)
+            .filter(app =>
+    app.user &&
+    app.job &&
+    app.job.employer &&
+    app.job.is_active &&
+    app.job.is_verified
+)
             .map(app => ({
                 _id: app._id,
                 status: app.status,
@@ -1156,6 +1162,118 @@ export const getPlacements = async (req, res) => {
             counts,
             total: placements.length,
             placements
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const getFollowUps = async (req, res) => {
+    try {
+        const now = new Date()
+
+        const daysAgo = (days) => {
+            const date = new Date()
+            date.setDate(date.getDate() - days)
+            return date
+        }
+
+        const applications = await Application.find({
+            status: { $in: ['applied', 'seen', 'shortlisted', 'interview', 'hired', 'rejected'] }
+        })
+            .populate('user', 'name email phone location skills')
+            .populate({
+                path: 'job',
+                select: 'title location category type employer is_active is_verified',
+                populate: {
+                    path: 'employer',
+                    select: 'company_name email phone location is_verified'
+                }
+            })
+            .sort({ updatedAt: 1 })
+
+        const followUps = applications
+            .filter(app =>
+        app.user &&
+        app.job &&
+        app.job.employer &&
+        app.job.is_active &&
+        app.job.is_verified
+    )
+            .map(app => {
+                let type = null
+                let priority = 'normal'
+                let reason = null
+                let owner = 'Support'
+
+                if (['applied', 'seen'].includes(app.status) && app.updatedAt <= daysAgo(3)) {
+                    type = 'Employer follow-up'
+                    priority = 'high'
+                    reason = 'Application has not moved for 3+ days'
+                    owner = 'Data Entry / Support'
+                }
+
+                if (app.status === 'shortlisted' && app.updatedAt <= daysAgo(2)) {
+                    type = 'Interview scheduling'
+                    priority = 'high'
+                    reason = 'Candidate shortlisted but interview not scheduled'
+                    owner = 'Support / Field Agent'
+                }
+
+                if (app.status === 'interview') {
+                    type = 'Interview confirmation'
+                    priority = 'high'
+                    reason = 'Confirm interview with candidate and employer'
+                    owner = 'Support / Field Agent'
+                }
+
+                if (app.status === 'hired') {
+                    type = 'Placement confirmation'
+                    priority = 'critical'
+                    reason = 'Confirm joining, salary, and employer satisfaction'
+                    owner = 'Ops Manager / Admin'
+                }
+
+                if (app.status === 'rejected') {
+                    type = 'Candidate re-engagement'
+                    priority = 'normal'
+                    reason = 'Suggest another suitable job to candidate'
+                    owner = 'Support'
+                }
+
+                if (!type) return null
+
+                return {
+                    _id: app._id,
+                    type,
+                    priority,
+                    reason,
+                    owner,
+                    status: app.status,
+                    candidate: app.user,
+                    job: app.job,
+                    employer: app.job.employer || null,
+                    location: app.job.location,
+                    lastUpdatedAt: app.updatedAt,
+                    daysWaiting: Math.max(
+                        0,
+                        Math.floor((now - new Date(app.updatedAt)) / (1000 * 60 * 60 * 24))
+                    )
+                }
+            })
+            .filter(Boolean)
+
+        const counts = {
+            total: followUps.length,
+            critical: followUps.filter(item => item.priority === 'critical').length,
+            high: followUps.filter(item => item.priority === 'high').length,
+            normal: followUps.filter(item => item.priority === 'normal').length
+        }
+
+        res.status(200).json({
+            message: 'Follow-ups fetched successfully',
+            counts,
+            followUps
         })
     } catch (error) {
         res.status(500).json({ message: error.message })

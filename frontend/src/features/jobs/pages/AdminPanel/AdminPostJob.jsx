@@ -17,11 +17,11 @@ const CATEGORIES = jobCategoryOptions
   .filter(option => option.value)
   .map(option => option.value)
 
-const JOB_TYPES = jobTypeOptions
+const TYPES = jobTypeOptions
   .filter(option => option.value)
   .map(option => option.value)
 
-const EXPERIENCE_LEVELS = experienceOptions
+const EXPERIENCE = experienceOptions
   .filter(option => option.value)
   .map(option => option.value)
 
