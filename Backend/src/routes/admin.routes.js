@@ -6,22 +6,22 @@ import {
     verifyJob,
     rejectJob,
     deleteJobAdmin,
+    getJobSafetyReport,
     getAllEmployers,
     verifyEmployer,
     getAllUsers,
     updateUserRole,
-     banUser, unbanUser,
-     getAnalytics,
-     toggleFeaturedJob,
-     broadcastEmail,
-     toggleEmployerPremium ,
-     getPendingDocuments,
-      verifyDocument ,
-      resetDocument,
-      getAllDocuments,
-      adminCreateJob
-    
-      
+    banUser,
+    unbanUser,
+    getAnalytics,
+    toggleFeaturedJob,
+    broadcastEmail,
+    toggleEmployerPremium,
+    getPendingDocuments,
+    verifyDocument,
+    resetDocument,
+    getAllDocuments,
+    adminCreateJob
 } from '../controllers/admin.controller.js'
 import { getContactRequests, reviewContactRequest } from '../controllers/Contact.controller.js'
 import {  authMiddleware,adminMiddleware } from '../middleware/auth.middleware.js'
@@ -33,6 +33,7 @@ adminRouter.use(adminMiddleware)
 
 adminRouter.get('/stats', getStats)
 adminRouter.get('/jobs/pending', getPendingJobs)
+adminRouter.get('/jobs/safety', getJobSafetyReport)
 adminRouter.get('/jobs', getAllJobs)
 adminRouter.put('/jobs/:id/verify', verifyJob)
 adminRouter.put('/jobs/:id/reject', rejectJob)
@@ -54,4 +55,11 @@ adminRouter.get('/documents/all', getAllDocuments)
 adminRouter.get('/contact-requests', getContactRequests)
 adminRouter.put('/contact-requests/:id/review', reviewContactRequest)
 adminRouter.post('/post-job', adminCreateJob)
+adminRouter.get('/stats', getStats)
+adminRouter.get('/jobs/pending', getPendingJobs)
+adminRouter.get('/jobs/safety', getJobSafetyReport)
+adminRouter.get('/jobs', getAllJobs)
+adminRouter.put('/jobs/:id/verify', verifyJob)
+adminRouter.put('/jobs/:id/reject', rejectJob)
+adminRouter.delete('/jobs/:id', deleteJobAdmin)
 export default adminRouter

@@ -6,7 +6,57 @@ import transporter from '../config/mailer.js'
 
 
 
+const suspiciousJobPatterns = [
+    { pattern: /registration fee/i, reason: 'Registration fee mentioned' },
+    { pattern: /security deposit/i, reason: 'Security deposit mentioned' },
+    { pattern: /refundable/i, reason: 'Refundable deposit claim' },
+    { pattern: /send\s+\d+/i, reason: 'Asks user to send money' },
+    { pattern: /telegram/i, reason: 'Telegram contact mentioned' },
+    { pattern: /whatsapp/i, reason: 'External WhatsApp contact mentioned' },
+    { pattern: /no interview/i, reason: 'No interview claim' },
+    { pattern: /earn\s+.*daily/i, reason: 'Daily earning promise' },
+    { pattern: /daily payment/i, reason: 'Daily payment promise' },
+    { pattern: /work permit/i, reason: 'Work permit money risk' },
+    { pattern: /agent immediately/i, reason: 'Agent payment urgency' },
+    { pattern: /captcha/i, reason: 'Captcha job risk' },
+    { pattern: /subscribe to channels/i, reason: 'Like/subscribe task risk' },
+    { pattern: /like videos/i, reason: 'Video liking task risk' },
+    { pattern: /first task/i, reason: 'First task scam pattern' },
+    { pattern: /software setup/i, reason: 'Software setup fee risk' },
+    { pattern: /processing fee/i, reason: 'Processing fee mentioned' },
+    { pattern: /deposit required/i, reason: 'Deposit required' }
+]
 
+const getSuspiciousReasons = (job = {}) => {
+    const text = `${job.title || ''} ${job.description || ''}`
+
+    return suspiciousJobPatterns
+        .filter(item => item.pattern.test(text))
+        .map(item => item.reason)
+}
+
+const getDeadlineIssue = (deadline) => {
+    const deadlineDate = new Date(deadline)
+
+    if (Number.isNaN(deadlineDate.getTime())) {
+        return 'Invalid deadline date'
+    }
+
+    const now = new Date()
+
+    if (deadlineDate < now) {
+        return 'Expired deadline'
+    }
+
+    const maxDeadline = new Date()
+    maxDeadline.setFullYear(maxDeadline.getFullYear() + 2)
+
+    if (deadlineDate > maxDeadline) {
+        return 'Deadline more than 2 years in future'
+    }
+
+    return null
+}
 
 // Verify employer
 export const verifyEmployer = async (req, res) => {
@@ -990,6 +1040,72 @@ export const adminCreateJob = async (req, res) => {
             .populate('employer', 'company_name logo_url')
  
         res.status(201).json({ message: 'Job posted successfully!', job: populated })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const getJobSafetyReport = async (req, res) => {
+    try {
+        const jobs = await Job.find({})
+            .populate('employer', 'company_name email location is_verified')
+            .sort({ createdAt: -1 })
+
+        const suspiciousJobs = []
+        const orphanJobs = []
+        const expiredJobs = []
+        const badDeadlineJobs = []
+
+        for (const job of jobs) {
+            const suspiciousReasons = getSuspiciousReasons(job)
+
+            if (suspiciousReasons.length > 0) {
+                suspiciousJobs.push({
+                    job,
+                    reasons: suspiciousReasons
+                })
+            }
+
+            if (!job.employer) {
+                orphanJobs.push({
+                    job,
+                    reasons: ['Employer missing or deleted']
+                })
+            }
+
+            const deadlineIssue = getDeadlineIssue(job.deadline)
+
+            if (deadlineIssue === 'Expired deadline') {
+                expiredJobs.push({
+                    job,
+                    reasons: [deadlineIssue]
+                })
+            }
+
+            if (
+                deadlineIssue === 'Invalid deadline date' ||
+                deadlineIssue === 'Deadline more than 2 years in future'
+            ) {
+                badDeadlineJobs.push({
+                    job,
+                    reasons: [deadlineIssue]
+                })
+            }
+        }
+
+        res.status(200).json({
+            message: 'Job safety report fetched successfully',
+            counts: {
+                suspiciousJobs: suspiciousJobs.length,
+                orphanJobs: orphanJobs.length,
+                expiredJobs: expiredJobs.length,
+                badDeadlineJobs: badDeadlineJobs.length
+            },
+            suspiciousJobs,
+            orphanJobs,
+            expiredJobs,
+            badDeadlineJobs
+        })
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
