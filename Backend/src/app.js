@@ -22,6 +22,8 @@ import ticketRouter from './routes/ticket.routes.js'
 import featuredCompanyRouter from './routes/Featuredcompany.routes.js'
 import contactRouter from './routes/Contact.routes.js'
 import opsRouter from './routes/ops.routes.js'
+import integrationRouter from './routes/integration.routes.js'
+
 
 const app = express()
 app.set('trust proxy', 1)
@@ -87,6 +89,7 @@ app.use('/api/tickets', ticketRouter)
 app.use('/api/admin/featured-companies', featuredCompanyRouter)
 app.use('/api/contact', contactRouter)
 app.use('/api/ops', opsRouter)
+app.use('/api/integrations', integrationRouter)
 
 // Sentry error handler — MUST be after all routes
 
