@@ -48,7 +48,7 @@ const AdminPanel = () => {
         getPendingDocuments, verifyDocument, resetDocument, getAllDocuments,
         getContactRequests, reviewContactRequest,getJobSafetyReport,getPlacements,getFollowUps,
 createOpsTask,
-getOpsTeamMembers,sendAaratiFollowUp
+getOpsTeamMembers,sendAaratiFollowUp,getAaratiFollowUpLogs
     } = useAdmin()
 
     const [activeTab, setActiveTab] = useState('dashboard')
@@ -76,6 +76,7 @@ getOpsTeamMembers,sendAaratiFollowUp
     const [jobSafetyReport, setJobSafetyReport] = useState(null)
     const [followUpsData, setFollowUpsData] = useState(null)
     const [opsTeamMembers, setOpsTeamMembers] = useState([])
+    const [aaratiLogsData, setAaratiLogsData] = useState(null)
 
     useEffect(() => {
         loadStats()
@@ -97,9 +98,10 @@ getOpsTeamMembers,sendAaratiFollowUp
     const data = await getPlacements()
     setPlacementsData(data)}
     const loadFollowUps = async () => {
-    const [followUps, members] = await Promise.all([
+    const [followUps, members, logs] = await Promise.all([
         getFollowUps(),
-        getOpsTeamMembers()
+        getOpsTeamMembers(),
+        getAaratiFollowUpLogs()
     ])
 
     setFollowUpsData(followUps)
@@ -367,10 +369,12 @@ getOpsTeamMembers,sendAaratiFollowUp
     <AdminFollowUps
     data={followUpsData}
     teamMembers={opsTeamMembers}
+    aaratiLogs={aaratiLogsData}
     loading={loading}
     onRefresh={loadFollowUps}
     onCreateTask={handleCreateOpsTask}
     onSendAarati={handleSendAaratiFollowUp}
+    onRefreshAaratiLogs={loadAaratiFollowUpLogs}
 />
 )}
                         {activeTab === 'safety' && (

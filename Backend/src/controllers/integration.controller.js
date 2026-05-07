@@ -206,3 +206,41 @@ export const receiveAaratiFollowUpReply = async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
+
+export const getAaratiFollowUpLogs = async (req, res) => {
+    try {
+        const {
+            status,
+            type,
+            phone,
+            limit = 50
+        } = req.query
+
+        const filter = {}
+
+        if (status) filter.status = status
+        if (type) filter.type = type
+        if (phone) filter.phone = String(phone).replace(/\D/g, '')
+
+        const logs = await FollowUpLog.find(filter)
+            .sort({ createdAt: -1 })
+            .limit(Number(limit) || 50)
+
+        const counts = {
+            total: await FollowUpLog.countDocuments(),
+            queued: await FollowUpLog.countDocuments({ status: 'queued' }),
+            sent: await FollowUpLog.countDocuments({ status: 'sent' }),
+            failed: await FollowUpLog.countDocuments({ status: 'failed' }),
+            replied: await FollowUpLog.countDocuments({ status: 'replied' }),
+            cancelled: await FollowUpLog.countDocuments({ status: 'cancelled' })
+        }
+
+        res.status(200).json({
+            message: 'Aarati follow-up logs fetched successfully',
+            counts,
+            logs
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}

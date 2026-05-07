@@ -418,7 +418,22 @@ const sendAaratiFollowUp = async (payload) => {
         setLoading(false)
     }
 }
+const getAaratiFollowUpLogs = async () => {
+    setLoading(true)
+    try {
+        const res = await axios.get(
+            `${API_URL}/api/integrations/aarati-followup/logs`,
+            getAuthHeaders()
+        )
 
+        return res.data
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed to fetch Aarati follow-up logs')
+        return null
+    } finally {
+        setLoading(false)
+    }
+}
 
 
     return {
@@ -466,6 +481,7 @@ const sendAaratiFollowUp = async (payload) => {
 createOpsTask,
 getOpsTeamMembers,
 sendAaratiFollowUp,
+getAaratiFollowUpLogs,
 
 }
 }
