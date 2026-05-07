@@ -434,6 +434,23 @@ const getAaratiFollowUpLogs = async () => {
         setLoading(false)
     }
 }
+const retryAaratiFollowUpLog = async (id) => {
+    setLoading(true)
+    try {
+        const res = await axios.put(
+            `${API_URL}/api/integrations/aarati-followup/logs/${id}/retry`,
+            {},
+            getAuthHeaders()
+        )
+
+        return res.data
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed to retry Aarati follow-up')
+        return null
+    } finally {
+        setLoading(false)
+    }
+}
 
 
     return {
@@ -482,6 +499,7 @@ createOpsTask,
 getOpsTeamMembers,
 sendAaratiFollowUp,
 getAaratiFollowUpLogs,
+retryAaratiFollowUpLog,
 
 }
 }

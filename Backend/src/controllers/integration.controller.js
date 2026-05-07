@@ -244,3 +244,120 @@ export const getAaratiFollowUpLogs = async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
+
+export const retryAaratiFollowUpLog = async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const log = await FollowUpLog.findById(id)
+
+    if (!log) {
+      return res.status(404).json({
+        message: 'Aarati follow-up log not found'
+      })
+    }
+
+    const payload = {
+  ...(log.payload || {}),
+  applicationId: log.applicationId,
+  type: log.type,
+  phone: log.phone || log.payload?.phone,
+  message: log.message || log.payload?.message,
+  recipientName: log.recipientName || log.payload?.recipientName,
+  jobTitle: log.jobTitle || log.payload?.jobTitle,
+  companyName: log.companyName || log.payload?.companyName,
+  metadata: {
+    ...(log.payload?.metadata || {}),
+    ...(log.metadata || {}),
+    source: 'jobmate_retry',
+    retry: true,
+    retryLogId: log._id,
+    retriedAt: new Date()
+  }
+}
+    const webhookUrl = process.env.AARATI_FOLLOWUP_WEBHOOK_URL
+    const webhookSecret = process.env.AARATI_FOLLOWUP_WEBHOOK_SECRET
+
+    if (!webhookUrl) {
+      return res.status(500).json({
+        message: 'Aarati follow-up webhook URL is not configured',
+        error: 'Missing AARATI_FOLLOWUP_WEBHOOK_URL'
+      })
+    }
+
+    if (!webhookSecret) {
+      return res.status(500).json({
+        message: 'Aarati follow-up webhook secret is not configured',
+        error: 'Missing AARATI_FOLLOWUP_WEBHOOK_SECRET'
+      })
+    }
+    if (!payload.phone || !payload.message) {
+  log.status = 'failed'
+  log.lastError = 'phone and message are required'
+  log.retryCount = (log.retryCount || 0) + 1
+  log.lastRetriedAt = new Date()
+  await log.save()
+
+  return res.status(400).json({
+    message: 'Retry failed',
+    error: 'phone and message are required',
+    log
+  })
+}
+    try {
+      const response = await axios.post(
+        webhookUrl,
+        payload,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-jobmate-secret': webhookSecret
+          },
+          timeout: 15000
+        }
+      )
+
+      log.status = 'sent'
+      log.lastError = ''
+      log.retryCount = (log.retryCount || 0) + 1
+      log.lastRetriedAt = new Date()
+      log.response = response.data
+      await log.save()
+
+      return res.json({
+        message: 'Retry successful',
+        log
+      })
+    } catch (error) {
+      const upstreamStatus = error?.response?.status
+      const upstreamData = error?.response?.data
+      const errorMessage =
+        upstreamData?.error ||
+        upstreamData?.message ||
+        error?.message ||
+        'Retry failed'
+
+      log.status = 'failed'
+      log.lastError = errorMessage
+      log.retryCount = (log.retryCount || 0) + 1
+      log.lastRetriedAt = new Date()
+      log.response = upstreamData || null
+      await log.save()
+
+      return res.status(502).json({
+        message: 'Retry failed',
+        error: errorMessage,
+        upstreamStatus,
+        upstreamData,
+        log
+      })
+    }
+  } catch (error) {
+    console.error('Retry Aarati follow-up log failed:', error)
+
+    return res.status(500).json({
+      message: 'Retry failed',
+      error: error?.message || 'Internal server error'
+    })
+  }
+}

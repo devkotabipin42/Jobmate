@@ -46,11 +46,13 @@ const AdminFollowUps = ({
     onRefresh,
     onCreateTask,
     onSendAarati,
-    onRefreshAaratiLogs
+    onRefreshAaratiLogs,
+    onRetryAaratiLog
 }) => {
     const [selectedAgents, setSelectedAgents] = useState({})
     const [busyId, setBusyId] = useState(null)
     const [sendingAaratiId, setSendingAaratiId] = useState(null)
+    const [retryingLogId, setRetryingLogId] = useState(null)
 
     const followUps = data?.followUps || []
 
@@ -117,6 +119,14 @@ const AdminFollowUps = ({
         setSendingAaratiId(item._id)
         await onSendAarati(item)
         setSendingAaratiId(null)
+    }
+
+    const handleRetryLog = async (logId) => {
+        if (!onRetryAaratiLog) return
+
+        setRetryingLogId(logId)
+        await onRetryAaratiLog(logId)
+        setRetryingLogId(null)
     }
 
     return (
@@ -298,6 +308,7 @@ const AdminFollowUps = ({
                                     <th className='text-left px-5 py-3 font-semibold'>Status</th>
                                     <th className='text-left px-5 py-3 font-semibold'>Sent</th>
                                     <th className='text-left px-5 py-3 font-semibold'>Error / Reply</th>
+                                    <th className='text-left px-5 py-3 font-semibold'>Action</th>
                                 </tr>
                             </thead>
 
@@ -340,6 +351,22 @@ const AdminFollowUps = ({
                                             <p className='text-xs text-gray-600 dark:text-white/50 line-clamp-2'>
                                                 {log.replyText || log.lastError || '-'}
                                             </p>
+                                        </td>
+
+                                        <td className='px-5 py-4'>
+                                            {(log.status === 'failed' || log.status === 'queued') ? (
+                                                <button
+                                                    onClick={() => handleRetryLog(log._id)}
+                                                    disabled={loading || retryingLogId === log._id}
+                                                    className='px-3 py-2 rounded-xl bg-purple-600 text-white text-xs font-semibold hover:bg-purple-700 disabled:opacity-50'
+                                                >
+                                                    {retryingLogId === log._id ? 'Retrying...' : 'Retry'}
+                                                </button>
+                                            ) : (
+                                                <span className='text-xs text-gray-400 dark:text-white/35'>
+                                                    -
+                                                </span>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}

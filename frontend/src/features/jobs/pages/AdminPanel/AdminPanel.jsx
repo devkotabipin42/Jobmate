@@ -54,7 +54,8 @@ getFollowUps,
 createOpsTask,
 getOpsTeamMembers,
 sendAaratiFollowUp,
-getAaratiFollowUpLogs
+getAaratiFollowUpLogs,
+retryAaratiFollowUpLog
     } = useAdmin()
 
     const [activeTab, setActiveTab] = useState('dashboard')
@@ -147,6 +148,39 @@ const loadJobSafetyReport = async () => {
     const handleRoleChange = async (id, role) => { await updateUserRole(id, role); setUsers(prev => prev.map(u => u._id === id ? { ...u, role } : u)) }
     const handleResolveReport = async (id) => { await resolveReport(id); setReports(prev => prev.map(r => r._id === id ? { ...r, status: 'resolved' } : r)) }
     const handleDismissReport = async (id) => { await dismissReport(id); setReports(prev => prev.map(r => r._id === id ? { ...r, status: 'dismissed' } : r)) }
+    const handleRetryAaratiLog = async (id) => {
+    if (!id) {
+        alert('Aarati log id missing.')
+        return
+    }
+
+    const ok = window.confirm('Retry this Aarati follow-up?')
+    if (!ok) return
+
+    try {
+        const result = await retryAaratiFollowUpLog(id)
+
+        if (result?.message) {
+            alert(result.message)
+        } else {
+            alert('Aarati follow-up retry completed.')
+        }
+
+        await loadAaratiFollowUpLogs()
+    } catch (error) {
+        console.error('Failed to retry Aarati follow-up log:', error)
+
+        const errorMessage =
+            error?.response?.data?.error ||
+            error?.response?.data?.message ||
+            error?.message ||
+            'Failed to retry Aarati follow-up log.'
+
+        alert(errorMessage)
+
+        await loadAaratiFollowUpLogs()
+    }
+}
     const handleCreateOpsTask = async (taskData) => {
     const task = await createOpsTask(taskData)
 
@@ -221,7 +255,12 @@ const loadJobSafetyReport = async () => {
         } catch (err) { console.log(err) }
     }
 
-    const handleSendAaratiFollowUp = async (item) => {
+   const handleSendAaratiFollowUp = async (item) => {
+    if (!item) {
+        alert('Follow-up item missing.')
+        return
+    }
+
     const isEmployerFollowUp = item.type === 'Employer follow-up'
 
     const typeMap = {
@@ -256,15 +295,34 @@ const loadJobSafetyReport = async () => {
         return
     }
 
-    const result = await sendAaratiFollowUp(payload)
+    try {
+        const result = await sendAaratiFollowUp(payload)
 
-    if (result?.duplicate) {
-        alert('Already sent or queued for this follow-up.')
-        return
-    }
+        if (result?.duplicate) {
+            alert('Already sent or queued for this follow-up.')
+            await loadAaratiFollowUpLogs()
+            return
+        }
 
-    if (result?.message) {
-        alert(result.message)
+        if (result?.message) {
+            alert(result.message)
+        } else {
+            alert('Follow-up sent to Aarati bot.')
+        }
+
+        await loadAaratiFollowUpLogs()
+    } catch (error) {
+        console.error('Failed to send Aarati follow-up:', error)
+
+        const errorMessage =
+            error?.response?.data?.error ||
+            error?.response?.data?.message ||
+            error?.message ||
+            'Failed to send Aarati follow-up.'
+
+        alert(errorMessage)
+
+        await loadAaratiFollowUpLogs()
     }
 }
 
@@ -381,7 +439,7 @@ const loadJobSafetyReport = async () => {
                         loading={loading}
                          onRefresh={loadPlacements}/>)}
                          {activeTab === 'followups' && (
-    <AdminFollowUps
+   <AdminFollowUps
     data={followUpsData}
     teamMembers={opsTeamMembers}
     aaratiLogs={aaratiLogsData}
@@ -390,6 +448,7 @@ const loadJobSafetyReport = async () => {
     onCreateTask={handleCreateOpsTask}
     onSendAarati={handleSendAaratiFollowUp}
     onRefreshAaratiLogs={loadAaratiFollowUpLogs}
+    onRetryAaratiLog={handleRetryAaratiLog}
 />
 )}
                         {activeTab === 'safety' && (

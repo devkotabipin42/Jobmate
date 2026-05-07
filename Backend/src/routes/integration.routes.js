@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import {
     sendAaratiFollowUp,
-    receiveAaratiFollowUpReply,getAaratiFollowUpLogs
+    receiveAaratiFollowUpReply,getAaratiFollowUpLogs,retryAaratiFollowUpLog
 } from '../controllers/integration.controller.js'
 import { authMiddleware, adminMiddleware } from '../middleware/auth.middleware.js'
 
@@ -19,6 +19,12 @@ integrationRouter.get(
     authMiddleware,
     adminMiddleware,
     getAaratiFollowUpLogs
+)
+integrationRouter.put(
+    '/aarati-followup/logs/:id/retry',
+    authMiddleware,
+    adminMiddleware,
+    retryAaratiFollowUpLog
 )
 
 integrationRouter.post(
