@@ -21,7 +21,8 @@ import {
     verifyDocument,
     resetDocument,
     getAllDocuments,
-    adminCreateJob
+    adminCreateJob,
+    getPlacements
 } from '../controllers/admin.controller.js'
 import { getContactRequests, reviewContactRequest } from '../controllers/Contact.controller.js'
 import {  authMiddleware,adminMiddleware } from '../middleware/auth.middleware.js'
@@ -45,6 +46,7 @@ adminRouter.put('/users/:id/role', updateUserRole)
 adminRouter.put('/users/:id/ban', banUser)
 adminRouter.put('/users/:id/unban', unbanUser)
 adminRouter.get('/analytics', getAnalytics)
+adminRouter.get('/placements', getPlacements)
 adminRouter.put('/jobs/:id/feature', authMiddleware, adminMiddleware, toggleFeaturedJob)
 adminRouter.post('/broadcast', authMiddleware, adminMiddleware, broadcastEmail)
 adminRouter.put('/employers/:id/premium', toggleEmployerPremium)

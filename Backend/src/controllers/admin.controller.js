@@ -1110,3 +1110,54 @@ export const getJobSafetyReport = async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
+
+export const getPlacements = async (req, res) => {
+    try {
+        const statuses = ['shortlisted', 'interview', 'hired', 'rejected']
+
+        const applications = await Application.find({ status: { $in: statuses } })
+            .populate('user', 'name email phone location skills cv_url')
+            .populate({
+                path: 'job',
+                select: 'title location salary_min salary_max category type employer',
+                populate: {
+                    path: 'employer',
+                    select: 'company_name email phone location is_verified'
+                }
+            })
+            .sort({ updatedAt: -1 })
+
+        const placements = applications
+            .filter(app => app.user && app.job)
+            .map(app => ({
+                _id: app._id,
+                status: app.status,
+                candidate: app.user,
+                job: app.job,
+                employer: app.job.employer || null,
+                location: app.job.location,
+                salary_min: app.job.salary_min,
+                salary_max: app.job.salary_max,
+                category: app.job.category,
+                type: app.job.type,
+                appliedAt: app.createdAt,
+                lastUpdatedAt: app.updatedAt
+            }))
+
+        const counts = {
+            shortlisted: placements.filter(item => item.status === 'shortlisted').length,
+            interview: placements.filter(item => item.status === 'interview').length,
+            hired: placements.filter(item => item.status === 'hired').length,
+            rejected: placements.filter(item => item.status === 'rejected').length
+        }
+
+        res.status(200).json({
+            message: 'Placements fetched successfully',
+            counts,
+            total: placements.length,
+            placements
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}

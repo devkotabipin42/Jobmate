@@ -12,7 +12,7 @@ import AdminDocuments from './AdminDocuments.jsx'
 import AdminContactRequests from './AdminContactRequests.jsx'
 import AdminPostJob from './AdminPostJob.jsx'
 import AdminSafety from './AdminSafety.jsx'
-
+import AdminPlacements from './AdminPlacements.jsx'
 const COLORS = ['#22c55e', '#f59e0b', '#8b5cf6', '#3b82f6', '#ef4444']
 
 const sidebarItems = [
@@ -31,6 +31,7 @@ const sidebarItems = [
     { id: 'contact-requests', label: 'Contact Requests', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.14 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.05 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 10a16 16 0 0 0 6 6z'/></svg> },
     { id: 'post-job', label: 'Post Job', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.14 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.05 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 10a16 16 0 0 0 6 6z'/></svg>  },
     { id: 'safety', label: 'Safety', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M12 2l7 4v6c0 5-3 9-7 10-4-1-7-5-7-10V6l7-4z'/><path d='M9 12l2 2 4-4'/></svg> },
+    { id: 'placements', label: 'Placements', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M9 11l3 3L22 4'/><path d='M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'/></svg> },
 ]
 
 const AdminPanel = () => {
@@ -43,7 +44,7 @@ const AdminPanel = () => {
         updateTicketStatus, broadcastEmail, toggleFeaturedJob,
         toggleEmployerPremium,
         getPendingDocuments, verifyDocument, resetDocument, getAllDocuments,
-        getContactRequests, reviewContactRequest,getJobSafetyReport
+        getContactRequests, reviewContactRequest,getJobSafetyReport,getPlacements
     } = useAdmin()
 
     const [activeTab, setActiveTab] = useState('dashboard')
@@ -67,6 +68,7 @@ const AdminPanel = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const [pendingDocuments, setPendingDocuments] = useState([])
     const [contactRequests, setContactRequests] = useState([])
+    const [placementsData, setPlacementsData] = useState(null)
     const [jobSafetyReport, setJobSafetyReport] = useState(null)
 
     useEffect(() => {
@@ -85,9 +87,14 @@ const AdminPanel = () => {
     const loadUsers = async () => { const data = await getAllUsers(); setUsers(data) }
     const loadAnalytics = async () => { const data = await getAnalytics(); setAnalytics(data) }
     const loadReports = async () => { const data = await getAllReports(); setReports(data) }
+    const loadPlacements = async () => {
+    const data = await getPlacements()
+    setPlacementsData(data)
+}
     const loadJobSafetyReport = async () => {
     const data = await getJobSafetyReport()
     setJobSafetyReport(data)
+
 }
 
     const handleVerifyJob = async (id) => { await verifyJob(id); setPendingJobs(prev => prev.filter(j => j._id !== id)); loadStats() }
@@ -125,6 +132,7 @@ const AdminPanel = () => {
         if (tab === 'documents') getPendingDocuments().then(data => setPendingDocuments(data || []))
         if (tab === 'contact-requests') getContactRequests().then(data => setContactRequests(data || []))
         if (tab === 'safety') loadJobSafetyReport()
+        if (tab === 'placements') loadPlacements()
     }
 
     const loadFeaturedCompanies = async () => {
@@ -280,6 +288,13 @@ const AdminPanel = () => {
                             <AdminAllJobs key='all-jobs' allJobs={allJobs} loading={loading}
                                 handleDeleteJob={handleDeleteJob} toggleFeaturedJob={toggleFeaturedJob} setAllJobs={setAllJobs} />
                         )}
+                        {activeTab === 'placements' && (
+    <AdminPlacements
+        data={placementsData}
+        loading={loading}
+        onRefresh={loadPlacements}
+    />
+)}
                         {activeTab === 'safety' && (
     <AdminSafety
         report={jobSafetyReport}

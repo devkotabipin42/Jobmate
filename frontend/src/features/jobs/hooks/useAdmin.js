@@ -358,6 +358,18 @@ const getJobSafetyReport = async () => {
         setLoading(false)
     }
 }
+const getPlacements = async () => {
+    setLoading(true)
+    try {
+        const res = await axios.get(`${API_URL}/api/admin/placements`, getAuthHeaders())
+        return res.data
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed to fetch placements')
+        return null
+    } finally {
+        setLoading(false)
+    }
+}
 
 
 
@@ -400,7 +412,8 @@ const getJobSafetyReport = async () => {
      resetDocument,
         getContactRequests,
         reviewContactRequest,
-        getJobSafetyReport
+        getJobSafetyReport,
+        getPlacements,
 
 }
 }
