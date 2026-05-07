@@ -346,6 +346,19 @@ const reviewContactRequest = async (id, action, note) => {
     } catch (err) { return false }
 }
 
+const getJobSafetyReport = async () => {
+    setLoading(true)
+    try {
+        const res = await axios.get(`${API_URL}/api/admin/jobs/safety`, getAuthHeaders())
+        return res.data
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed to fetch job safety report')
+        return null
+    } finally {
+        setLoading(false)
+    }
+}
+
 
 
     return {
@@ -386,7 +399,8 @@ const reviewContactRequest = async (id, action, note) => {
     getAllDocuments,
      resetDocument,
         getContactRequests,
-        reviewContactRequest
+        reviewContactRequest,
+        getJobSafetyReport
 
 }
 }

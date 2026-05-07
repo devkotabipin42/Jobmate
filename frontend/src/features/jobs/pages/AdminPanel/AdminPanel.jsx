@@ -11,6 +11,7 @@ import AdminTickets from './AdminTickets.jsx'
 import AdminDocuments from './AdminDocuments.jsx'
 import AdminContactRequests from './AdminContactRequests.jsx'
 import AdminPostJob from './AdminPostJob.jsx'
+import AdminSafety from './AdminSafety.jsx'
 
 const COLORS = ['#22c55e', '#f59e0b', '#8b5cf6', '#3b82f6', '#ef4444']
 
@@ -28,7 +29,8 @@ const sidebarItems = [
     { id: 'featured-companies', label: 'Featured Companies', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/><polyline points='9 22 9 12 15 12 15 22'/></svg> },
     { id: 'documents', label: 'Verify Documents', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'/></svg> },
     { id: 'contact-requests', label: 'Contact Requests', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.14 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.05 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 10a16 16 0 0 0 6 6z'/></svg> },
-    { id: 'post-job', label: 'Post Job', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.14 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.05 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 10a16 16 0 0 0 6 6z'/></svg>  }
+    { id: 'post-job', label: 'Post Job', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.14 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.05 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 10a16 16 0 0 0 6 6z'/></svg>  },
+    { id: 'safety', label: 'Safety', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M12 2l7 4v6c0 5-3 9-7 10-4-1-7-5-7-10V6l7-4z'/><path d='M9 12l2 2 4-4'/></svg> },
 ]
 
 const AdminPanel = () => {
@@ -41,7 +43,7 @@ const AdminPanel = () => {
         updateTicketStatus, broadcastEmail, toggleFeaturedJob,
         toggleEmployerPremium,
         getPendingDocuments, verifyDocument, resetDocument, getAllDocuments,
-        getContactRequests, reviewContactRequest
+        getContactRequests, reviewContactRequest,getJobSafetyReport
     } = useAdmin()
 
     const [activeTab, setActiveTab] = useState('dashboard')
@@ -65,6 +67,7 @@ const AdminPanel = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const [pendingDocuments, setPendingDocuments] = useState([])
     const [contactRequests, setContactRequests] = useState([])
+    const [jobSafetyReport, setJobSafetyReport] = useState(null)
 
     useEffect(() => {
         loadStats()
@@ -82,10 +85,23 @@ const AdminPanel = () => {
     const loadUsers = async () => { const data = await getAllUsers(); setUsers(data) }
     const loadAnalytics = async () => { const data = await getAnalytics(); setAnalytics(data) }
     const loadReports = async () => { const data = await getAllReports(); setReports(data) }
+    const loadJobSafetyReport = async () => {
+    const data = await getJobSafetyReport()
+    setJobSafetyReport(data)
+}
 
     const handleVerifyJob = async (id) => { await verifyJob(id); setPendingJobs(prev => prev.filter(j => j._id !== id)); loadStats() }
     const handleRejectJob = async (id) => { await rejectJob(id); setPendingJobs(prev => prev.filter(j => j._id !== id)); loadStats() }
     const handleDeleteJob = async (id) => { await deleteJob(id); setAllJobs(prev => prev.filter(j => j._id !== id)); loadStats() }
+    const handleRejectSafetyJob = async (id) => {
+    await rejectJob(id)
+    await loadJobSafetyReport()
+    loadStats()}
+
+    const handleDeleteSafetyJob = async (id) => {
+    await deleteJob(id)
+    await loadJobSafetyReport()
+    loadStats()}
     const handleVerifyEmployer = async (id) => { await verifyEmployer(id); setEmployers(prev => prev.map(e => e._id === id ? { ...e, is_verified: true } : e)) }
     const handleBanUser = async (id) => { await banUser(id); setUsers(prev => prev.map(u => u._id === id ? { ...u, is_banned: true } : u)) }
     const handleUnbanUser = async (id) => { await unbanUser(id); setUsers(prev => prev.map(u => u._id === id ? { ...u, is_banned: false } : u)) }
@@ -108,6 +124,7 @@ const AdminPanel = () => {
         if (tab === 'featured-companies') loadFeaturedCompanies()
         if (tab === 'documents') getPendingDocuments().then(data => setPendingDocuments(data || []))
         if (tab === 'contact-requests') getContactRequests().then(data => setContactRequests(data || []))
+        if (tab === 'safety') loadJobSafetyReport()
     }
 
     const loadFeaturedCompanies = async () => {
@@ -263,6 +280,15 @@ const AdminPanel = () => {
                             <AdminAllJobs key='all-jobs' allJobs={allJobs} loading={loading}
                                 handleDeleteJob={handleDeleteJob} toggleFeaturedJob={toggleFeaturedJob} setAllJobs={setAllJobs} />
                         )}
+                        {activeTab === 'safety' && (
+    <AdminSafety
+        report={jobSafetyReport}
+        loading={loading}
+        onRefresh={loadJobSafetyReport}
+        onReject={handleRejectSafetyJob}
+        onDelete={handleDeleteSafetyJob}
+    />
+)}
                         {activeTab === 'post-job' && (
     <AdminPostJob employers={employers} />
 )}
