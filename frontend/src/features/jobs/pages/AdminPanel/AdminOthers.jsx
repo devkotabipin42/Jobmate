@@ -237,7 +237,7 @@ export const AdminFeaturedCompanies = ({ companies, loading, onAdd, onDelete, on
                 </div>
                 <div>
                     <label className='block text-xs font-semibold text-gray-500 dark:text-white/40 uppercase tracking-widest mb-2'>Location</label>
-                    <input type='text' placeholder='e.g. Kathmandu' value={form.location}
+                    <input type='text' placeholder='e.g.Butwal' value={form.location}
                         onChange={e => setForm({ ...form, location: e.target.value })}
                         className='w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/8 rounded-xl px-4 py-3 text-sm outline-none focus:border-green-500 dark:text-white placeholder-gray-400 dark:placeholder-white/20' />
                 </div>

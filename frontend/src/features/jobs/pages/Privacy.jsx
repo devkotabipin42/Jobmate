@@ -106,7 +106,7 @@ Continued use of Jobmate after changes means you accept the updated policy.`
 
 📧 Email: hello@jobmate.com.np
 📱 Phone: +977-9800000000
-📍 Address: Kathmandu, Nepal
+📍 Address: Bardaghat / Butwal, Lumbini Province, Nepal
 
 We will respond to all privacy inquiries within 48 hours.`
         },
@@ -128,7 +128,7 @@ We will respond to all privacy inquiries within 48 hours.`
                     Last updated: March 2025
                 </p>
                 <p className='text-green-600 dark:text-gray-500 text-xs mt-2'>
-                    Jobmate Pvt. Ltd. · Kathmandu, Nepal
+                   Jobmate Pvt. Ltd. · Bardaghat / Butwal, Lumbini Province, Nepal
                 </p>
             </div>
 

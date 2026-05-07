@@ -3,6 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '../../../components/Navbar.jsx'
 import useEmployer from '../hooks/useEmployer.js'
+import {
+  lumbiniLocationOptions,
+  jobCategoryOptions,
+  jobTypeOptions,
+  experienceOptions
+} from '../../../constants/jobOptions'
 const PostJob = () => {
     const navigate = useNavigate()
     const [loading, setLoading] = useState(false)
@@ -164,14 +170,14 @@ const PostJob = () => {
                                     required
                                     className='w-full border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white transition-all'
                                 >
-                                    <option value=''>Select location</option>
-                                    <option>Kathmandu</option>
-                                    <option>Lalitpur</option>
-                                    <option>Bhaktapur</option>
-                                    <option>Pokhara</option>
-                                    <option>Chitwan</option>
-                                    <option>Butwal</option>
-                                    <option>Remote</option>
+                                    <option value="">Select Location</option>
+{lumbiniLocationOptions
+  .filter(option => option.value)
+  .map(option => (
+    <option key={option.value} value={option.value}>
+      {option.label}
+    </option>
+  ))}
                                 </select>
                             </div>
                             <div>
@@ -185,16 +191,14 @@ const PostJob = () => {
                                     required
                                     className='w-full border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white transition-all'
                                 >
-                                    <option value=''>Select category</option>
-                                    <option>IT/Tech</option>
-                                    <option>Finance/Banking</option>
-                                    <option>NGO/INGO</option>
-                                    <option>Healthcare</option>
-                                    <option>Education</option>
-                                    <option>Marketing</option>
-                                    <option>Engineering</option>
-                                    <option>Hospitality</option>
-                                    <option>Other</option>
+                                   <option value="">Select Category</option>
+{jobCategoryOptions
+  .filter(option => option.value)
+  .map(option => (
+    <option key={option.value} value={option.value}>
+      {option.label}
+    </option>
+  ))}
                                 </select>
                             </div>
                         </div>
@@ -212,12 +216,14 @@ const PostJob = () => {
                                     required
                                     className='w-full border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white transition-all'
                                 >
-                                    <option value=''>Select type</option>
-                                    <option value='full-time'>Full time</option>
-                                    <option value='part-time'>Part time</option>
-                                    <option value='remote'>Remote</option>
-                                    <option value='contract'>Contract</option>
-                                    <option value='internship'>Internship</option>
+                                   <option value="">Select Job Type</option>
+{jobTypeOptions
+  .filter(option => option.value)
+  .map(option => (
+    <option key={option.value} value={option.value}>
+      {option.label}
+    </option>
+  ))}
                                 </select>
                             </div>
                             <div>
@@ -231,11 +237,14 @@ const PostJob = () => {
                                     required
                                     className='w-full border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white transition-all'
                                 >
-                                    <option value=''>Select experience</option>
-                                    <option value='fresh'>Fresh graduate</option>
-                                    <option value='1-2 years'>1-2 years</option>
-                                    <option value='3-5 years'>3-5 years</option>
-                                    <option value='5+ years'>5+ years</option>
+                                   <option value="">Select Experience</option>
+{experienceOptions
+  .filter(option => option.value)
+  .map(option => (
+    <option key={option.value} value={option.value}>
+      {option.label}
+    </option>
+  ))}
                                 </select>
                             </div>
                         </div>

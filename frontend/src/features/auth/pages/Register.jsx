@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import useAuth from '../hooks/useAuth.js'
+import { lumbiniLocationOptions } from '../../../constants/jobOptions'
 
 const Register = () => {
     const [role, setRole] = useState('jobseeker')
@@ -257,8 +258,12 @@ const Register = () => {
                                 <select name='location' value={formData.location} onChange={handleChange}
                                     className='w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/8 rounded-xl px-4 py-3 text-sm outline-none focus:border-green-500 dark:focus:border-green-500/50 text-gray-800 dark:text-white transition-colors cursor-pointer'>
                                     <option value='' className='dark:bg-[#0c1a2e]'>Select</option>
-                                    {['Kathmandu', 'Lalitpur', 'Bhaktapur', 'Pokhara', 'Chitwan', 'Butwal', 'Nawalparasi', 'Parasi', 'Other'].map(l => (
-                                        <option key={l} className='dark:bg-[#0c1a2e]'>{l}</option>
+                                    {lumbiniLocationOptions
+  .filter(option => option.value)
+  .map(option => (
+                                        <option key={option.value} value={option.value}>
+  {option.label}
+</option>
                                     ))}
                                 </select>
                                 {formData.location === 'Other' && (

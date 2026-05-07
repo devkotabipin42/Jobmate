@@ -4,6 +4,7 @@ import useAuth from '../../auth/hooks/useAuth.js'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '../../../components/Navbar.jsx'
 import Footer from '../../../components/Footer.jsx'
+import { lumbiniLocationOptions } from '../../../constants/jobOptions'
 
 // Document Upload Form Component
 const DocumentUploadForm = ({ user, onSuccess }) => {
@@ -121,10 +122,9 @@ const CATEGORIES = [
     'Marketing', 'Transport', 'Manufacturing', 'Hospitality', 'Other'
 ]
 
-const LOCATIONS = [
-    'Kathmandu', 'Lalitpur', 'Bhaktapur', 'Pokhara', 'Chitwan',
-    'Butwal', 'Nawalparasi', 'Parasi', 'Lumbini', 'Remote', 'Other'
-]
+const LOCATIONS = lumbiniLocationOptions
+  .filter(option => option.value)
+  .map(option => option.value)
 
 const DEGREES = ['SLC/SEE', '+2 / Intermediate', 'Bachelor', 'Master', 'PhD', 'Diploma', 'Other']
 
@@ -628,7 +628,7 @@ const Profile = () => {
                                     <input type='text' placeholder='Job title *' value={expForm.position}
                                         onChange={e => setExpForm({ ...expForm, position: e.target.value })} className={inputClass} />
                                 </div>
-                                <input type='text' placeholder='Location (e.g. Kathmandu)' value={expForm.location}
+                                <input type='text' placeholder='Location (e.g. Butwal or Bardaghat)' value={expForm.location}
                                     onChange={e => setExpForm({ ...expForm, location: e.target.value })} className={inputClass} />
                                 <div className='grid grid-cols-2 gap-3'>
                                     <input type='text' placeholder='Start year (e.g. 2020)' value={expForm.start_year}

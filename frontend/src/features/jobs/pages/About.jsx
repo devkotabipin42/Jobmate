@@ -216,8 +216,7 @@ const About = () => {
                     </p>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto'>
                         {[
-                            { name: 'Bipin Devkota', role: 'Founder & Full Stack Developer', location: 'Kathmandu, Nepal', desc: 'IT Engineering student passionate about building technology solutions for Nepal.' },
-                            { name: 'Sujata Devkota', role: 'Co-Founder & Marketing Lead', location: 'Kathmandu, Nepal', desc: 'Leading marketing and business development, connecting employers and job seekers.' },
+                            { name: 'Bipin Devkota', role: 'Founder & Full Stack Developer', location: 'Bardaghat / Butwal, Lumbini Province, Nepal', desc: 'IT Engineering student passionate about building technology solutions for Nepal.' },
                         ].map((member, i) => (
                             <motion.div
                                 key={i}

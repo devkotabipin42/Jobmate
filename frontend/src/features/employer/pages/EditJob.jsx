@@ -183,7 +183,7 @@ const EditJob = () => {
                                         value={formData.location}
                                         onChange={handleChange}
                                         required
-                                        placeholder='Kathmandu, Nepal'
+                                        placeholder='Butwal, Lumbini Province'
                                         className='w-full border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-green-500 bg-white dark:bg-gray-700 dark:text-white'
                                     />
                                 </div>

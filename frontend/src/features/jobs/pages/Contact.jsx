@@ -48,7 +48,7 @@ const Contact = () => {
                                 {[
                                     { icon: '📧', label: 'Email', value: 'hello@jobmate.com.np', href: 'mailto:hello@jobmate.com.np' },
                                     { icon: '📱', label: 'Phone', value: '+977-9800000000', href: 'tel:+9779800000000' },
-                                    { icon: '📍', label: 'Address', value: 'Kathmandu, Nepal', href: null },
+                                    { icon: '📍', label: 'Address', value: 'Bardaghat / Butwal, Lumbini Province, Nepal', href: null },
                                     { icon: '🕒', label: 'Hours', value: 'Sun-Fri: 9AM - 6PM', href: null },
                                 ].map((item, i) => (
                                     <div key={i} className='flex items-start gap-3'>

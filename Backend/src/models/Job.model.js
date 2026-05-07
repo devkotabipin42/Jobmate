@@ -23,30 +23,55 @@ const jobSchema = new mongoose.Schema({
         required: true
     },
     category: {
-        type: String,
-        required: true,
-        enum: [
-            'IT/Tech',
-            'Finance/Banking',
-            'NGO/INGO',
-            'Healthcare',
-            'Education',
-            'Marketing',
-            'Engineering',
-            'Hospitality',
-            'Other'
-        ]
-    },
+    type: String,
+    enum: [
+        'IT/Tech',
+        'Hotel/Restaurant',
+        'Sales/Marketing',
+        'Driver',
+        'Office/Admin',
+        'Education',
+        'Healthcare',
+        'Finance/Banking',
+        'Factory/Manufacturing',
+        'Construction',
+        'Security Guard',
+        'Cleaner/Housekeeping',
+        'Delivery/Rider',
+        'Shop/Retail',
+        'NGO/INGO',
+        'Agriculture',
+        'Beauty/Salon',
+        'Cook/Kitchen Helper',
+        'Customer Service',
+        'Other'
+    ],
+    required: true
+},
     type: {
-        type: String,
-        required: true,
-        enum: ['full-time', 'part-time', 'remote', 'contract', 'internship']
-    },
-    experience: {
-        type: String,
-        enum: ['fresh', '1-2 years', '3-5 years', '5+ years'],
-        default: 'fresh'
-    },
+    type: String,
+    enum: [
+        'full-time',
+        'part-time',
+        'remote',
+        'internship',
+        'contract',
+        'temporary',
+        'freelance'
+    ],
+    required: true
+},
+   experience: {
+    type: String,
+    enum: [
+        'fresh',
+        'below 1 year',
+        '1-2 years',
+        '3-5 years',
+        '5+ years'
+    ],
+    required: true
+},
     deadline: {
         type: Date,
         required: true

@@ -10,17 +10,21 @@ L.Icon.Default.mergeOptions({
 })
 
 const cityCoordinates = {
-    'Kathmandu': [27.7172, 85.3240],
-    'Lalitpur': [27.6588, 85.3247],
-    'Bhaktapur': [27.6710, 85.4298],
-    'Pokhara': [28.2096, 83.9856],
-    'Chitwan': [27.5291, 84.3542],
-    'Butwal': [27.7006, 83.4532],
-    'Biratnagar': [26.4525, 87.2718],
-    'Birgunj': [27.0104, 84.8777],
-    'Dharan': [26.8065, 87.2846],
-    'Hetauda': [27.4167, 85.0333],
-    'Remote': [27.7172, 85.3240],
+     Butwal: [27.7006, 83.4484],
+  Bhairahawa: [27.5050, 83.4163],
+  Siddharthanagar: [27.5050, 83.4163],
+  Tilottama: [27.6400, 83.5000],
+  Bardaghat: [27.5300, 83.7900],
+  Sunwal: [27.6100, 83.6700],
+  Parasi: [27.5333, 83.6667],
+  Tansen: [27.8673, 83.5467],
+  Ghorahi: [28.0400, 82.4860],
+  Tulsipur: [28.1300, 82.3000],
+  Nepalgunj: [28.0500, 81.6167],
+  Kohalpur: [28.1980, 81.6920],
+  Lumbini: [27.4698, 83.2750],
+  Remote: [27.7006, 83.4484],
+  Other: [27.7006, 83.4484]
 }
 
 const CompanyMap = ({ location, companyName }) => {

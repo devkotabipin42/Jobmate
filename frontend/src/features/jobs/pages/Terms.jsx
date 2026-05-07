@@ -192,7 +192,7 @@ const Terms = () => {
                             },
                             {
                                 title: 'Governing Law',
-                                content: 'These terms are governed by the laws of Nepal. Any disputes shall be resolved under the jurisdiction of courts in Kathmandu, Nepal.'
+                                content: 'These terms are governed by the laws of Nepal. Any disputes shall be resolved under the applicable jurisdiction of Nepal.'
                             },
                             {
                                 title: 'Changes to Terms',
@@ -250,7 +250,7 @@ const Terms = () => {
                     <div className='space-y-2'>
                         <p className='text-sm text-gray-600 dark:text-gray-300'>📧 hello@jobmate.com.np</p>
                         <p className='text-sm text-gray-600 dark:text-gray-300'>📱 +977-9800000000</p>
-                        <p className='text-sm text-gray-600 dark:text-gray-300'>📍 Kathmandu, Nepal</p>
+                        <p className='text-sm text-gray-600 dark:text-gray-300'>📍 Bardaghat / Butwal, Lumbini Province, Nepal</p>
                     </div>
                 </motion.div>
 

@@ -1,12 +1,29 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import {
+  lumbiniLocationOptions,
+  jobCategoryOptions,
+  jobTypeOptions,
+  experienceOptions
+} from '../../../../constants/jobOptions'
 import axios from 'axios'
 import API_URL from '../../../../config/api.js'
 
-const LOCATIONS = ['Kathmandu', 'Pokhara', 'Lalitpur', 'Chitwan', 'Nawalparasi', 'Parasi', 'Butwal', 'Bhaktapur', 'Biratnagar', 'Birgunj', 'Dharan', 'Remote']
-const CATEGORIES = ['IT/Tech', 'Finance/Banking', 'NGO/INGO', 'Marketing', 'Healthcare', 'Education', 'Hospitality', 'Manufacturing', 'Logistics', 'Construction', 'Other']
-const TYPES = ['full-time', 'part-time', 'remote', 'contract', 'internship']
-const EXPERIENCE = ['fresh', '1-2 years', '3-5 years', '5+ years']
+const LOCATIONS = lumbiniLocationOptions
+  .filter(option => option.value)
+  .map(option => option.value)
+
+const CATEGORIES = jobCategoryOptions
+  .filter(option => option.value)
+  .map(option => option.value)
+
+const JOB_TYPES = jobTypeOptions
+  .filter(option => option.value)
+  .map(option => option.value)
+
+const EXPERIENCE_LEVELS = experienceOptions
+  .filter(option => option.value)
+  .map(option => option.value)
 
 const AdminPostJob = ({ employers }) => {
     const [form, setForm] = useState({

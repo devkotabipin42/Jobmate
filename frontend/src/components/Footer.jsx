@@ -117,7 +117,7 @@ const Footer = () => {
                                 +977-9800000000
                             </a>
                             <p className='flex items-center gap-2 text-sm text-gray-400'>
-                                Kathmandu, Nepal
+                                Bardaghat / Butwal, Lumbini Province, Nepal
                             </p>
                         </div>
                     </div>

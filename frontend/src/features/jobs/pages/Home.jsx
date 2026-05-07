@@ -6,16 +6,53 @@ import { motion } from "framer-motion";
 import Navbar from "../../../components/Navbar.jsx";
 import Footer from '../../../components/Footer.jsx'
 import useJobs from '../hooks/useJobs.js'
+import { lumbiniLocationOptions } from '../../../constants/jobOptions'
 import {
   fadeUp, staggerFadeUp, scrollFadeUp,
   textReveal, cleanupAnimations,
 } from "../../../utils/animations.js";
 
 const previewJobs = [
-  { title: 'Frontend Developer', company: 'TechCorp Nepal', location: 'Kathmandu', salary: 'Rs. 60–90k', type: 'Full-time', bg: 'bg-blue-500/10', text: 'text-blue-400', letter: 'F' },
-  { title: 'UX Designer', company: 'Creative Studio', location: 'Remote', salary: 'Rs. 50–75k', type: 'Remote', bg: 'bg-purple-500/10', text: 'text-purple-400', letter: 'U' },
-  { title: 'Bank Officer', company: 'NIC Asia Bank', location: 'Pokhara', salary: 'Rs. 45–65k', type: 'Full-time', bg: 'bg-amber-500/10', text: 'text-amber-400', letter: 'B' },
-  { title: 'Program Officer', company: 'UNDP Nepal', location: 'Kathmandu', salary: 'Rs. 80–120k', type: 'Contract', bg: 'bg-emerald-500/10', text: 'text-emerald-400', letter: 'P' },
+  {
+    title: 'Frontend Developer',
+    company: 'TechCorp Lumbini',
+    location: 'Butwal',
+    salary: 'Rs. 60–90k',
+    type: 'Full-time',
+    bg: 'bg-blue-500/10',
+    text: 'text-blue-400',
+    letter: 'F'
+  },
+  {
+    title: 'Hotel Receptionist',
+    company: 'Lumbini Hotel',
+    location: 'Bhairahawa',
+    salary: 'Rs. 25–35k',
+    type: 'Full-time',
+    bg: 'bg-purple-500/10',
+    text: 'text-purple-400',
+    letter: 'H'
+  },
+  {
+    title: 'Driver',
+    company: 'Bardaghat Logistics',
+    location: 'Bardaghat',
+    salary: 'Rs. 30–45k',
+    type: 'Full-time',
+    bg: 'bg-amber-500/10',
+    text: 'text-amber-400',
+    letter: 'D'
+  },
+  {
+    title: 'Office Assistant',
+    company: 'Butwal Business Group',
+    location: 'Tilottama',
+    salary: 'Rs. 22–32k',
+    type: 'Full-time',
+    bg: 'bg-emerald-500/10',
+    text: 'text-emerald-400',
+    letter: 'O'
+  },
 ]
 
 const categories = [
@@ -173,7 +210,13 @@ const scrollStyle = `
                   <select value={searchLocation} onChange={e => setSearchLocation(e.target.value)}
                     className='bg-transparent outline-none text-sm text-gray-500 dark:text-white/45 cursor-pointer min-w-[110px]'>
                     <option value=''>All Nepal</option>
-                    <option>Kathmandu</option><option>Pokhara</option><option>Lalitpur</option><option>Chitwan</option><option>Remote</option>
+                   {lumbiniLocationOptions
+  .filter(option => option.value)
+  .map(option => (
+    <option key={option.value} value={option.value}>
+      {option.label}
+    </option>
+  ))}
                   </select>
                 </div>
                 <button onClick={handleSearch} className='bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 transition-colors shrink-0'>
@@ -195,14 +238,13 @@ const scrollStyle = `
 <div className='flex gap-3'>
     <select value={searchLocation} onChange={e => setSearchLocation(e.target.value)}
         className='flex-1 bg-white dark:bg-white/5 border-2 border-gray-200 dark:border-white/10 rounded-2xl px-4 py-5 text-base font-medium text-gray-600 dark:text-white/60 outline-none'>
-        <option value=''>📍 All Nepal</option>
-        <option>Kathmandu</option>
-        <option>Pokhara</option>
-        <option>Chitwan</option>
-        <option>Nawalparasi</option>
-        <option>Parasi</option>
-        <option>Butwal</option>
-        <option>Remote</option>
+        {lumbiniLocationOptions
+  .filter(option => option.value)
+  .map(option => (
+    <option key={option.value} value={option.value}>
+      {option.label}
+    </option>
+  ))}
     </select>
     <button onClick={handleSearch}
         className='flex-1 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-2xl text-lg font-bold transition-colors py-5 flex items-center justify-center gap-2 shadow-md'>

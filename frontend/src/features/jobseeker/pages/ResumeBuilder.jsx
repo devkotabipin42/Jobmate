@@ -47,7 +47,7 @@ const ResumeBuilder = () => {
                                 { label: 'Full Name *', name: 'fullName', placeholder: 'Bipin Devkota' },
                                 { label: 'Email *', name: 'email', placeholder: 'your@email.com' },
                                 { label: 'Phone', name: 'phone', placeholder: '+977-98XXXXXXXX' },
-                                { label: 'Location', name: 'location', placeholder: 'Kathmandu, Nepal' },
+                                { label: 'Location', name: 'location', placeholder: 'Butwal, Lumbini Province' },
                                 { label: 'LinkedIn', name: 'linkedin', placeholder: 'linkedin.com/in/yourname' },
                                 { label: 'Website', name: 'website', placeholder: 'yourwebsite.com' },
                             ].map((field) => (

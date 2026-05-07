@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-
+import { lumbiniLocationOptions } from '../../../../constants/jobOptions'
 const inputClass = 'w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/8 rounded-xl px-4 py-3 text-sm outline-none focus:border-green-500 dark:focus:border-green-500/50 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-white/20 transition-colors'
 
 // ── EMPLOYER CRM ──────────────────────────────────────────
@@ -242,8 +242,12 @@ export const EmployerSettings = ({ user, companyForm, setCompanyForm, handleComp
                     <label className='block text-xs font-semibold text-gray-500 dark:text-white/40 uppercase tracking-widest mb-2'>Location</label>
                     <select value={companyForm.location} onChange={e => setCompanyForm({ ...companyForm, location: e.target.value })} className={inputClass}>
                         <option value=''>Select location</option>
-                        {['Kathmandu', 'Lalitpur', 'Bhaktapur', 'Pokhara', 'Chitwan', 'Butwal', 'Biratnagar', 'Dharan', 'Hetauda', 'Other'].map(l => (
-                            <option key={l} value={l} className='dark:bg-[#0c1a2e]'>{l}</option>
+                        {lumbiniLocationOptions
+  .filter(option => option.value)
+  .map(option => (
+                           <option key={option.value} value={option.value} className='dark:bg-[#0c1a2e]'>
+  {option.label}
+</option>
                         ))}
                     </select>
                     {companyForm.location === 'Other' && (
