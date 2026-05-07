@@ -122,8 +122,14 @@ export const getStats = async (req, res) => {
             totalApplications
         ] = await Promise.all([
             Job.countDocuments(),
-            Job.countDocuments({ is_verified: false }),
-            Job.countDocuments({ is_verified: true }),
+            Job.countDocuments({
+    is_verified: false,
+    is_active: true
+}),
+            Job.countDocuments({
+    is_verified: true,
+    is_active: true
+}),
             User.countDocuments(),
             Employer.countDocuments(),
             Application.countDocuments()
@@ -147,7 +153,10 @@ export const getStats = async (req, res) => {
 // Get all jobs — pending verification
 export const getPendingJobs = async (req, res) => {
     try {
-        const jobs = await Job.find({ is_verified: false })
+        const jobs = await Job.find({
+            is_verified: false,
+            is_active: true
+        })
             .populate('employer', 'company_name email location is_verified')
             .sort({ createdAt: -1 })
 
@@ -183,7 +192,7 @@ export const verifyJob = async (req, res) => {
     try {
         const job = await Job.findByIdAndUpdate(
             req.params.id,
-            { is_verified: true },
+            { is_verified: true, is_active: true },
             { new: true }
         )
 
@@ -203,11 +212,15 @@ export const verifyJob = async (req, res) => {
 // Reject job
 export const rejectJob = async (req, res) => {
     try {
-        const job = await Job.findByIdAndUpdate(
-            req.params.id,
-            { is_active: false, is_verified: false },
-            { new: true }
-        )
+       const job = await Job.findByIdAndUpdate(
+    req.params.id,
+    {
+        is_verified: false,
+        is_active: false,
+        is_featured: false
+    },
+    { new: true }
+)
 
         if (!job) {
             return res.status(404).json({ message: 'Job not found' })
