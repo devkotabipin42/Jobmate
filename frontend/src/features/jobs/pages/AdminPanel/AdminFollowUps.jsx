@@ -31,7 +31,8 @@ const AdminFollowUps = ({
     teamMembers,
     loading,
     onRefresh,
-    onCreateTask
+    onCreateTask,
+    onSendAarati
 }) => {
     const [selectedAgents, setSelectedAgents] = useState({})
     const [busyId, setBusyId] = useState(null)
@@ -215,6 +216,12 @@ const AdminFollowUps = ({
                                             >
                                                 {busyId === item._id ? 'Creating...' : 'Create Ops Task'}
                                             </button>
+                                            <button
+    onClick={() => onSendAarati(item)}
+    className='px-3 py-2 rounded-xl bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700'
+>
+    Send to Aarati Bot
+</button>
                                         </div>
                                     </div>
                                 </div>

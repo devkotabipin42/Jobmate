@@ -401,6 +401,23 @@ const getOpsTeamMembers = async () => {
         return []
     }
 }
+const sendAaratiFollowUp = async (payload) => {
+    setLoading(true)
+    try {
+        const res = await axios.post(
+            `${API_URL}/api/integrations/aarati-followup/send`,
+            payload,
+            getAuthHeaders()
+        )
+
+        return res.data
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed to send Aarati follow-up')
+        return null
+    } finally {
+        setLoading(false)
+    }
+}
 
 
 
@@ -448,6 +465,7 @@ const getOpsTeamMembers = async () => {
         getFollowUps,
 createOpsTask,
 getOpsTeamMembers,
+sendAaratiFollowUp,
 
 }
 }

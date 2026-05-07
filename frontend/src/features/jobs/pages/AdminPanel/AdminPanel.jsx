@@ -48,7 +48,7 @@ const AdminPanel = () => {
         getPendingDocuments, verifyDocument, resetDocument, getAllDocuments,
         getContactRequests, reviewContactRequest,getJobSafetyReport,getPlacements,getFollowUps,
 createOpsTask,
-getOpsTeamMembers
+getOpsTeamMembers,sendAaratiFollowUp
     } = useAdmin()
 
     const [activeTab, setActiveTab] = useState('dashboard')
@@ -204,6 +204,53 @@ getOpsTeamMembers
         } catch (err) { console.log(err) }
     }
 
+    const handleSendAaratiFollowUp = async (item) => {
+    const isEmployerFollowUp = item.type === 'Employer follow-up'
+
+    const typeMap = {
+        'Candidate re-engagement': 'candidate_reengagement',
+        'Placement confirmation': 'candidate_hired_confirmation',
+        'Interview confirmation': 'candidate_interview_confirmation',
+        'Interview scheduling': 'candidate_interview_confirmation',
+        'Employer follow-up': 'employer_application_review'
+    }
+
+    const payload = {
+        applicationId: item._id,
+        type: typeMap[item.type] || 'general_followup',
+        phone: isEmployerFollowUp
+            ? item.employer?.phone
+            : item.candidate?.phone,
+        recipientName: isEmployerFollowUp
+            ? item.employer?.company_name
+            : item.candidate?.name,
+        jobTitle: item.job?.title,
+        companyName: item.employer?.company_name,
+        metadata: {
+            source: 'admin_followups_tab',
+            followUpType: item.type,
+            status: item.status,
+            daysWaiting: item.daysWaiting
+        }
+    }
+
+    if (!payload.phone) {
+        alert('Phone number missing.')
+        return
+    }
+
+    const result = await sendAaratiFollowUp(payload)
+
+    if (result?.duplicate) {
+        alert('Already sent or queued for this follow-up.')
+        return
+    }
+
+    if (result?.message) {
+        alert(result.message)
+    }
+}
+
     const handleToggleFeaturedCompany = async (id) => {
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/admin/featured-companies/${id}/toggle`, {
@@ -318,12 +365,13 @@ getOpsTeamMembers
                          onRefresh={loadPlacements}/>)}
                          {activeTab === 'followups' && (
     <AdminFollowUps
-        data={followUpsData}
-        teamMembers={opsTeamMembers}
-        loading={loading}
-        onRefresh={loadFollowUps}
-        onCreateTask={handleCreateOpsTask}
-    />
+    data={followUpsData}
+    teamMembers={opsTeamMembers}
+    loading={loading}
+    onRefresh={loadFollowUps}
+    onCreateTask={handleCreateOpsTask}
+    onSendAarati={handleSendAaratiFollowUp}
+/>
 )}
                         {activeTab === 'safety' && (
     <AdminSafety
