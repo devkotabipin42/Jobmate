@@ -46,9 +46,15 @@ const AdminPanel = () => {
         updateTicketStatus, broadcastEmail, toggleFeaturedJob,
         toggleEmployerPremium,
         getPendingDocuments, verifyDocument, resetDocument, getAllDocuments,
-        getContactRequests, reviewContactRequest,getJobSafetyReport,getPlacements,getFollowUps,
+       getContactRequests,
+reviewContactRequest,
+getJobSafetyReport,
+getPlacements,
+getFollowUps,
 createOpsTask,
-getOpsTeamMembers,sendAaratiFollowUp,getAaratiFollowUpLogs
+getOpsTeamMembers,
+sendAaratiFollowUp,
+getAaratiFollowUpLogs
     } = useAdmin()
 
     const [activeTab, setActiveTab] = useState('dashboard')
@@ -94,10 +100,19 @@ getOpsTeamMembers,sendAaratiFollowUp,getAaratiFollowUpLogs
     const loadUsers = async () => { const data = await getAllUsers(); setUsers(data) }
     const loadAnalytics = async () => { const data = await getAnalytics(); setAnalytics(data) }
     const loadReports = async () => { const data = await getAllReports(); setReports(data) }
-    const loadPlacements = async () => {
+
+
+   const loadPlacements = async () => {
     const data = await getPlacements()
-    setPlacementsData(data)}
-    const loadFollowUps = async () => {
+    setPlacementsData(data)
+}
+
+const loadAaratiFollowUpLogs = async () => {
+    const data = await getAaratiFollowUpLogs()
+    setAaratiLogsData(data)
+}
+
+const loadFollowUps = async () => {
     const [followUps, members, logs] = await Promise.all([
         getFollowUps(),
         getOpsTeamMembers(),
@@ -106,11 +121,12 @@ getOpsTeamMembers,sendAaratiFollowUp,getAaratiFollowUpLogs
 
     setFollowUpsData(followUps)
     setOpsTeamMembers(members || [])
+    setAaratiLogsData(logs)
 }
-    const loadJobSafetyReport = async () => {
+
+const loadJobSafetyReport = async () => {
     const data = await getJobSafetyReport()
     setJobSafetyReport(data)
-
 }
 
     const handleVerifyJob = async (id) => { await verifyJob(id); setPendingJobs(prev => prev.filter(j => j._id !== id)); loadStats() }
@@ -157,7 +173,6 @@ getOpsTeamMembers,sendAaratiFollowUp,getAaratiFollowUpLogs
         if (tab === 'contact-requests') getContactRequests().then(data => setContactRequests(data || []))
         if (tab === 'safety') loadJobSafetyReport()
         if (tab === 'placements') loadPlacements()
-        if (tab === 'followups') loadFollowUps()
         if (tab === 'followups') loadFollowUps()
     }
 
