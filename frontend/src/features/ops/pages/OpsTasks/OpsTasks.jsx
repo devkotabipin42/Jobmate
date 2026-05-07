@@ -33,7 +33,7 @@ const buildWhatsAppLink = (task) => {
     return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`
 }
 
-const TaskDetailModal = ({ task, onClose, statusBadge }) => {
+const TaskDetailModal = ({ task, onClose, statusBadge, onToggleChecklist }) => {
     if (!task) return null
 
     const waLink = buildWhatsAppLink(task)
@@ -46,13 +46,16 @@ const TaskDetailModal = ({ task, onClose, statusBadge }) => {
                         <h2 className='text-xl font-bold text-gray-900 dark:text-white'>
                             Task Details
                         </h2>
+
                         <div className='flex flex-wrap gap-2 mt-2'>
                             <span className={`text-xs px-2 py-1 rounded ${statusBadge(task.status)}`}>
                                 {task.status?.replace('_', ' ') || 'unknown'}
                             </span>
+
                             <span className='text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200'>
                                 {task.task_type || '-'}
                             </span>
+
                             {task.priority === 'urgent' && (
                                 <span className='text-xs px-2 py-1 rounded bg-red-100 text-red-700'>
                                     URGENT
@@ -79,6 +82,7 @@ const TaskDetailModal = ({ task, onClose, statusBadge }) => {
                             <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
                                 📍 {task.target_business?.address || '-'}
                             </p>
+
                             {task.target_business?.area && (
                                 <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
                                     Area: {task.target_business.area}
@@ -139,7 +143,9 @@ const TaskDetailModal = ({ task, onClose, statusBadge }) => {
                     </div>
 
                     <div>
-                        <p className='text-xs text-gray-500 dark:text-gray-400 mb-2'>Checklist</p>
+                        <p className='text-xs text-gray-500 dark:text-gray-400 mb-2'>
+                            Checklist — click to mark done
+                        </p>
 
                         {(task.checklist || []).length === 0 ? (
                             <p className='text-sm text-gray-500 dark:text-gray-400'>
@@ -148,15 +154,32 @@ const TaskDetailModal = ({ task, onClose, statusBadge }) => {
                         ) : (
                             <div className='space-y-2'>
                                 {task.checklist.map((item, index) => (
-                                    <div
+                                    <button
                                         key={`${item.item}-${index}`}
-                                        className='flex items-center gap-3 rounded-xl bg-gray-50 dark:bg-gray-900/60 p-3 border border-gray-200 dark:border-gray-700'
+                                        type='button'
+                                        onClick={() => onToggleChecklist(task._id, index, item.completed)}
+                                        className={`w-full flex items-center gap-3 rounded-xl p-3 border text-left transition ${
+                                            item.completed
+                                                ? 'bg-green-50 dark:bg-green-500/10 border-green-300 dark:border-green-500/30'
+                                                : 'bg-gray-50 dark:bg-gray-900/60 border-gray-200 dark:border-gray-700 hover:border-green-400'
+                                        }`}
                                     >
-                                        <span className={`w-3 h-3 rounded-full ${item.completed ? 'bg-green-500' : 'bg-gray-400'}`} />
-                                        <p className='text-sm text-gray-700 dark:text-gray-200'>
+                                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
+                                            item.completed
+                                                ? 'bg-green-500 text-white'
+                                                : 'bg-gray-300 dark:bg-gray-600 text-transparent'
+                                        }`}>
+                                            ✓
+                                        </span>
+
+                                        <p className={`text-sm ${
+                                            item.completed
+                                                ? 'text-green-700 dark:text-green-300 line-through'
+                                                : 'text-gray-700 dark:text-gray-200'
+                                        }`}>
                                             {item.item}
                                         </p>
-                                    </div>
+                                    </button>
                                 ))}
                             </div>
                         )}
@@ -188,7 +211,15 @@ const TaskDetailModal = ({ task, onClose, statusBadge }) => {
 }
 
 const OpsTasks = () => {
-    const { loading, error, fetchAllTasks, fetchTeam, createNewTask } = useOps()
+    const {
+        loading,
+        error,
+        fetchAllTasks,
+        fetchTeam,
+        createNewTask,
+        updateTaskChecklistItem
+    } = useOps()
+
     const [tasks, setTasks] = useState([])
     const [agents, setAgents] = useState([])
     const [showForm, setShowForm] = useState(false)
@@ -217,9 +248,9 @@ const OpsTasks = () => {
 
     const loadData = async () => {
         try {
-            const [t, team] = await Promise.all([fetchAllTasks(), fetchTeam()])
-            setTasks(t || [])
-            setAgents((team || []).filter(m => m.ops_role === 'field_agent' && m.is_active !== false))
+            const [taskList, team] = await Promise.all([fetchAllTasks(), fetchTeam()])
+            setTasks(taskList || [])
+            setAgents((team || []).filter(member => member.ops_role === 'field_agent' && member.is_active !== false))
         } catch (err) {
             console.error(err)
         }
@@ -258,10 +289,23 @@ const OpsTasks = () => {
                 owner_phone: '',
                 notes_for_agent: ''
             })
+
             loadData()
         } catch (err) {
             alert(err.response?.data?.message || 'Failed to create task')
         }
+    }
+
+    const handleToggleChecklist = async (taskId, index, currentCompleted) => {
+        const updatedTask = await updateTaskChecklistItem(taskId, index, !currentCompleted)
+
+        if (!updatedTask) return
+
+        setTasks(prev =>
+            prev.map(task => task._id === updatedTask._id ? updatedTask : task)
+        )
+
+        setSelectedTask(updatedTask)
     }
 
     const statusBadge = (status) => ({
@@ -274,7 +318,7 @@ const OpsTasks = () => {
 
     const filteredTasks = filter === 'all'
         ? tasks
-        : tasks.filter(t => t.status === filter)
+        : tasks.filter(task => task.status === filter)
 
     return (
         <div className='min-h-screen bg-gray-50 dark:bg-gray-900'>
@@ -323,7 +367,9 @@ const OpsTasks = () => {
 
                             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                                 <div>
-                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>Task Type *</label>
+                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>
+                                        Task Type *
+                                    </label>
                                     <select
                                         value={form.task_type}
                                         onChange={e => setForm({ ...form, task_type: e.target.value })}
@@ -337,7 +383,9 @@ const OpsTasks = () => {
                                 </div>
 
                                 <div>
-                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>Assign to Agent *</label>
+                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>
+                                        Assign to Agent *
+                                    </label>
                                     <select
                                         required
                                         value={form.assigned_to}
@@ -345,16 +393,18 @@ const OpsTasks = () => {
                                         className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-sm'
                                     >
                                         <option value=''>Select agent</option>
-                                        {agents.map(a => (
-                                            <option key={a._id} value={a._id}>
-                                                {a.full_name}
+                                        {agents.map(agent => (
+                                            <option key={agent._id} value={agent._id}>
+                                                {agent.full_name}
                                             </option>
                                         ))}
                                     </select>
                                 </div>
 
                                 <div className='md:col-span-2'>
-                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>Business Name *</label>
+                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>
+                                        Business Name *
+                                    </label>
                                     <input
                                         required
                                         value={form.business_name}
@@ -364,7 +414,9 @@ const OpsTasks = () => {
                                 </div>
 
                                 <div>
-                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>Address *</label>
+                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>
+                                        Address *
+                                    </label>
                                     <input
                                         required
                                         value={form.address}
@@ -374,7 +426,9 @@ const OpsTasks = () => {
                                 </div>
 
                                 <div>
-                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>Area</label>
+                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>
+                                        Area
+                                    </label>
                                     <input
                                         value={form.area}
                                         onChange={e => setForm({ ...form, area: e.target.value })}
@@ -391,7 +445,9 @@ const OpsTasks = () => {
 
                                         <div className='grid grid-cols-2 gap-3 mt-3'>
                                             <div>
-                                                <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>Longitude</label>
+                                                <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>
+                                                    Longitude
+                                                </label>
                                                 <input
                                                     type='number'
                                                     step='any'
@@ -403,7 +459,9 @@ const OpsTasks = () => {
                                             </div>
 
                                             <div>
-                                                <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>Latitude</label>
+                                                <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>
+                                                    Latitude
+                                                </label>
                                                 <input
                                                     type='number'
                                                     step='any'
@@ -422,7 +480,9 @@ const OpsTasks = () => {
                                 </div>
 
                                 <div>
-                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>Owner Name</label>
+                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>
+                                        Owner Name
+                                    </label>
                                     <input
                                         value={form.owner_name}
                                         onChange={e => setForm({ ...form, owner_name: e.target.value })}
@@ -431,7 +491,9 @@ const OpsTasks = () => {
                                 </div>
 
                                 <div>
-                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>Owner Phone</label>
+                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>
+                                        Owner Phone
+                                    </label>
                                     <input
                                         value={form.owner_phone}
                                         onChange={e => setForm({ ...form, owner_phone: e.target.value })}
@@ -440,7 +502,9 @@ const OpsTasks = () => {
                                 </div>
 
                                 <div>
-                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>Scheduled Date *</label>
+                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>
+                                        Scheduled Date *
+                                    </label>
                                     <input
                                         required
                                         type='datetime-local'
@@ -451,7 +515,9 @@ const OpsTasks = () => {
                                 </div>
 
                                 <div>
-                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>Priority</label>
+                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>
+                                        Priority
+                                    </label>
                                     <select
                                         value={form.priority}
                                         onChange={e => setForm({ ...form, priority: e.target.value })}
@@ -464,7 +530,9 @@ const OpsTasks = () => {
                                 </div>
 
                                 <div className='md:col-span-2'>
-                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>Notes for Agent</label>
+                                    <label className='block text-xs text-gray-600 dark:text-gray-400 mb-1'>
+                                        Notes for Agent
+                                    </label>
                                     <textarea
                                         rows='3'
                                         value={form.notes_for_agent}
@@ -486,33 +554,34 @@ const OpsTasks = () => {
                 </AnimatePresence>
 
                 <div className='flex gap-2 mb-4 flex-wrap'>
-                    {['all', 'assigned', 'in_progress', 'completed', 'verified'].map(f => (
+                    {['all', 'assigned', 'in_progress', 'completed', 'verified'].map(filterValue => (
                         <button
-                            key={f}
-                            onClick={() => setFilter(f)}
-                            className={`px-3 py-1 rounded-full text-xs ${filter === f ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
+                            key={filterValue}
+                            onClick={() => setFilter(filterValue)}
+                            className={`px-3 py-1 rounded-full text-xs ${filter === filterValue ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
                         >
-                            {f.replace('_', ' ')}
+                            {filterValue.replace('_', ' ')}
                         </button>
                     ))}
                 </div>
 
                 <div className='space-y-3'>
-                    {filteredTasks.map(t => (
+                    {filteredTasks.map(task => (
                         <div
-                            key={t._id}
-                            onClick={() => setSelectedTask(t)}
+                            key={task._id}
+                            onClick={() => setSelectedTask(task)}
                             className='bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 flex items-start justify-between gap-4 flex-wrap cursor-pointer hover:border-green-500/50 transition'
                         >
                             <div className='flex-1 min-w-0'>
                                 <div className='flex items-center gap-2 mb-1 flex-wrap'>
-                                    <span className={`text-xs px-2 py-0.5 rounded ${statusBadge(t.status)}`}>
-                                        {t.status?.replace('_', ' ')}
+                                    <span className={`text-xs px-2 py-0.5 rounded ${statusBadge(task.status)}`}>
+                                        {task.status?.replace('_', ' ')}
                                     </span>
                                     <span className='text-xs text-gray-500'>
-                                        {t.task_type}
+                                        {task.task_type}
                                     </span>
-                                    {t.priority === 'urgent' && (
+
+                                    {task.priority === 'urgent' && (
                                         <span className='text-xs px-2 py-0.5 rounded bg-red-100 text-red-700'>
                                             URGENT
                                         </span>
@@ -520,13 +589,13 @@ const OpsTasks = () => {
                                 </div>
 
                                 <h3 className='font-semibold text-gray-900 dark:text-white'>
-                                    {t.target_business?.name}
+                                    {task.target_business?.name}
                                 </h3>
                                 <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
-                                    📍 {t.target_business?.address}
+                                    📍 {task.target_business?.address}
                                 </p>
                                 <p className='text-xs text-gray-500 dark:text-gray-400 mt-1'>
-                                    👤 {t.assigned_to?.full_name || 'Unassigned'} · 📅 {formatDateTime(t.scheduled_date)}
+                                    👤 {task.assigned_to?.full_name || 'Unassigned'} · 📅 {formatDateTime(task.scheduled_date)}
                                 </p>
                             </div>
 
@@ -548,6 +617,7 @@ const OpsTasks = () => {
                 task={selectedTask}
                 onClose={() => setSelectedTask(null)}
                 statusBadge={statusBadge}
+                onToggleChecklist={handleToggleChecklist}
             />
         </div>
     )

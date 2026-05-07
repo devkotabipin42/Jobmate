@@ -138,6 +138,10 @@ const fetchMyVisits = (params) => withLoader(async () => {
     const data = await opsApi.getMyVisits(params)
     return data.visits
 })
+const updateTaskChecklistItem = (taskId, index, completed) => withLoader(async () => {
+    const data = await opsApi.updateTaskChecklistItem(taskId, index, completed)
+    return data.task
+})
 
 
     return {
@@ -171,6 +175,7 @@ const fetchMyVisits = (params) => withLoader(async () => {
         fetchPerformance,
         createNewAgent,
         withLoader,
+        updateTaskChecklistItem,
     }
 }
 

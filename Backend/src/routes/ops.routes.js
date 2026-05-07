@@ -22,6 +22,7 @@ import {
     getAgentPerformance,
     getMySalaryRecords,
     getApprovedLeads,
+    updateTaskChecklistItem,
 } from '../controllers/ops.controller.js'
 
 import {
@@ -75,5 +76,6 @@ opsRouter.get('/my-visits', agentMiddleware, getMyVisits)
 opsRouter.put('/tasks/:id/status', opsTeamMiddleware, updateTaskStatus)
 opsRouter.post('/visits', agentMiddleware, validate(submitVisitSchema), submitVisit)
 opsRouter.get('/my-salary', agentMiddleware, getMySalaryRecords)
+opsRouter.put('/tasks/:id/checklist/:index', opsTeamMiddleware, updateTaskChecklistItem)
 
 export default opsRouter

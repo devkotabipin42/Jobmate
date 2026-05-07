@@ -124,3 +124,10 @@ export const getApprovedLeads = async (params = {}) => {
     const res = await api.get('/api/ops/leads', { params })
     return res.data
 }
+export const updateTaskChecklistItem = async (taskId, index, completed) => {
+    const res = await api.put(`/api/ops/tasks/${taskId}/checklist/${index}`, {
+        completed
+    })
+
+    return res.data
+}

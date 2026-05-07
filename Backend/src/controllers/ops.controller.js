@@ -700,3 +700,37 @@ export const getApprovedLeads = async (req, res) => {
         res.status(500).json({ error: 'FETCH_FAILED', message: err.message })
     }
 }
+export const updateTaskChecklistItem = async (req, res) => {
+    try {
+        const { id, index } = req.params
+        const { completed } = req.body
+
+        const task = await FieldTask.findById(id)
+
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found' })
+        }
+
+        const itemIndex = Number(index)
+
+        if (
+            Number.isNaN(itemIndex) ||
+            itemIndex < 0 ||
+            itemIndex >= task.checklist.length
+        ) {
+            return res.status(400).json({ message: 'Invalid checklist item' })
+        }
+
+        task.checklist[itemIndex].completed = Boolean(completed)
+        await task.save()
+
+        const populated = await task.populate('assigned_to', 'full_name phone profile_photo')
+
+        res.status(200).json({
+            message: 'Checklist updated',
+            task: populated
+        })
+    } catch (err) {
+        res.status(500).json({ message: err.message })
+    }
+}
