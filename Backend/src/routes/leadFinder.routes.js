@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import {
+    deleteDevMockLeadFinderLeads,
     exportLeadFinderCsv,
     getLeadFinderLeads,
     runLeadFinderSearch,
@@ -19,6 +20,7 @@ leadFinderRouter.use(adminMiddleware)
 
 leadFinderRouter.get('/', getLeadFinderLeads)
 leadFinderRouter.post('/run', validate(leadFinderRunSchema), runLeadFinderSearch)
+leadFinderRouter.delete('/dev-mock', deleteDevMockLeadFinderLeads)
 leadFinderRouter.patch('/:id/status', validate(leadFinderStatusSchema), updateLeadFinderLeadStatus)
 leadFinderRouter.get('/export/csv', exportLeadFinderCsv)
 
