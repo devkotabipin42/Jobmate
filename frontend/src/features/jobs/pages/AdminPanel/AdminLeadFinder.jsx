@@ -87,31 +87,31 @@ const AdminLeadFinder = () => {
             key='lead-finder'
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className='space-y-6'
+            className='min-w-0 max-w-full space-y-6'
         >
-            <div className='bg-white dark:bg-white/3 border border-gray-200 dark:border-white/7 rounded-2xl p-5'>
-                <form onSubmit={handleSubmit} className='grid grid-cols-1 md:grid-cols-5 gap-3 items-end'>
-                    <div>
+            <div className='min-w-0 max-w-full bg-white dark:bg-white/3 border border-gray-200 dark:border-white/7 rounded-2xl p-4 sm:p-5'>
+                <form onSubmit={handleSubmit} className='flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end'>
+                    <div className='min-w-0 sm:basis-[160px] sm:flex-1'>
                         <label className='block text-xs font-semibold text-gray-500 dark:text-white/35 mb-1'>City</label>
                         <input
                             type='text'
                             value={form.city}
                             onChange={e => handleChange('city', e.target.value)}
                             required
-                            className='w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-sm text-gray-800 dark:text-white outline-none focus:border-green-500'
+                            className='min-w-0 w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-sm text-gray-800 dark:text-white outline-none focus:border-green-500'
                         />
                     </div>
-                    <div>
+                    <div className='min-w-0 sm:basis-[160px] sm:flex-1'>
                         <label className='block text-xs font-semibold text-gray-500 dark:text-white/35 mb-1'>Sector</label>
                         <input
                             type='text'
                             value={form.sector}
                             onChange={e => handleChange('sector', e.target.value)}
                             required
-                            className='w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-sm text-gray-800 dark:text-white outline-none focus:border-green-500'
+                            className='min-w-0 w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-sm text-gray-800 dark:text-white outline-none focus:border-green-500'
                         />
                     </div>
-                    <div>
+                    <div className='min-w-0 sm:basis-24 sm:flex-none'>
                         <label className='block text-xs font-semibold text-gray-500 dark:text-white/35 mb-1'>Count</label>
                         <input
                             type='number'
@@ -120,15 +120,15 @@ const AdminLeadFinder = () => {
                             value={form.count}
                             onChange={e => handleChange('count', e.target.value)}
                             required
-                            className='w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-sm text-gray-800 dark:text-white outline-none focus:border-green-500'
+                            className='min-w-0 w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-sm text-gray-800 dark:text-white outline-none focus:border-green-500'
                         />
                     </div>
-                    <div>
+                    <div className='min-w-0 sm:basis-[180px] sm:flex-1'>
                         <label className='block text-xs font-semibold text-gray-500 dark:text-white/35 mb-1'>Output Language</label>
                         <select
                             value={form.outputLanguage}
                             onChange={e => handleChange('outputLanguage', e.target.value)}
-                            className='w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-sm text-gray-800 dark:text-white outline-none focus:border-green-500'
+                            className='min-w-0 w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-sm text-gray-800 dark:text-white outline-none focus:border-green-500'
                         >
                             <option value='english'>English</option>
                             <option value='nepali'>Nepali</option>
@@ -138,7 +138,7 @@ const AdminLeadFinder = () => {
                     <button
                         type='submit'
                         disabled={loading}
-                        className='px-4 py-2 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed'
+                        className='w-full sm:w-auto sm:flex-none px-4 py-2 rounded-xl bg-green-600 text-white text-sm font-semibold whitespace-nowrap hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed'
                     >
                         {loading ? 'Running...' : 'Run Search'}
                     </button>
@@ -155,9 +155,9 @@ const AdminLeadFinder = () => {
                 )}
             </div>
 
-            <div className='bg-white dark:bg-white/3 border border-gray-200 dark:border-white/7 rounded-2xl overflow-hidden'>
-                <div className='flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-white/7'>
-                    <div>
+            <div className='min-w-0 max-w-full bg-white dark:bg-white/3 border border-gray-200 dark:border-white/7 rounded-2xl overflow-hidden'>
+                <div className='flex min-w-0 items-center justify-between gap-3 px-5 py-4 border-b border-gray-100 dark:border-white/7'>
+                    <div className='min-w-0'>
                         <h2 className='text-sm font-bold text-gray-800 dark:text-white'>Lead Finder Results</h2>
                         <p className='text-xs text-gray-500 dark:text-white/35 mt-0.5'>{leads.length} saved leads</p>
                     </div>
@@ -165,13 +165,13 @@ const AdminLeadFinder = () => {
                         type='button'
                         onClick={loadLeads}
                         disabled={loading}
-                        className='px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 text-xs font-semibold text-gray-600 dark:text-white/50 hover:bg-gray-50 dark:hover:bg-white/5 disabled:opacity-60'
+                        className='flex-none px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 text-xs font-semibold text-gray-600 dark:text-white/50 hover:bg-gray-50 dark:hover:bg-white/5 disabled:opacity-60'
                     >
                         Refresh
                     </button>
                 </div>
 
-                <div className='overflow-x-auto'>
+                <div className='min-w-0 max-w-full overflow-x-auto'>
                     <table className='min-w-[1200px] w-full text-sm'>
                         <thead className='bg-gray-50 dark:bg-white/5 text-xs uppercase text-gray-500 dark:text-white/35'>
                             <tr>
