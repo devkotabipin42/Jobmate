@@ -309,6 +309,29 @@ export const updateLeadFinderLeadStatus = async (req, res) => {
     }
 }
 
+export const deleteDevMockLeadFinderLeads = async (req, res) => {
+    try {
+        const devMockCompanyRegex = /^Dev Mock\b/i
+        const devMockSourceRegex = /dev[\s_-]*mock/i
+
+        const result = await LeadFinderLead.collection.deleteMany({
+            $or: [
+                { company: { $regex: devMockCompanyRegex } },
+                { companyName: { $regex: devMockCompanyRegex } },
+                { source: { $regex: devMockSourceRegex } },
+                { sourceType: { $regex: devMockSourceRegex } }
+            ]
+        })
+
+        res.status(200).json({
+            message: 'Dev mock lead cleanup completed',
+            deletedCount: result.deletedCount || 0
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
 const csvEscape = (value = '') => {
     const text = String(value ?? '')
     if (/[",\n]/.test(text)) return `"${text.replace(/"/g, '""')}"`

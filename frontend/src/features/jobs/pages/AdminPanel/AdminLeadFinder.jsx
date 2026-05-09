@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
+import axios from 'axios'
 import { motion } from 'framer-motion'
+import API_URL from '../../../../config/api.js'
 import useAdmin from '../../hooks/useAdmin.js'
 
 const priorityClasses = {
@@ -17,6 +19,14 @@ const verificationClasses = {
 
 const formatLabel = (value = '') => String(value).replace(/_/g, ' ')
 
+const getAdminRequestConfig = () => {
+    const token = localStorage.getItem('token')
+    return {
+        withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+    }
+}
+
 const AdminLeadFinder = () => {
     const { loading, error, getLeadFinderLeads, runLeadFinder } = useAdmin()
     const [leads, setLeads] = useState([])
@@ -27,7 +37,12 @@ const AdminLeadFinder = () => {
         outputLanguage: 'english'
     })
     const [notice, setNotice] = useState('')
+    const [noticeType, setNoticeType] = useState('success')
+    const [clearingDevMock, setClearingDevMock] = useState(false)
     const [copiedId, setCopiedId] = useState('')
+    const isBusy = loading || clearingDevMock
+    const statusMessage = notice || error
+    const isStatusError = notice ? noticeType === 'error' : Boolean(error)
 
     useEffect(() => {
         loadLeads()
@@ -45,6 +60,7 @@ const AdminLeadFinder = () => {
     const handleSubmit = async (event) => {
         event.preventDefault()
         setNotice('')
+        setNoticeType('success')
 
         const result = await runLeadFinder({
             ...form,
@@ -53,8 +69,33 @@ const AdminLeadFinder = () => {
 
         if (!result) return
 
+        setNoticeType('success')
         setNotice(`${result.count || 0} leads saved from ${formatLabel(result.sourceType || 'lead finder')}.`)
         await loadLeads()
+    }
+
+    const handleClearDevMockLeads = async () => {
+        if (isBusy) return
+
+        const confirmed = window.confirm('Delete saved Lead Finder dev mock leads? Real leads will not be removed.')
+        if (!confirmed) return
+
+        setNotice('')
+        setNoticeType('success')
+        setClearingDevMock(true)
+
+        try {
+            const res = await axios.delete(`${API_URL}/api/admin/lead-finder/dev-mock`, getAdminRequestConfig())
+            const deletedCount = res.data?.deletedCount || 0
+            setNoticeType('success')
+            setNotice(`${deletedCount} dev mock lead${deletedCount === 1 ? '' : 's'} deleted.`)
+            await loadLeads()
+        } catch (err) {
+            setNoticeType('error')
+            setNotice(err.response?.data?.message || 'Failed to clear dev mock leads.')
+        } finally {
+            setClearingDevMock(false)
+        }
     }
 
     const handleCopyMessage = async (lead) => {
@@ -78,6 +119,7 @@ const AdminLeadFinder = () => {
             setCopiedId(lead._id)
             window.setTimeout(() => setCopiedId(''), 1500)
         } catch (err) {
+            setNoticeType('error')
             setNotice('Could not copy message.')
         }
     }
@@ -137,20 +179,20 @@ const AdminLeadFinder = () => {
                     </div>
                     <button
                         type='submit'
-                        disabled={loading}
+                        disabled={isBusy}
                         className='w-full sm:w-auto sm:flex-none px-4 py-2 rounded-xl bg-green-600 text-white text-sm font-semibold whitespace-nowrap hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed'
                     >
                         {loading ? 'Running...' : 'Run Search'}
                     </button>
                 </form>
 
-                {(error || notice) && (
+                {statusMessage && (
                     <div className={`mt-4 rounded-xl px-4 py-3 text-sm border ${
-                        error
+                        isStatusError
                             ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/20'
                             : 'bg-green-50 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-300 dark:border-green-500/20'
                     }`}>
-                        {error || notice}
+                        {statusMessage}
                     </div>
                 )}
             </div>
@@ -161,14 +203,24 @@ const AdminLeadFinder = () => {
                         <h2 className='text-sm font-bold text-gray-800 dark:text-white'>Lead Finder Results</h2>
                         <p className='text-xs text-gray-500 dark:text-white/35 mt-0.5'>{leads.length} saved leads</p>
                     </div>
-                    <button
-                        type='button'
-                        onClick={loadLeads}
-                        disabled={loading}
-                        className='flex-none px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 text-xs font-semibold text-gray-600 dark:text-white/50 hover:bg-gray-50 dark:hover:bg-white/5 disabled:opacity-60'
-                    >
-                        Refresh
-                    </button>
+                    <div className='flex flex-none flex-wrap justify-end gap-2'>
+                        <button
+                            type='button'
+                            onClick={handleClearDevMockLeads}
+                            disabled={isBusy}
+                            className='px-3 py-2 rounded-xl border border-red-200 bg-red-50 text-xs font-semibold text-red-700 hover:bg-red-100 disabled:opacity-60 disabled:cursor-not-allowed dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/15'
+                        >
+                            {clearingDevMock ? 'Clearing...' : 'Clear Dev Mock Leads'}
+                        </button>
+                        <button
+                            type='button'
+                            onClick={loadLeads}
+                            disabled={isBusy}
+                            className='px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 text-xs font-semibold text-gray-600 dark:text-white/50 hover:bg-gray-50 dark:hover:bg-white/5 disabled:opacity-60 disabled:cursor-not-allowed'
+                        >
+                            Refresh
+                        </button>
+                    </div>
                 </div>
 
                 <div className='min-w-0 max-w-full overflow-x-auto'>
