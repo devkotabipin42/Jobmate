@@ -23,6 +23,7 @@ import featuredCompanyRouter from './routes/Featuredcompany.routes.js'
 import contactRouter from './routes/Contact.routes.js'
 import opsRouter from './routes/ops.routes.js'
 import integrationRouter from './routes/integration.routes.js'
+import leadFinderRouter from './routes/leadFinder.routes.js'
 
 
 const app = express()
@@ -90,6 +91,7 @@ app.use('/api/admin/featured-companies', featuredCompanyRouter)
 app.use('/api/contact', contactRouter)
 app.use('/api/ops', opsRouter)
 app.use('/api/integrations', integrationRouter)
+app.use('/api/admin/lead-finder', leadFinderRouter)
 
 // Sentry error handler — MUST be after all routes
 

@@ -383,6 +383,48 @@ const getFollowUps = async () => {
     }
 }
 
+const getLeadFinderLeads = async (params = {}) => {
+    setLoading(true)
+    try {
+        const res = await axios.get(`${API_URL}/api/admin/lead-finder`, {
+            ...getAuthHeaders(),
+            params
+        })
+        return res.data
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed to fetch lead finder leads')
+        return { leads: [], count: 0 }
+    } finally {
+        setLoading(false)
+    }
+}
+
+const runLeadFinder = async (payload) => {
+    setLoading(true)
+    try {
+        const res = await axios.post(`${API_URL}/api/admin/lead-finder/run`, payload, getAuthHeaders())
+        return res.data
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed to run lead finder')
+        return null
+    } finally {
+        setLoading(false)
+    }
+}
+
+const updateLeadFinderStatus = async (id, payload) => {
+    setLoading(true)
+    try {
+        const res = await axios.patch(`${API_URL}/api/admin/lead-finder/${id}/status`, payload, getAuthHeaders())
+        return res.data.lead
+    } catch (err) {
+        setError(err.response?.data?.message || 'Failed to update lead status')
+        return null
+    } finally {
+        setLoading(false)
+    }
+}
+
 const createOpsTask = async (taskData) => {
     try {
         const res = await axios.post(`${API_URL}/api/ops/tasks`, taskData, getAuthHeaders())
@@ -490,14 +532,17 @@ const retryAaratiFollowUpLog = async (id) => {
     verifyDocument,
     getAllDocuments,
      resetDocument,
-        getContactRequests,
-        reviewContactRequest,
-        getJobSafetyReport,
-        getPlacements,
-        getFollowUps,
-createOpsTask,
-getOpsTeamMembers,
-sendAaratiFollowUp,
+    getContactRequests,
+    reviewContactRequest,
+    getJobSafetyReport,
+    getPlacements,
+    getFollowUps,
+    getLeadFinderLeads,
+    runLeadFinder,
+    updateLeadFinderStatus,
+	createOpsTask,
+	getOpsTeamMembers,
+	sendAaratiFollowUp,
 getAaratiFollowUpLogs,
 retryAaratiFollowUpLog,
 
