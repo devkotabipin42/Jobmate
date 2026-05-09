@@ -14,6 +14,7 @@ import AdminPostJob from './AdminPostJob.jsx'
 import AdminSafety from './AdminSafety.jsx'
 import AdminPlacements from './AdminPlacements.jsx'
 import AdminFollowUps from './AdminFollowUps.jsx'
+import AdminLeadFinder from './AdminLeadFinder.jsx'
 const COLORS = ['#22c55e', '#f59e0b', '#8b5cf6', '#3b82f6', '#ef4444']
 
 const sidebarItems = [
@@ -34,6 +35,7 @@ const sidebarItems = [
     { id: 'safety', label: 'Safety', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M12 2l7 4v6c0 5-3 9-7 10-4-1-7-5-7-10V6l7-4z'/><path d='M9 12l2 2 4-4'/></svg> },
     { id: 'placements', label: 'Placements', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M9 11l3 3L22 4'/><path d='M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'/></svg> },
     { id: 'followups', label: 'Follow-ups', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z'/><path d='M8 9h8'/><path d='M8 13h5'/></svg> },
+    { id: 'lead-finder', label: 'Lead Finder', icon: <svg className='w-4 h-4' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><circle cx='11' cy='11' r='7'/><path d='m21 21-4.3-4.3'/><path d='M11 8v6'/><path d='M8 11h6'/></svg> },
 ]
 
 const AdminPanel = () => {
@@ -451,6 +453,9 @@ const loadJobSafetyReport = async () => {
     onRetryAaratiLog={handleRetryAaratiLog}
 />
 )}
+                        {activeTab === 'lead-finder' && (
+                            <AdminLeadFinder />
+                        )}
                         {activeTab === 'safety' && (
     <AdminSafety
         report={jobSafetyReport}
