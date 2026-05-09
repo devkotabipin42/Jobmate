@@ -4,26 +4,133 @@ import LeadFinderLead from '../models/LeadFinderLead.model.js'
 const TAVILY_PROVIDER = 'tavily'
 const TAVILY_SEARCH_API_URL = 'https://api.tavily.com/search'
 const NEPAL_PHONE_REGEX = /(?:\+?977[\s().-]*)?(?:9[678](?:[\s().-]*\d){8}|0?7[1-5](?:[\s().-]*\d){6,7})/g
-const NON_BUSINESS_WEBSITE_HOSTS = [
-    'facebook.com',
-    'fb.com',
-    'instagram.com',
-    'linkedin.com',
-    'tiktok.com',
-    'twitter.com',
-    'x.com',
-    'youtube.com',
-    'youtu.be',
-    'google.com',
-    'bing.com',
-    'yahoo.com',
-    'tripadvisor.com',
-    'yelp.com',
-    'yellowpages.com.np',
-    'nepalyp.com',
-    'nepalyellowpages.com'
+const TITLE_NOISE_SEGMENTS = new Set([
+    'facebook',
+    'instagram',
+    'linkedin',
+    'youtube',
+    'tiktok',
+    'google',
+    'google maps',
+    'official website',
+    'official site',
+    'home',
+    'homepage',
+    'nepalyp',
+    'nepal yellow pages',
+    'yellow pages',
+    'yellowpages',
+    'nepalyellowpages',
+    'findglocal',
+    'tripadvisor',
+    'yelp',
+    'edusanjal',
+    'cybo',
+    'yelu',
+    'directory',
+    'business directory'
+])
+const GENERIC_COMPANY_NAME_WORDS = new Set([
+    'a',
+    'an',
+    'and',
+    'at',
+    'around',
+    'best',
+    'business',
+    'businesses',
+    'companies',
+    'company',
+    'contact',
+    'contacts',
+    'directory',
+    'directories',
+    'facebook',
+    'famous',
+    'find',
+    'finder',
+    'for',
+    'good',
+    'google',
+    'home',
+    'in',
+    'leading',
+    'list',
+    'listed',
+    'listing',
+    'lists',
+    'local',
+    'location',
+    'map',
+    'maps',
+    'near',
+    'nearby',
+    'nepal',
+    'nepali',
+    'number',
+    'numbers',
+    'of',
+    'official',
+    'open',
+    'option',
+    'options',
+    'phone',
+    'popular',
+    'rating',
+    'ratings',
+    'review',
+    'reviews',
+    'service',
+    'services',
+    'site',
+    'the',
+    'top',
+    'website',
+    'websites'
+])
+const GENERIC_BUSINESS_CATEGORY_WORDS = new Set([
+    'academy',
+    'academies',
+    'boarding',
+    'clinic',
+    'clinics',
+    'college',
+    'colleges',
+    'computer',
+    'consultancies',
+    'consultancy',
+    'cooperative',
+    'cooperatives',
+    'factory',
+    'factories',
+    'finance',
+    'hospital',
+    'hospitals',
+    'hotel',
+    'hotels',
+    'institute',
+    'institutes',
+    'photo',
+    'restaurant',
+    'restaurants',
+    'school',
+    'schools',
+    'showroom',
+    'showrooms',
+    'studio',
+    'studios',
+    'supermarket',
+    'supermarkets',
+    'video',
+    'workshop',
+    'workshops'
+])
+const GENERIC_NAME_PATTERNS = [
+    /^(?:\d+\s+)?(?:best|top|leading|popular|famous|good)\s+(?:\d+\s+)?(?:schools?|colleges?|consultanc(?:y|ies)|hotels?|restaurants?|clinics?|hospitals?|cooperatives?|finance|computer institutes?|showrooms?|supermarkets?|factories?|workshops?|photo studios?|video studios?|business(?:es)?|companies)\b/i,
+    /^(?:\d+\s+)?(?:schools?|colleges?|consultanc(?:y|ies)|hotels?|restaurants?|clinics?|hospitals?|cooperatives?|finance|computer institutes?|showrooms?|supermarkets?|factories?|workshops?|photo studios?|video studios?|business(?:es)?|companies)\s+(?:in|at|near|around)\b/i,
+    /^(?:list|lists|listing|directory|directories|finder)\s+(?:of|for)\b/i,
+    /\b(?:near me|contact number|phone number|reviews?|ratings?)$/i
 ]
-const NON_BUSINESS_HOST_PARTS = ['directory', 'yellowpages', 'tripadvisor', 'findglocal']
 
 const providerConfig = () => ({
     provider: String(process.env.LEAD_FINDER_PROVIDER || '').trim().toLowerCase(),
@@ -86,15 +193,110 @@ const escapeRegex = (value = '') => String(value).replace(/[.*+?^${}()|[\]\\]/g,
 
 const cleanString = (value) => typeof value === 'string' ? value.trim() : ''
 
-const deriveCompanyNameFromTitle = (title = '') => {
+const tokenizeNormalizedName = (value = '') => normalizeCompanyName(value).split(' ').filter(Boolean)
+
+const hasMostlyHashtags = (value = '') => {
+    const tokens = cleanString(value).split(/\s+/).filter(Boolean)
+    if (!tokens.length) return false
+
+    const hashtagTokens = tokens.filter(token => token.startsWith('#'))
+    return hashtagTokens.length > 0 && hashtagTokens.length / tokens.length >= 0.5
+}
+
+const isTitleNoiseSegment = (value = '') => {
+    const normalized = normalizeCompanyName(value)
+    if (!normalized) return true
+    if (TITLE_NOISE_SEGMENTS.has(normalized)) return true
+
+    return [
+        'yellow pages',
+        'business directory',
+        'google maps',
+        'official website'
+    ].some(phrase => normalized.includes(phrase))
+}
+
+const stripTrailingLocation = (value = '', city = '') => {
+    let cleaned = cleanString(value)
+    const cityText = cleanString(city)
+
+    if (cityText) {
+        const cityPattern = escapeRegex(cityText).replace(/\s+/g, '\\s+')
+        cleaned = cleaned
+            .replace(new RegExp(`\\s+(?:in|at|near|around)\\s+${cityPattern}(?:\\s*,?\\s*(?:nepal|np))?$`, 'i'), '')
+            .replace(new RegExp(`\\s*[-,()]\\s*${cityPattern}(?:\\s*,?\\s*(?:nepal|np))?\\)?$`, 'i'), '')
+    }
+
+    return cleaned
+        .replace(/\s*[-,(]\s*(?:nepal|np)\)?$/i, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+}
+
+const cleanCompanyNameCandidate = (value = '', { city } = {}) => {
+    let cleaned = cleanString(value)
+        .replace(/\s+/g, ' ')
+        .replace(/^[\s"'`]+|[\s"'`.]+$/g, '')
+        .replace(/^(?:official\s+(?:website|site)\s+(?:of|for)|welcome\s+to)\s+/i, '')
+        .replace(/^\d+[.)]\s+/, '')
+        .replace(/\s+\([^)]*(?:official|facebook|instagram|reviews?|ratings?|contact|phone|address|maps?)[^)]*\)$/i, '')
+        .replace(/\b(?:official\s+(?:website|site)|facebook|instagram|linkedin|youtube|tiktok|google\s+maps?|reviews?|ratings?|contact(?:\s+number)?|phone(?:\s+number)?|address|photos?|menu)\b\.?$/i, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+
+    cleaned = stripTrailingLocation(cleaned, city)
+
+    return cleaned.replace(/[|:,-]+$/g, '').trim()
+}
+
+const isGenericCompanyName = (value = '', { city, sector } = {}) => {
+    const cleaned = cleanString(value)
+    if (!cleaned) return true
+    if (GENERIC_NAME_PATTERNS.some(pattern => pattern.test(cleaned))) return true
+
+    const cityWords = new Set(tokenizeNormalizedName(city))
+    const sectorWords = new Set(tokenizeNormalizedName(sector))
+    const meaningfulWords = tokenizeNormalizedName(cleaned).filter(word => (
+        !/^\d+$/.test(word)
+        && !cityWords.has(word)
+        && !sectorWords.has(word)
+        && !GENERIC_COMPANY_NAME_WORDS.has(word)
+        && !GENERIC_BUSINESS_CATEGORY_WORDS.has(word)
+    ))
+
+    return meaningfulWords.length === 0
+}
+
+const isBadTavilyCompanyName = (value = '', context = {}) => {
+    const cleaned = cleanString(value)
+    if (!cleaned) return true
+    if (cleaned.startsWith('#')) return true
+    if (hasMostlyHashtags(cleaned)) return true
+    if (cleaned.replace(/[^a-z0-9]/gi, '').length < 3) return true
+    if (isTitleNoiseSegment(cleaned)) return true
+    return isGenericCompanyName(cleaned, context)
+}
+
+const deriveCompanyNameFromTitle = (title = '', context = {}) => {
     const cleaned = cleanString(title).replace(/\s+/g, ' ')
     if (!cleaned) return ''
 
-    const [companyPart] = cleaned.split(/\s+(?:-|:|\||\u2013|\u2014)\s+/)
-    return cleanString(companyPart)
-        .replace(/\b(?:official\s+website|facebook|instagram|linkedin|youtube|tiktok)\b$/i, '')
-        .replace(/\s+/g, ' ')
-        .trim() || cleaned
+    const segments = cleaned
+        .split(/\s*(?:\||\u2013|\u2014)\s*|\s+-\s+|:\s+/)
+        .map(segment => cleanCompanyNameCandidate(segment, context))
+        .filter(Boolean)
+
+    const candidates = [...segments, cleanCompanyNameCandidate(cleaned, context)]
+    const seen = new Set()
+
+    for (const candidate of candidates) {
+        const key = normalizeCompanyName(candidate)
+        if (!key || seen.has(key)) continue
+        seen.add(key)
+        if (!isBadTavilyCompanyName(candidate, context)) return candidate
+    }
+
+    return ''
 }
 
 const extractNepalPhone = (value = '') => {
@@ -108,28 +310,6 @@ const extractNepalPhone = (value = '') => {
     }
 
     return null
-}
-
-const isLikelyBusinessWebsite = (value = '') => {
-    const url = cleanString(value)
-    if (!url) return false
-
-    try {
-        const parsed = new URL(url)
-        if (!['http:', 'https:'].includes(parsed.protocol)) return false
-
-        const host = parsed.hostname.toLowerCase().replace(/^www\./, '')
-        if (!host) return false
-
-        const isKnownNonBusinessHost = NON_BUSINESS_WEBSITE_HOSTS.some(domain => (
-            host === domain || host.endsWith(`.${domain}`)
-        ))
-        if (isKnownNonBusinessHost) return false
-
-        return !NON_BUSINESS_HOST_PARTS.some(part => host.includes(part))
-    } catch {
-        return false
-    }
 }
 
 const clampScore = (value) => Math.max(0, Math.min(100, Number(value) || 0))
@@ -227,7 +407,7 @@ const fetchTavilyLeads = async ({ city, sector, count }) => {
             Authorization: `Bearer ${config.tavilyApiKey}`
         },
         body: JSON.stringify({
-            query: `${city} ${sector} businesses Nepal phone Facebook`,
+            query: `${sector} in ${city}, Nepal contact phone Facebook`,
             max_results: count,
             search_depth: 'basic',
             include_answer: false,
@@ -244,30 +424,37 @@ const fetchTavilyLeads = async ({ city, sector, count }) => {
     const data = await response.json()
     const results = Array.isArray(data?.results) ? data.results : []
 
-    return results.slice(0, count).map(result => {
+    const leads = []
+
+    for (const result of results) {
         const title = cleanString(result.title)
         const sourceUrl = cleanString(result.url)
+        if (!sourceUrl) continue
+
+        const company = deriveCompanyNameFromTitle(title, { city, sector })
+        if (isBadTavilyCompanyName(company, { city, sector })) continue
+
         const evidenceText = cleanString(result.content) || title
         const phone = extractNepalPhone(result.content)
-        const website = isLikelyBusinessWebsite(sourceUrl) ? sourceUrl : ''
-        const company = deriveCompanyNameFromTitle(title)
 
-        return {
+        leads.push({
             company,
             companyName: company,
             city,
             sector,
             phone,
             address: '',
-            website,
+            website: '',
             facebookUrl: '',
             source: 'tavily',
             sourceUrl,
             evidenceText,
             sourceType: 'external',
-            score: phone || website ? 55 : 40
-        }
-    })
+            score: phone ? 55 : 40
+        })
+    }
+
+    return leads.slice(0, count)
 }
 
 const buildLeadDocument = async ({ rawLead, requestData, req, batchDuplicates }) => {
