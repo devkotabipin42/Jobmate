@@ -3,7 +3,46 @@ import LeadFinderLead from '../models/LeadFinderLead.model.js'
 
 const TAVILY_PROVIDER = 'tavily'
 const TAVILY_SEARCH_API_URL = 'https://api.tavily.com/search'
-const NEPAL_PHONE_REGEX = /(?:\+?977[\s().-]*)?(?:9[678](?:[\s().-]*\d){8}|0?7[1-5](?:[\s().-]*\d){6,7})/g
+const PHONE_CANDIDATE_REGEX = /\+?\d[\d\s-]{6,}\d/g
+const SCHOOL_SECTOR_NAME_KEYWORDS = new Set([
+    'school',
+    'college',
+    'academy',
+    'institute',
+    'campus',
+    'boarding'
+])
+const GENERIC_SCHOOL_NAME_PATTERNS = [
+    /^(?:public|best|top)\s+schools?\s+(?:in|at|near|around)\b/i
+]
+const TAVILY_RESULT_NOISE_TERMS = [
+    'Allentown',
+    'Pennsylvania',
+    'United States',
+    'USA',
+    'U.S.',
+    'County',
+    'crisis',
+    'children drops',
+    'Wikipedia',
+    'news',
+    'list of',
+    'best school in'
+]
+const CITY_ALIAS_GROUPS = [
+    ['kathmandu', 'ktm', 'kantipur'],
+    ['lalitpur', 'patan'],
+    ['bhaktapur', 'bhadgaon'],
+    ['pokhara', 'pokhara metropolitan city'],
+    ['birgunj', 'birganj'],
+    ['nepalgunj', 'nepalganj'],
+    ['janakpur', 'janakpurdham'],
+    ['hetauda', 'hetdaunda'],
+    ['birtamod', 'birtamode'],
+    ['dhangadhi', 'dhangadi'],
+    ['butwal', 'butwal sub-metropolitan city'],
+    ['bharatpur', 'bharatpur metropolitan city']
+]
 const TITLE_NOISE_SEGMENTS = new Set([
     'facebook',
     'instagram',
@@ -168,11 +207,127 @@ const normalizeCity = (value = '') => {
     return normalized || String(value).trim().toLowerCase()
 }
 
+const normalizeSearchableText = (value = '') => {
+    let text = String(value).toLowerCase()
+
+    try {
+        text = decodeURIComponent(text)
+    } catch {
+        // Keep the original text when a URL contains a malformed escape sequence.
+    }
+
+    return text
+        .replace(/&/g, ' and ')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+}
+
+const containsNormalizedPhrase = (normalizedText = '', normalizedPhrase = '') => {
+    if (!normalizedText || !normalizedPhrase) return false
+    return ` ${normalizedText} `.includes(` ${normalizedPhrase} `)
+}
+
+const getCityAliases = (city = '') => {
+    const normalizedCity = normalizeCity(city)
+    const cityWithoutCountry = normalizeCity(normalizedCity.replace(/\b(?:nepal|np)\b/g, ' '))
+    const compactCity = normalizedCity.replace(/\s+/g, '')
+    const compactCityWithoutCountry = cityWithoutCountry.replace(/\s+/g, '')
+    const aliases = new Set()
+
+    if (normalizedCity) aliases.add(normalizedCity)
+    if (cityWithoutCountry && cityWithoutCountry !== normalizedCity) aliases.add(cityWithoutCountry)
+    if (compactCity.length >= 4 && compactCity !== normalizedCity) aliases.add(compactCity)
+    if (compactCityWithoutCountry.length >= 4 && compactCityWithoutCountry !== cityWithoutCountry) aliases.add(compactCityWithoutCountry)
+
+    for (const group of CITY_ALIAS_GROUPS) {
+        const normalizedGroup = group.map(alias => normalizeCity(alias))
+        if (
+            !normalizedGroup.includes(normalizedCity)
+            && !normalizedGroup.includes(cityWithoutCountry)
+            && !normalizedGroup.includes(compactCity)
+            && !normalizedGroup.includes(compactCityWithoutCountry)
+        ) continue
+
+        normalizedGroup.forEach(alias => {
+            if (alias.length >= 3) aliases.add(alias)
+            const compactAlias = alias.replace(/\s+/g, '')
+            if (compactAlias.length >= 4 && compactAlias !== alias) aliases.add(compactAlias)
+        })
+    }
+
+    return [...aliases]
+}
+
+const tavilyResultText = ({ title = '', content = '', url = '' } = {}) => [title, content, url].join(' ')
+
+const hasTavilyNoiseTerm = (result = {}) => {
+    const rawText = tavilyResultText(result).toLowerCase()
+    const normalizedText = normalizeSearchableText(rawText)
+
+    return TAVILY_RESULT_NOISE_TERMS.some(term => {
+        const rawTerm = String(term).toLowerCase()
+        if (rawTerm.includes('.') && rawText.includes(rawTerm)) return true
+
+        return containsNormalizedPhrase(normalizedText, normalizeSearchableText(term))
+    })
+}
+
+const hasSubmittedCityOrAlias = (result = {}, city = '') => {
+    const normalizedText = normalizeSearchableText(tavilyResultText(result))
+    return getCityAliases(city).some(alias => containsNormalizedPhrase(normalizedText, alias))
+}
+
+const isLocallyRelevantTavilyResult = (result = {}, city = '') => (
+    hasSubmittedCityOrAlias(result, city) && !hasTavilyNoiseTerm(result)
+)
+
+const normalizeSectorCategory = (sector = '') => {
+    const normalizedSector = normalizeCity(sector)
+
+    if (/\b(?:hotels?|restaurants?)\b/.test(normalizedSector)) return 'hotel_restaurant'
+    if (/\b(?:schools?|colleges?|academ(?:y|ies)|institutes?|campus|boarding)\b/.test(normalizedSector)) return 'school_college'
+    if (/\b(?:clinics?|hospitals?)\b/.test(normalizedSector)) return 'clinic_hospital'
+    if (/\b(?:consultanc(?:y|ies)|consultants?)\b/.test(normalizedSector)) return 'consultancy'
+    if (/\b(?:cooperatives?|finance|financial|sahakari)\b/.test(normalizedSector)) return 'cooperative_finance'
+
+    return 'default'
+}
+
+const isSchoolSector = (sector = '') => normalizeSectorCategory(sector) === 'school_college'
+
+const buildTavilyQuery = ({ city = '', sector = '' } = {}) => {
+    const cityText = cleanString(city)
+    const sectorText = cleanString(sector)
+
+    switch (normalizeSectorCategory(sectorText)) {
+        case 'hotel_restaurant':
+            return `${cityText} Nepal hotel restaurant contact phone Facebook`
+        case 'school_college':
+            return `${cityText} Nepal school college contact phone Facebook`
+        case 'clinic_hospital':
+            return `${cityText} Nepal clinic hospital contact phone Facebook`
+        case 'consultancy':
+            return `${cityText} Nepal education consultancy contact phone Facebook`
+        case 'cooperative_finance':
+            return `${cityText} Nepal cooperative finance contact phone`
+        default:
+            return `${cityText} Nepal ${sectorText} contact phone Facebook`
+    }
+}
+
 const normalizeNepalPhone = (phone = '') => {
-    const digits = String(phone).replace(/\D/g, '')
-    if (!digits) return ''
-    if (digits.startsWith('977')) return digits.slice(3)
-    return digits
+    const compact = String(phone).trim().replace(/[\s-]+/g, '')
+    if (!compact) return ''
+
+    let digits = compact.replace(/^\+/, '')
+    if (!/^\d+$/.test(digits)) return ''
+    if (digits.startsWith('977') && digits.length > 10) digits = digits.slice(3)
+
+    if (/^9[678]\d{8}$/.test(digits)) return digits
+    if (/^0?7[1-5]\d{6,7}$/.test(digits)) return digits
+
+    return ''
 }
 
 const classifyNepalPhone = (phone = '') => {
@@ -186,7 +341,7 @@ const classifyNepalPhone = (phone = '') => {
         return { phone: normalized, phoneType: 'landline', whatsappPossible: false }
     }
 
-    return { phone: normalized, phoneType: 'unknown', whatsappPossible: false }
+    return { phone: '', phoneType: 'unknown', whatsappPossible: false }
 }
 
 const escapeRegex = (value = '') => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -194,6 +349,24 @@ const escapeRegex = (value = '') => String(value).replace(/[.*+?^${}()|[\]\\]/g,
 const cleanString = (value) => typeof value === 'string' ? value.trim() : ''
 
 const tokenizeNormalizedName = (value = '') => normalizeCompanyName(value).split(' ').filter(Boolean)
+
+const isSchoolNameKeyword = (word = '') => (
+    SCHOOL_SECTOR_NAME_KEYWORDS.has(word)
+    || word === 'schools'
+    || word === 'colleges'
+    || word === 'academies'
+    || word === 'institutes'
+    || word === 'campuses'
+)
+
+const hasSchoolNameKeyword = (value = '') => tokenizeNormalizedName(value).some(isSchoolNameKeyword)
+
+const isBadSchoolCompanyName = (value = '') => {
+    const cleaned = cleanString(value)
+    if (!cleaned) return true
+    if (GENERIC_SCHOOL_NAME_PATTERNS.some(pattern => pattern.test(cleaned))) return true
+    return !hasSchoolNameKeyword(cleaned)
+}
 
 const hasMostlyHashtags = (value = '') => {
     const tokens = cleanString(value).split(/\s+/).filter(Boolean)
@@ -274,6 +447,7 @@ const isBadTavilyCompanyName = (value = '', context = {}) => {
     if (hasMostlyHashtags(cleaned)) return true
     if (cleaned.replace(/[^a-z0-9]/gi, '').length < 3) return true
     if (isTitleNoiseSegment(cleaned)) return true
+    if (isSchoolSector(context.sector) && isBadSchoolCompanyName(cleaned)) return true
     return isGenericCompanyName(cleaned, context)
 }
 
@@ -303,7 +477,7 @@ const extractNepalPhone = (value = '') => {
     const text = cleanString(value)
     if (!text) return null
 
-    const matches = text.match(NEPAL_PHONE_REGEX) || []
+    const matches = text.match(PHONE_CANDIDATE_REGEX) || []
     for (const match of matches) {
         const phoneInfo = classifyNepalPhone(match)
         if (phoneInfo.phoneType !== 'unknown') return phoneInfo.phone
@@ -407,7 +581,7 @@ const fetchTavilyLeads = async ({ city, sector, count }) => {
             Authorization: `Bearer ${config.tavilyApiKey}`
         },
         body: JSON.stringify({
-            query: `${sector} in ${city}, Nepal contact phone Facebook`,
+            query: buildTavilyQuery({ city, sector }),
             max_results: count,
             search_depth: 'basic',
             include_answer: false,
@@ -428,14 +602,16 @@ const fetchTavilyLeads = async ({ city, sector, count }) => {
 
     for (const result of results) {
         const title = cleanString(result.title)
+        const content = cleanString(result.content)
         const sourceUrl = cleanString(result.url)
         if (!sourceUrl) continue
+        if (!isLocallyRelevantTavilyResult({ title, content, url: sourceUrl }, city)) continue
 
         const company = deriveCompanyNameFromTitle(title, { city, sector })
         if (isBadTavilyCompanyName(company, { city, sector })) continue
 
-        const evidenceText = cleanString(result.content) || title
-        const phone = extractNepalPhone(result.content)
+        const evidenceText = content || title
+        const phone = extractNepalPhone(content)
 
         leads.push({
             company,
@@ -464,7 +640,7 @@ const buildLeadDocument = async ({ rawLead, requestData, req, batchDuplicates })
     const normalizedCompany = normalizeCompanyName(company)
     const normalizedCity = normalizeCity(city)
     const phoneInfo = classifyNepalPhone(rawLead.phone)
-    const score = calculateScore({ ...rawLead, company })
+    const score = calculateScore({ ...rawLead, company, phone: phoneInfo.phone })
     const existingDuplicate = normalizedCompany && normalizedCity
         ? await LeadFinderLead.findOne({ normalizedCompany, normalizedCity }).select('_id')
         : null
