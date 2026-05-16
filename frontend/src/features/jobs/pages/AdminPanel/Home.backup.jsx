@@ -181,9 +181,9 @@ const scrollStyle = `
             <motion.h1 ref={titleRef} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
               className='font-extrabold leading-[1.0] mb-5 tracking-tight text-gray-900 dark:text-white'
               style={{ fontSize: 'clamp(42px, 6vw, 68px)' }}>
-              Find Local Jobs<br />
-              <span className='text-green-600 dark:text-green-400'>& Hire Staff</span><br />
-              in Lumbini Pradesh
+              Find Your<br />
+              <span className='text-green-600 dark:text-green-400'>Dream Job</span><br />
+              in Nepal
             </motion.h1>
 
             <motion.p ref={subtitleRef} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}
@@ -209,7 +209,7 @@ const scrollStyle = `
                   <svg className='w-3.5 h-3.5 text-gray-400 dark:text-white/25 shrink-0' fill='none' stroke='currentColor' strokeWidth='2' viewBox='0 0 24 24'><path d='M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z'/><circle cx='12' cy='10' r='3'/></svg>
                   <select value={searchLocation} onChange={e => setSearchLocation(e.target.value)}
                     className='bg-transparent outline-none text-sm text-gray-500 dark:text-white/45 cursor-pointer min-w-[110px]'>
-                    <option value=''>Lumbini Pradesh</option>
+                    <option value=''>All Nepal</option>
                    {lumbiniLocationOptions
   .filter(option => option.value)
   .map(option => (
@@ -258,7 +258,7 @@ const scrollStyle = `
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
               className='flex items-center gap-2 flex-wrap justify-center lg:justify-start'>
               <span className='text-xs text-gray-400 dark:text-white/30'>Trending:</span>
-              {['Hospitality, Agriculture, Education, Transport, Manufacturing, Tourism'].map((tag, i) => (
+              {['IT/Tech', 'Banking', 'NGO/INGO', 'Remote', 'Healthcare'].map((tag, i) => (
                 <motion.span key={i} whileHover={{ scale: 1.05 }} onClick={() => navigate(`/jobs?keyword=${tag}`)}
                   className='bg-gray-100 dark:bg-white/4 border border-gray-200 dark:border-white/8 hover:border-green-400 dark:hover:border-green-500/40 hover:text-green-600 dark:hover:text-green-400 text-gray-500 dark:text-white/45 px-3 py-1 rounded-full text-xs cursor-pointer transition-all'>
                   {tag}
